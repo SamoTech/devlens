@@ -1,0 +1,61 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to create (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      floating_tag:
+        description: 'Floating major tag (e.g. v1)'
+        required: true
+        default: 'v1'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create and push tags
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create versioned tag
+          git tag -a "${{ github.event.inputs.tag }}" \
+            -m "Release ${{ github.event.inputs.tag }}"
+          git push origin "${{ github.event.inputs.tag }}"
+
+          # Create / force-update floating major tag
+          git tag -fa "${{ github.event.inputs.floating_tag }}" \
+            -m "Floating tag ${{ github.event.inputs.floating_tag }} → ${{ github.event.inputs.tag }}"
+          git push origin "${{ github.event.inputs.floating_tag }}" --force
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          name: "DevLens ${{ github.event.inputs.tag }}"
+          body: |
+            ## 🚀 DevLens ${{ github.event.inputs.tag }}
+
+            ### What’s included
+            - Repository health scoring across 7 dimensions
+            - Auto-inject live badge into README on every push
+            - Weekly digest workflow
+            - Zero-config setup
+
+            ### Usage
+            ```yaml
+            - uses: samotech/devlens@v1
+            ```
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
