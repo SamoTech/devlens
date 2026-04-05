@@ -16,8 +16,9 @@ and sends a weekly dev analytics digest — 100% free, forever.**
 
 <!-- DEVLENS:START -->
 ## Repo Health
-![DevLens Health](https://img.shields.io/badge/DevLens%20Health-64%2F100-green?style=flat-square&logo=github)
-The overall health of this repository is 64%.
+![DevLens Health](https://img.shields.io/badge/DevLens%20Health-70%2F100-green?style=flat-square&logo=github)
+This project currently has a health score of 70 out of 100. 
+Read the full repo health report for more information.
 <!-- DEVLENS:END -->
 
 ---
