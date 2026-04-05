@@ -1,0 +1,19 @@
+name: DevLens Health Check
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+permissions:
+  contents: write
+jobs:
+  devlens:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: SamoTech/devlens@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          groq_api_key: ${{ secrets.GROQ_API_KEY }}
+          badge_style: flat-square
+          update_readme: 'true'

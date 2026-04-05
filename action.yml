@@ -1,0 +1,53 @@
+name: 'DevLens'
+description: 'Auto health score, AI README update, and dev analytics badge for your repo'
+author: 'SamoTech'
+branding:
+  icon: 'activity'
+  color: 'green'
+inputs:
+  github_token:
+    description: 'GitHub token'
+    required: true
+  groq_api_key:
+    description: 'Groq API key (free tier) for AI README insights'
+    required: false
+    default: ''
+  badge_style:
+    description: 'flat | flat-square | for-the-badge'
+    required: false
+    default: 'flat'
+  update_readme:
+    description: 'Auto-inject health badge into README'
+    required: false
+    default: 'true'
+  notify_discord:
+    description: 'Discord webhook for weekly digest'
+    required: false
+    default: ''
+outputs:
+  health_score:
+    description: 'Repo health score 0-100'
+  badge_url:
+    description: 'shields.io badge URL'
+  report_json:
+    description: 'Full JSON report'
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install dependencies
+      shell: bash
+      run: pip install requests PyGithub python-dateutil --quiet
+    - name: Run DevLens analysis
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        GROQ_API_KEY: ${{ inputs.groq_api_key }}
+        BADGE_STYLE: ${{ inputs.badge_style }}
+        UPDATE_README: ${{ inputs.update_readme }}
+        DISCORD_WEBHOOK: ${{ inputs.notify_discord }}
+        REPO: ${{ github.repository }}
+      run: python ${{ github.action_path }}/scripts/devlens.py

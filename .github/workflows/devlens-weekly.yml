@@ -1,0 +1,19 @@
+name: DevLens Weekly Digest
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: SamoTech/devlens@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          groq_api_key: ${{ secrets.GROQ_API_KEY }}
+          notify_discord: ${{ secrets.DISCORD_WEBHOOK }}
+          update_readme: 'true'
+          badge_style: for-the-badge
