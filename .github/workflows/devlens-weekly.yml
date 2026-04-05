@@ -1,15 +1,21 @@
 name: DevLens Weekly Digest
+
 on:
   schedule:
     - cron: '0 8 * * 1'
   workflow_dispatch:
+
 permissions:
   contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   weekly:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - uses: SamoTech/devlens@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
