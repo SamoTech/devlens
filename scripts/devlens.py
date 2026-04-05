@@ -116,7 +116,7 @@ def ai_section():
     resp = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization":f"Bearer {GROQ_API_KEY}","Content-Type":"application/json"},
-        json={"model":"llama3-8b-8192",
+        json={"model":"llama-3.1-8b-instant",
               "messages":[{"role":"user","content":
               f"Write a 3-line ## Repo Health README section. Include badge: ![DevLens Health]({badge_url}) and 1-sentence summary. Data: {json.dumps(report)}. Output ONLY markdown."}],
               "max_tokens":200})
