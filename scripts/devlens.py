@@ -6,6 +6,7 @@ from github import Github, Auth
 
 GITHUB_TOKEN  = os.environ["GITHUB_TOKEN"]
 GROQ_API_KEY  = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL    = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
 BADGE_STYLE   = os.environ.get("BADGE_STYLE", "flat")
 UPDATE_README = os.environ.get("UPDATE_README", "true").lower() == "true"
 DISCORD_WH    = os.environ.get("DISCORD_WEBHOOK", "")
@@ -116,12 +117,13 @@ def ai_section():
     resp = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization":f"Bearer {GROQ_API_KEY}","Content-Type":"application/json"},
-        json={"model":"llama-3.1-8b-instant",
+        json={"model": GROQ_MODEL,
               "messages":[{"role":"user","content":
               f"Write a 3-line ## Repo Health README section. Include badge: ![DevLens Health]({badge_url}) and 1-sentence summary. Data: {json.dumps(report)}. Output ONLY markdown."}],
               "max_tokens":200})
     if resp.status_code == 200:
         return resp.json()["choices"][0]["message"]["content"].strip()
+    print(f"Groq error ({resp.status_code}): {resp.text}")
     return None
 
 if UPDATE_README:

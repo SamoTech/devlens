@@ -12,6 +12,10 @@ inputs:
     description: 'Groq API key (free tier) for AI README insights'
     required: false
     default: ''
+  groq_model:
+    description: 'Groq model to use for AI insights (must be enabled in your Groq project)'
+    required: false
+    default: 'llama-3.1-8b-instant'
   badge_style:
     description: 'flat | flat-square | for-the-badge'
     required: false
@@ -46,6 +50,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
         GROQ_API_KEY: ${{ inputs.groq_api_key }}
+        GROQ_MODEL: ${{ inputs.groq_model }}
         BADGE_STYLE: ${{ inputs.badge_style }}
         UPDATE_README: ${{ inputs.update_readme }}
         DISCORD_WEBHOOK: ${{ inputs.notify_discord }}
