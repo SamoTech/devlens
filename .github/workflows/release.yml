@@ -12,17 +12,21 @@ on:
         required: true
         default: 'v1'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
 
       - name: Create and push tags
+        shell: bash
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -34,18 +38,18 @@ jobs:
 
           # Create / force-update floating major tag
           git tag -fa "${{ github.event.inputs.floating_tag }}" \
-            -m "Floating tag ${{ github.event.inputs.floating_tag }} → ${{ github.event.inputs.tag }}"
+            -m "Floating tag ${{ github.event.inputs.floating_tag }} -> ${{ github.event.inputs.tag }}"
           git push origin "${{ github.event.inputs.floating_tag }}" --force
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: ${{ github.event.inputs.tag }}
           name: "DevLens ${{ github.event.inputs.tag }}"
           body: |
             ## 🚀 DevLens ${{ github.event.inputs.tag }}
 
-            ### What’s included
+            ### What's included
             - Repository health scoring across 7 dimensions
             - Auto-inject live badge into README on every push
             - Weekly digest workflow
