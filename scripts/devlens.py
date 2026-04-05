@@ -2,7 +2,7 @@
 """DevLens - Core Analysis Engine"""
 import os, json, re, math, requests
 from datetime import datetime, timezone
-from github import Github
+from github import Github, Auth
 
 GITHUB_TOKEN  = os.environ["GITHUB_TOKEN"]
 GROQ_API_KEY  = os.environ.get("GROQ_API_KEY", "")
@@ -11,7 +11,7 @@ UPDATE_README = os.environ.get("UPDATE_README", "true").lower() == "true"
 DISCORD_WH    = os.environ.get("DISCORD_WEBHOOK", "")
 REPO_NAME     = os.environ.get("REPO", "")
 
-g    = Github(GITHUB_TOKEN)
+g    = Github(auth=Auth.Token(GITHUB_TOKEN))
 repo = g.get_repo(REPO_NAME)
 now  = datetime.now(timezone.utc)
 
