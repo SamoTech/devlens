@@ -15,6 +15,9 @@ and sends a weekly dev analytics digest — 100% free, forever.**
 </div>
 
 <!-- DEVLENS:START -->
+## Repo Health
+![DevLens Health](https://img.shields.io/badge/DevLens%20Health-64%2F100-green?style=flat-square&logo=github)
+The overall health of this repository is 64%.
 <!-- DEVLENS:END -->
 
 ---
