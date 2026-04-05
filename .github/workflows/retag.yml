@@ -1,0 +1,36 @@
+name: Retag v1
+
+on:
+  push:
+    paths:
+      - '.github/workflows/retag.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  retag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Move v1 tag and create v1.0.3
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Delete existing v1 tag remotely
+          git push origin :refs/tags/v1 || true
+
+          # Re-create v1 at current HEAD
+          git tag -f v1 HEAD
+          git push origin v1
+
+          # Create v1.0.3 at current HEAD
+          git tag -f v1.0.3 HEAD
+          git push origin v1.0.3
+
+          echo "✅ v1 and v1.0.3 now point to $(git rev-parse HEAD)"
