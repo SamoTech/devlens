@@ -3,14 +3,14 @@
 <img src="https://img.shields.io/badge/DevLens-Repo%20Intelligence-brightgreen?style=for-the-badge&logo=github" alt="DevLens"/>
 <img src="https://img.shields.io/github/license/SamoTech/devlens?style=for-the-badge" alt="License"/>
 <img src="https://img.shields.io/github/stars/SamoTech/devlens?style=for-the-badge" alt="Stars"/>
-<img src="https://img.shields.io/badge/Free%20Forever-$0-blue?style=for-the-badge" alt="Free"/>
+<img src="https://img.shields.io/badge/Free%20Forever-$0-blue?style=for-the-badge" alt="Free Forever"/>
 
 # 🔭 DevLens
 
 **The GitHub Action that gives your repo a health score, auto-updates your README,  
-and sends a weekly dev analytics digest — 100% free, zero infrastructure.**
+and sends a weekly dev analytics digest — 100% free, forever.**
 
-[Install in 30s](#-quick-start) · [Live Demo](https://samotech.github.io/devlens) · [Sponsor](https://github.com/sponsors/SamoTech)
+[Install in 30s](#-quick-start) · [Live Demo](https://samotech.github.io/devlens) · [💛 Sponsor](https://github.com/sponsors/SamoTech)
 
 </div>
 
@@ -97,22 +97,7 @@ On the next push, DevLens will:
 |---|---|
 | `health_score` | Integer 0–100 |
 | `badge_url` | Ready-to-embed shields.io URL |
-| `report_json` | Full JSON all dimension scores |
-
----
-
-## 💰 Free vs Pro
-
-| | Free | Pro (coming soon) |
-|---|---|---|
-| Repos | Unlimited | Unlimited |
-| Health Score | ✅ | ✅ + trend history |
-| AI README | ✅ | ✅ + full rewrite |
-| Digest | Discord | Email + Slack + Discord |
-| Dashboard | ❌ | ✅ Web dashboard |
-| Price | **$0** | **$5/month** |
-
-→ [Join Pro waitlist](https://samotech.github.io/devlens) · [Sponsor](https://github.com/sponsors/SamoTech)
+| `report_json` | Full JSON of all dimension scores |
 
 ---
 
@@ -131,6 +116,19 @@ On the next push, DevLens will:
 
 ---
 
+## 💛 Sponsor DevLens
+
+DevLens is — and always will be — **completely free**. No trials. No paywalls. No "Pro" tier.
+
+If DevLens saves you time, helps your team, or just makes your repos look sharp —  
+and you want to say thanks — a sponsorship means the world and keeps this project alive.
+
+> No pressure. No subscription. Just love. 🙏
+
+**[→ Sponsor on GitHub](https://github.com/sponsors/SamoTech)**
+
+---
+
 ## 🤝 Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). PRs welcome!
@@ -145,5 +143,5 @@ MIT © [SamoTech](https://github.com/SamoTech)
 
 <div align="center">
   <sub>Built with GitHub Actions + Groq + ☕ by SamoTech<br/>
-  If DevLens helped you, <a href="https://github.com/sponsors/SamoTech">consider sponsoring</a> to keep it free.</sub>
+  Free forever. If it helped you, <a href="https://github.com/sponsors/SamoTech">a small sponsorship</a> keeps the lights on. 💛</sub>
 </div>
