@@ -14,6 +14,9 @@ and sends a weekly dev analytics digest — 100% free, forever.**
 
 </div>
 
+<!-- DEVLENS:START -->
+<!-- DEVLENS:END -->
+
 ---
 
 ## ✨ What DevLens Does
@@ -71,6 +74,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           groq_api_key: ${{ secrets.GROQ_API_KEY }}    # optional — free at console.groq.com
+          groq_model: 'llama-3.1-8b-instant'           # optional — override Groq model
           notify_discord: ${{ secrets.DISCORD_WEBHOOK }} # optional
 ```
 
@@ -87,6 +91,7 @@ On the next push, DevLens will:
 |---|---|---|---|
 | `github_token` | ✅ | — | `${{ secrets.GITHUB_TOKEN }}` |
 | `groq_api_key` | ❌ | `""` | Free Groq key for AI README insights |
+| `groq_model` | ❌ | `llama-3.1-8b-instant` | Groq model to use for AI insights |
 | `badge_style` | ❌ | `flat` | `flat`, `flat-square`, `for-the-badge` |
 | `update_readme` | ❌ | `true` | Auto-inject health badge into README |
 | `notify_discord` | ❌ | `""` | Discord webhook for weekly digest |
