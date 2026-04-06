@@ -83,6 +83,40 @@ export default function Home() {
         </div>
       </section>
 
+      {/* About DevLens bio — always visible, above results */}
+      <section style={{ padding: "0 var(--space-6) var(--space-10)", maxWidth: "780px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-lg)", fontWeight: 800 }}>What is DevLens?</h2>
+          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", lineHeight: 1.75 }}>
+            DevLens is a free, open-source GitHub repo health scorer. It analyses any public repository across <strong>7 weighted dimensions</strong> — from README quality and commit activity to CI/CD setup and community signal — and returns a single score out of 100.
+          </p>
+          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", lineHeight: 1.75 }}>
+            Built for developers who care about code quality, project maintainability, and open-source best practices. No login required. No data stored. Just paste a repo and go.
+          </p>
+          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap", paddingTop: "var(--space-2)" }}>
+            {[
+              { icon: <Zap size={14} />, label: "Instant — live GitHub API" },
+              { icon: <BarChart2 size={14} />, label: "7 weighted dimensions" },
+              { icon: <ShieldCheck size={14} />, label: "Free forever, no login" },
+            ].map(b => (
+              <span key={b.label} style={{ display: "flex", alignItems: "center", gap: "var(--space-1)", fontSize: "var(--text-xs)", color: "var(--primary)", background: "var(--primary-hl)", padding: "var(--space-1) var(--space-3)", borderRadius: "var(--radius-full)" }}>
+                {b.icon}{b.label}
+              </span>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            <a href="https://github.com/SamoTech/devlens" target="_blank" rel="noopener noreferrer"
+              style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-2) var(--space-4)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", background: "var(--surface-off)", fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)", textDecoration: "none" }}>
+              <Github size={14} /> Star on GitHub
+            </a>
+            <a href="/docs"
+              style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-2) var(--space-4)", borderRadius: "var(--radius-lg)", border: "1px solid var(--primary-hl)", background: "var(--primary-hl)", fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--primary)", textDecoration: "none" }}>
+              Read the Docs →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Result */}
       {report && (
         <section style={{ padding: "0 var(--space-6) var(--space-16)", maxWidth: "780px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
@@ -129,51 +163,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* About DevLens bio — always visible */}
-      <section style={{ padding: "0 var(--space-6) var(--space-16)", maxWidth: "780px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--space-8)" }}>
-        {/* Divider */}
-        <div style={{ borderTop: "1px solid var(--divider)" }} />
-
-        {/* Bio header */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-xl)", fontWeight: 800 }}>What is DevLens?</h2>
-          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", lineHeight: 1.7, maxWidth: "620px" }}>
-            DevLens is a free, open-source GitHub repo health scorer. It analyses any public repository across <strong>7 weighted dimensions</strong> — from README quality and commit activity to CI/CD setup and community signal — and returns a single score out of 100.
-          </p>
-          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", lineHeight: 1.7, maxWidth: "620px" }}>
-            Built for developers who care about code quality, project maintainability, and open-source best practices. No login required. No data stored. Just paste a repo and go.
-          </p>
-        </div>
-
-        {/* 3 feature highlights */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(220px,100%), 1fr))", gap: "var(--space-4)" }}>
-          {[
-            { icon: <Zap size={20} style={{ color: "var(--primary)" }} />, title: "Instant Analysis", desc: "Live data pulled directly from the GitHub API. No caching lag, no stale scores." },
-            { icon: <BarChart2 size={20} style={{ color: "var(--primary)" }} />, title: "7-Dimension Score", desc: "README, commits, freshness, docs, CI/CD, issues, and community — all weighted and combined." },
-            { icon: <ShieldCheck size={20} style={{ color: "var(--primary)" }} />, title: "Free Forever", desc: "No seat limits, no paywalls. Install the GitHub Action for automated weekly health reports." },
-          ].map(f => (
-            <div key={f.title} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-5)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-              {f.icon}
-              <p style={{ fontWeight: 700, fontSize: "var(--text-sm)" }}>{f.title}</p>
-              <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", lineHeight: 1.6 }}>{f.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* CTA row */}
-        <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-          <a href="https://github.com/SamoTech/devlens" target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-2) var(--space-4)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", background: "var(--surface-off)", fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)", textDecoration: "none" }}>
-            <Github size={16} /> Star on GitHub
-          </a>
-          <a href="/docs"
-            style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-2) var(--space-4)", borderRadius: "var(--radius-lg)", border: "1px solid var(--primary-hl)", background: "var(--primary-hl)", fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--primary)", textDecoration: "none" }}>
-            Read the Docs →
-          </a>
-        </div>
-      </section>
-
-      {/* Feature grid (empty state only) */}
+      {/* 7 Dimensions grid (empty state only) */}
       {!report && !loading && watchlist.length === 0 && !watchLoading && (
         <section style={{ padding: "0 var(--space-6) var(--space-16)", maxWidth: "960px", margin: "0 auto" }}>
           <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "var(--text-base)", marginBottom: "var(--space-4)" }}>7 Dimensions Explained</h3>
