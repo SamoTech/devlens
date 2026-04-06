@@ -36,14 +36,14 @@ export default async function RepoPage({ params }: Props) {
   const badgeUrl = `https://devlens-io.vercel.app/api/badge/${owner}/${name}`;
   const permalink = `https://devlens-io.vercel.app/repo/${owner}/${name}`;
 
-  const dims: { label: string; key: string; weight: string }[] = [
-    { label: "README Quality",   key: "readme",    weight: "20%" },
-    { label: "Commit Activity",  key: "commits",   weight: "20%" },
-    { label: "Repo Freshness",   key: "freshness", weight: "15%" },
-    { label: "Documentation",    key: "docs",      weight: "15%" },
-    { label: "CI/CD Setup",      key: "cicd",      weight: "15%" },
-    { label: "Issue Response",   key: "issues",    weight: "10%" },
-    { label: "Community Signal", key: "community", weight: "5%" },
+  const dims: { label: string; emoji: string; key: string; weight: string }[] = [
+    { label: "README Quality",   emoji: "📝", key: "readme",    weight: "20%" },
+    { label: "Commit Activity",  emoji: "🔥", key: "commits",   weight: "20%" },
+    { label: "Repo Freshness",   emoji: "🌿", key: "freshness", weight: "15%" },
+    { label: "Documentation",    emoji: "📚", key: "docs",      weight: "15%" },
+    { label: "CI/CD Setup",      emoji: "⚙️",  key: "cicd",      weight: "15%" },
+    { label: "Issue Response",   emoji: "🎯", key: "issues",    weight: "10%" },
+    { label: "Community Signal", emoji: "⭐",  key: "community", weight: "5%"  },
   ];
 
   return (
@@ -71,8 +71,8 @@ export default async function RepoPage({ params }: Props) {
 
       {/* Dimensions */}
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-        {dims.map(({ label, key, weight }) => (
-          <DimBar key={key} label={label} score={report.dimensions?.[key] ?? 0} weight={weight} />
+        {dims.map(({ label, emoji, key, weight }) => (
+          <DimBar key={key} label={label} emoji={emoji} score={report.dimensions?.[key] ?? 0} weight={weight} />
         ))}
       </div>
 
