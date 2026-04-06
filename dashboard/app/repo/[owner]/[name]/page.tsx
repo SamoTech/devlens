@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import ScoreRing from "@/components/ScoreRing";
 import DimBar from "@/components/DimBar";
+import { DIMMETA, scoreLabel } from "@/lib/constants";
 import type { Metadata } from "next";
 
 type Props = { params: Promise<{ owner: string; name: string }> };
@@ -31,21 +32,10 @@ export default async function RepoPage({ params }: Props) {
     notFound();
   }
 
-  const score: number = report.health_score ?? 0;
+  const score: number = report.healthScore ?? report.health_score ?? 0;
   const color = score >= 80 ? "var(--success)" : score >= 50 ? "var(--warning)" : "var(--danger)";
   const badgeUrl = `https://devlens-io.vercel.app/api/badge/${owner}/${name}`;
   const permalink = `https://devlens-io.vercel.app/repo/${owner}/${name}`;
-
-  // Keys match DimScores in scorer.ts exactly
-  const dims: { label: string; emoji: string; key: string; weight: string }[] = [
-    { label: "README Quality",   emoji: "📝", key: "readme",    weight: "20%" },
-    { label: "Commit Activity",  emoji: "🔥", key: "activity",  weight: "20%" },
-    { label: "Repo Freshness",   emoji: "🌿", key: "freshness", weight: "15%" },
-    { label: "Documentation",    emoji: "📚", key: "docs",      weight: "15%" },
-    { label: "CI/CD Setup",      emoji: "⚙️",  key: "ci",       weight: "15%" },
-    { label: "Issue Response",   emoji: "🎯", key: "issues",    weight: "10%" },
-    { label: "Community Signal", emoji: "⭐",  key: "community", weight: "5%"  },
-  ];
 
   return (
     <main style={{ maxWidth: "720px", margin: "0 auto", padding: "var(--space-10) var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-8)" }}>
@@ -64,18 +54,37 @@ export default async function RepoPage({ params }: Props) {
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-8)", flexWrap: "wrap" }}>
         <ScoreRing score={score} />
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-          <p style={{ fontSize: "var(--text-3xl)", fontWeight: 900, color }}>{score}<span style={{ fontSize: "var(--text-lg)", color: "var(--text-muted)", fontWeight: 400 }}>/100</span></p>
-          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>{score >= 80 ? "Excellent" : score >= 60 ? "Good" : score >= 40 ? "Fair" : "Needs Work"}</p>
-          {report.ai_insight && <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", fontStyle: "italic", maxWidth: "320px" }}>💡 {report.ai_insight}</p>}
+          <p style={{ fontSize: "var(--text-3xl)", fontWeight: 900, color }}>
+            {score}<span style={{ fontSize: "var(--text-lg)", color: "var(--text-muted)", fontWeight: 400 }}>/100</span>
+          </p>
+          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>{scoreLabel(score)}</p>
+          {report.ai_insight && (
+            <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", fontStyle: "italic", maxWidth: "320px" }}>💡 {report.ai_insight}</p>
+          )}
         </div>
       </div>
 
-      {/* Dimensions */}
+      {/* Dimensions — all 9, sourced from DIMMETA */}
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-        {dims.map(({ label, emoji, key, weight }) => (
+        {DIMMETA.map(({ key, label, emoji, weight }) => (
           <DimBar key={key} label={label} emoji={emoji} score={report.scores?.[key] ?? 0} weight={weight} />
         ))}
       </div>
+
+      {/* Suggestions */}
+      {report.suggestions?.length > 0 && (
+        <section style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-base)", fontWeight: 800 }}>💡 Suggestions</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+            {report.suggestions.map((s: any) => (
+              <div key={s.dim} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "var(--space-3) var(--space-4)", fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
+                <span style={{ fontWeight: 700, color: "var(--text)" }}>{DIMMETA.find(d => d.key === s.dim)?.emoji} {DIMMETA.find(d => d.key === s.dim)?.label}: </span>
+                {s.message}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Badge + share */}
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", background: "var(--surface-off)", borderRadius: "var(--radius-lg)", padding: "var(--space-5)" }}>
