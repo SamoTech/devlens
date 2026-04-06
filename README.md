@@ -8,6 +8,8 @@
 
 # 🔭 DevLens Repo Health
 
+<img src="./devlens-cover.png" alt="DevLens Cover" width="100%"/>
+
 **The GitHub Action that gives your repo a health score, auto-updates your README,  
 and sends a weekly dev analytics digest — 100% free, forever.**
 
