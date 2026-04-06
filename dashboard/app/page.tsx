@@ -128,12 +128,16 @@ export default function Home() {
         </section>
       )}
 
-      {/* Checked Repos — last 10, link to full page */}
+      {/* Checked Repos — last 10 */}
       {(recent.length > 0 || watchLoading) && (
         <section style={{ padding: "0 var(--space-6) var(--space-16)", maxWidth: "780px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
             <Bookmark size={16} style={{ color: "var(--primary)" }} />
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-base)", fontWeight: 800 }}>Recently Checked</h2>
+            <Link href="/checked" style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-base)", fontWeight: 800, color: "var(--text)", textDecoration: "none" }}
+              onMouseOver={e => (e.currentTarget.style.color = "var(--primary)")}
+              onMouseOut={e => (e.currentTarget.style.color = "var(--text)")}>
+              Recently Checked
+            </Link>
             {!watchLoading && (
               <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
                 <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)" }}>{watchlist.length} total</span>

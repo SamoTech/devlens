@@ -12,6 +12,7 @@ export default function Nav() {
     { href: "/", label: "Analyze" },
     { href: "/compare", label: "Compare" },
     { href: "/leaderboard", label: "Leaderboard" },
+    { href: "/checked", label: "Checked" },
     { href: "/docs", label: "Docs" },
     { href: "/changelog", label: "Changelog" },
     { href: "/sponsor", label: "Sponsor" },
