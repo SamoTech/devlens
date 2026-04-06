@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DevLens - Core Analysis Engine"""
+"""DevLens - Core Analysis Engine v1.1"""
 import os, json, re, math, requests
 from datetime import datetime, timezone
 from github import Github, Auth
@@ -22,15 +22,34 @@ def days_since(dt):
     return (now - dt).days
 
 def score_readme():
+    """Score README quality across 10 criteria (max 100)."""
     try:
         content = repo.get_readme().decoded_content.decode()
+        lower   = content.lower()
         s = 0
-        if len(content) > 300:  s += 20
-        if len(content) > 1000: s += 10
-        for kw in ["install","usage","license","contribut","feature"]:
-            if kw in content.lower(): s += 6
-        if "```" in content: s += 8
-        if "![" in content:  s += 6
+
+        # Length tiers (0-20)
+        if len(content) > 500:   s += 10
+        if len(content) > 1500:  s += 5
+        if len(content) > 3000:  s += 5
+
+        # Essential sections (0-36) — 6 keywords × 6 pts each
+        for kw in ["install", "usage", "license", "contribut", "feature", "example"]:
+            if kw in lower: s += 6
+
+        # Formatting quality (0-22)
+        if "```"   in content: s += 8   # code blocks
+        if "!["    in content: s += 6   # images/badges
+        if "## "   in content: s += 4   # section headings
+        if "- ["   in content or "- [x" in content: s += 4  # checklist/TOC
+
+        # Supplementary signals (0-22)
+        if "<!-- devlens" in lower:  s += 6   # DevLens integrated
+        if "setup" in lower:         s += 4
+        if "roadmap" in lower:       s += 4
+        if "sponsor" in lower or "support" in lower: s += 4
+        if "discord" in lower or "slack" in lower:   s += 4
+
         return min(s, 100)
     except: return 0
 
@@ -59,7 +78,7 @@ def score_freshness():
 
 def score_docs():
     s = 0
-    key_files = ["LICENSE","CONTRIBUTING.md","CHANGELOG.md","CODE_OF_CONDUCT.md","SECURITY.md","docs/"]
+    key_files = ["LICENSE", "CONTRIBUTING.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "docs/"]
     try:
         paths = [c.path for c in repo.get_git_tree("HEAD", recursive=True).tree]
         for f in key_files:
@@ -111,6 +130,7 @@ print(json.dumps(report, indent=2))
 with open(os.environ.get("GITHUB_OUTPUT","/dev/null"),"a") as f:
     f.write(f"health_score={health}\n")
     f.write(f"badge_url={badge_url}\n")
+    f.write(f"report_json={json.dumps(report)}\n")
 
 def ai_section():
     if not GROQ_API_KEY: return None
@@ -132,10 +152,12 @@ if UPDATE_README:
         content = rf.decoded_content.decode()
         s_tag, e_tag = "<!-- DEVLENS:START -->", "<!-- DEVLENS:END -->"
         ai = ai_section()
+        scores_list = "\n".join(f"- **{k}**: {v}" for k, v in scores.items())
         block = f"{s_tag}\n{ai}\n{e_tag}" if ai else (
-            f"{s_tag}\n## Repo Health\n"
+            f"{s_tag}\n## Repository Health\n"
             f"![DevLens Health]({badge_url})\n"
-            f"**Score: {health}/100** — [DevLens](https://github.com/SamoTech/devlens)\n{e_tag}")
+            f"This repository has a health score of {health}.\n\n"
+            f"**Repo Status:** \n{scores_list}\n{e_tag}")
         if s_tag in content:
             new = re.sub(f"{re.escape(s_tag)}.*?{re.escape(e_tag)}",block,content,flags=re.DOTALL)
         else:
@@ -148,10 +170,12 @@ if UPDATE_README:
 
 if DISCORD_WH:
     try:
-        color = 0x2ecc71 if health>=60 else 0xe67e22 if health>=40 else 0xe74c3c
+        color = 0x2ecc71 if health>=80 else 0xe67e22 if health>=60 else 0xe74c3c
         requests.post(DISCORD_WH, json={"embeds":[{
-            "title":f"DevLens Weekly Report — {REPO_NAME}","color":color,
-            "fields":[{"name":k.capitalize(),"value":f"{v}/100","inline":True} for k,v in scores.items()],
+            "title":f"DevLens Weekly Report — {REPO_NAME}",
+            "description":f"Overall health: **{health}/100**",
+            "color":color,
+            "fields":[{"name":k.replace('_',' ').title(),"value":f"{v}/100","inline":True} for k,v in scores.items()],
             "footer":{"text":"Powered by DevLens · github.com/SamoTech/devlens"},
             "timestamp":now.isoformat()}]})
         print("Discord digest sent.")
