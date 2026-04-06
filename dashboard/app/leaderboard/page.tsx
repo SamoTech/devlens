@@ -27,7 +27,10 @@ export default function LeaderboardPage() {
     rows.forEach((r, i) => {
       fetch(`/api/analyze?repo=${r.owner}/${r.name}`)
         .then(res => res.json())
-        .then(data => setRows(prev => prev.map((row, idx) => idx === i ? { ...row, score: data.health_score ?? 0, loading: false } : row)))
+        .then(data => setRows(prev => prev.map((row, idx) => idx === i
+          ? { ...row, score: data.healthScore ?? data.health_score ?? 0, loading: false }
+          : row
+        )))
         .catch(() => setRows(prev => prev.map((row, idx) => idx === i ? { ...row, score: 0, loading: false } : row)));
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,7 +52,7 @@ export default function LeaderboardPage() {
         {CATEGORIES.map(cat => (
           <button key={cat} onClick={() => setFilter(cat)}
             style={{ padding: "var(--space-1) var(--space-3)", borderRadius: "var(--radius-full)", fontSize: "var(--text-xs)", fontWeight: 600,
-              background: filter === cat ? "var(--accent)" : "var(--surface-off)",
+              background: filter === cat ? "var(--primary)" : "var(--surface-off)",
               color: filter === cat ? "#fff" : "var(--text-muted)", border: "none", cursor: "pointer" }}>
             {cat}
           </button>
@@ -63,9 +66,9 @@ export default function LeaderboardPage() {
           const color = score >= 80 ? "var(--success)" : score >= 50 ? "var(--warning)" : "var(--danger)";
           return (
             <Link key={`${r.owner}/${r.name}`} href={`/repo/${r.owner}/${r.name}`}
-              style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", background: "var(--surface-off)",
-                borderRadius: "var(--radius-lg)", padding: "var(--space-4) var(--space-5)", textDecoration: "none",
-                color: "var(--text)", transition: "background .15s" }}>
+              style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", background: "var(--surface)",
+                border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-4) var(--space-5)",
+                textDecoration: "none", color: "var(--text)", transition: "background .15s" }}>
               <span style={{ fontSize: "var(--text-sm)", fontWeight: 700, color: "var(--text-faint)", minWidth: "24px" }}>#{i + 1}</span>
               <ScoreRing score={r.loading ? 0 : score} size={44} />
               <div style={{ flex: 1 }}>
@@ -73,7 +76,7 @@ export default function LeaderboardPage() {
                 <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>{r.category}</p>
               </div>
               {r.loading
-                ? <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)" }}>analyzing…</span>
+                ? <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", animation: "pulse 1.5s ease-in-out infinite" }}>analyzing…</span>
                 : <span style={{ fontSize: "var(--text-xl)", fontWeight: 900, color }}>{score}</span>}
             </Link>
           );
