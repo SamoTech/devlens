@@ -4,15 +4,15 @@ import ScoreRing from "@/components/ScoreRing";
 import Link from "next/link";
 
 const FEATURED: { owner: string; name: string; category: string }[] = [
-  { owner: "vercel",     name: "next.js",          category: "Framework"   },
-  { owner: "facebook",   name: "react",             category: "Framework"   },
-  { owner: "microsoft",  name: "vscode",            category: "Tool"        },
-  { owner: "tailwindlabs", name: "tailwindcss",     category: "CSS"         },
-  { owner: "supabase",   name: "supabase",          category: "Backend"     },
-  { owner: "vitejs",     name: "vite",              category: "Build"       },
-  { owner: "prisma",     name: "prisma",            category: "ORM"         },
-  { owner: "trpc",       name: "trpc",              category: "API"         },
-  { owner: "SamoTech",   name: "devlens",           category: "DevOps"      },
+  { owner: "vercel",       name: "next.js",      category: "Framework" },
+  { owner: "facebook",     name: "react",        category: "Framework" },
+  { owner: "microsoft",    name: "vscode",       category: "Tool"      },
+  { owner: "tailwindlabs", name: "tailwindcss",  category: "CSS"       },
+  { owner: "supabase",     name: "supabase",     category: "Backend"   },
+  { owner: "vitejs",       name: "vite",         category: "Build"     },
+  { owner: "prisma",       name: "prisma",       category: "ORM"       },
+  { owner: "trpc",         name: "trpc",         category: "API"       },
+  { owner: "SamoTech",     name: "devlens",      category: "DevOps"    },
 ];
 
 const CATEGORIES = ["All", ...Array.from(new Set(FEATURED.map(r => r.category)))];
@@ -56,7 +56,7 @@ export default function LeaderboardPage() {
         ))}
       </div>
 
-      {/* Table */}
+      {/* Rows */}
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
         {sorted.map((r, i) => {
           const score = r.score ?? 0;
@@ -67,7 +67,7 @@ export default function LeaderboardPage() {
                 borderRadius: "var(--radius-lg)", padding: "var(--space-4) var(--space-5)", textDecoration: "none",
                 color: "var(--text)", transition: "background .15s" }}>
               <span style={{ fontSize: "var(--text-sm)", fontWeight: 700, color: "var(--text-faint)", minWidth: "24px" }}>#{i + 1}</span>
-              <ScoreRing score={r.loading ? 0 : score} size={44} stroke={4} />
+              <ScoreRing score={r.loading ? 0 : score} size={44} />
               <div style={{ flex: 1 }}>
                 <p style={{ fontWeight: 700, fontSize: "var(--text-sm)" }}>{r.owner}/{r.name}</p>
                 <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>{r.category}</p>
