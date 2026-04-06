@@ -27,29 +27,20 @@ def score_readme():
         content = repo.get_readme().decoded_content.decode()
         lower   = content.lower()
         s = 0
-
-        # Length tiers (0-20)
         if len(content) > 500:   s += 10
         if len(content) > 1500:  s += 5
         if len(content) > 3000:  s += 5
-
-        # Essential sections (0-36) — 6 keywords × 6 pts each
         for kw in ["install", "usage", "license", "contribut", "feature", "example"]:
             if kw in lower: s += 6
-
-        # Formatting quality (0-22)
-        if "```"   in content: s += 8   # code blocks
-        if "!["    in content: s += 6   # images/badges
-        if "## "   in content: s += 4   # section headings
-        if "- ["   in content or "- [x" in content: s += 4  # checklist/TOC
-
-        # Supplementary signals (0-22)
-        if "<!-- devlens" in lower:  s += 6   # DevLens integrated
+        if "```"   in content: s += 8
+        if "!["    in content: s += 6
+        if "## "   in content: s += 4
+        if "- ["   in content or "- [x" in content: s += 4
+        if "<!-- devlens" in lower:  s += 6
         if "setup" in lower:         s += 4
         if "roadmap" in lower:       s += 4
         if "sponsor" in lower or "support" in lower: s += 4
         if "discord" in lower or "slack" in lower:   s += 4
-
         return min(s, 100)
     except: return 0
 
@@ -139,10 +130,10 @@ def ai_section():
         headers={"Authorization":f"Bearer {GROQ_API_KEY}","Content-Type":"application/json"},
         json={"model": GROQ_MODEL,
               "messages":[{"role":"user","content":
-              f"Write a 3-line ## Repo Health README section. Include badge: ![DevLens Health]({badge_url}) and 1-sentence summary. Data: {json.dumps(report)}. Output ONLY markdown."}],
-              "max_tokens":200})
+              f"Write ONE single line of markdown (no headings, no bullet points, no newlines). Include the badge ![DevLens Health]({badge_url}) followed by a single short sentence summarizing the repo health. Output ONLY that one line. Data: {json.dumps(report)}"}],
+              "max_tokens":80})
     if resp.status_code == 200:
-        return resp.json()["choices"][0]["message"]["content"].strip()
+        return resp.json()["choices"][0]["message"]["content"].strip().split("\n")[0]
     print(f"Groq error ({resp.status_code}): {resp.text}")
     return None
 
@@ -152,18 +143,15 @@ if UPDATE_README:
         content = rf.decoded_content.decode()
         s_tag, e_tag = "<!-- DEVLENS:START -->", "<!-- DEVLENS:END -->"
         ai = ai_section()
-        scores_list = "\n".join(f"- **{k}**: {v}" for k, v in scores.items())
-        block = f"{s_tag}\n{ai}\n{e_tag}" if ai else (
-            f"{s_tag}\n## Repository Health\n"
-            f"![DevLens Health]({badge_url})\n"
-            f"This repository has a health score of {health}.\n\n"
-            f"**Repo Status:** \n{scores_list}\n{e_tag}")
+        # Always 1 clean line: badge + short summary
+        one_liner = ai if ai else f"![DevLens Health]({badge_url}) Health score: **{health}/100** — powered by [DevLens](https://github.com/SamoTech/devlens)."
+        block = f"{s_tag}\n{one_liner}\n{e_tag}"
         if s_tag in content:
-            new = re.sub(f"{re.escape(s_tag)}.*?{re.escape(e_tag)}",block,content,flags=re.DOTALL)
+            new = re.sub(f"{re.escape(s_tag)}.*?{re.escape(e_tag)}", block, content, flags=re.DOTALL)
         else:
             new = content + "\n\n" + block + "\n"
         if new != content:
-            repo.update_file(rf.path,f"docs: update DevLens health score {health}/100",new,rf.sha)
+            repo.update_file(rf.path, f"docs: update DevLens health score {health}/100", new, rf.sha)
             print(f"README updated. Score: {health}/100")
     except Exception as e:
         print(f"README update skipped: {e}")
@@ -172,11 +160,11 @@ if DISCORD_WH:
     try:
         color = 0x2ecc71 if health>=80 else 0xe67e22 if health>=60 else 0xe74c3c
         requests.post(DISCORD_WH, json={"embeds":[{
-            "title":f"DevLens Weekly Report — {REPO_NAME}",
+            "title":f"DevLens Weekly Report \u2014 {REPO_NAME}",
             "description":f"Overall health: **{health}/100**",
             "color":color,
             "fields":[{"name":k.replace('_',' ').title(),"value":f"{v}/100","inline":True} for k,v in scores.items()],
-            "footer":{"text":"Powered by DevLens · github.com/SamoTech/devlens"},
+            "footer":{"text":"Powered by DevLens \u00b7 github.com/SamoTech/devlens"},
             "timestamp":now.isoformat()}]})
         print("Discord digest sent.")
     except Exception as e:
