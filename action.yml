@@ -1,5 +1,5 @@
-name: 'DevLens'
-description: 'Auto health score, AI README update, and dev analytics badge for your repo'
+name: 'DevLens Repo Health'
+description: 'Score your repo 0-100, auto-inject a live health badge, and get AI-powered README insights — free forever.'
 author: 'SamoTech'
 branding:
   icon: 'activity'
