@@ -10,9 +10,11 @@ export default function Nav() {
   useEffect(() => setOpen(false), [path]);
   const links = [
     { href: "/", label: "Analyze" },
+    { href: "/org", label: "Org" },
     { href: "/compare", label: "Compare" },
     { href: "/leaderboard", label: "Leaderboard" },
     { href: "/checked", label: "Checked" },
+    { href: "/badge", label: "Badge" },
     { href: "/stats", label: "Stats" },
     { href: "/docs", label: "Docs" },
     { href: "/changelog", label: "Changelog" },
