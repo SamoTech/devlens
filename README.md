@@ -19,7 +19,7 @@ and sends a weekly dev analytics digest — 100% free, forever.**
 </div>
 
 <!-- DEVLENS:START -->
-![DevLens Health](https://img.shields.io/badge/DevLens%20Health-92%2F100-brightgreen?style=flat-square&logo=github) The health of SamoTech/devlens is at 92%.
+The ![DevLens Health](https://img.shields.io/badge/DevLens%20Health-92%2F100-brightgreen?style=flat-square&logo=github) badge indicates overall good health for the SamoTech/devlens repository.
 <!-- DEVLENS:END -->
 
 ---
@@ -62,6 +62,7 @@ Paste this anywhere in your `README.md` where you want the live health badge to 
 
 ```markdown
 <!-- DEVLENS:START -->
+The ![DevLens Health](https://img.shields.io/badge/DevLens%20Health-92%2F100-brightgreen?style=flat-square&logo=github) badge indicates overall good health for the SamoTech/devlens repository.
 <!-- DEVLENS:END -->
 ```
 
