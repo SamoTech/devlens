@@ -5,7 +5,7 @@
 <img src="https://img.shields.io/github/stars/SamoTech/devlens?style=for-the-badge" alt="Stars"/>
 <img src="https://img.shields.io/badge/Free%20Forever-$0-blue?style=for-the-badge" alt="Free Forever"/>
 <a href="https://github.com/marketplace/actions/devlens-repo-health"><img src="https://img.shields.io/badge/GitHub%20Marketplace-DevLens%20Repo%20Health-orange?style=for-the-badge&logo=github" alt="GitHub Marketplace"/></a>
-<img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FSamoTech%2Fdevlens&count_bg=%2301696f&title_bg=%23555555&icon=github&icon_color=%23E7E7E7&title=views&edge_flat=false" alt="Repo Views"/>
+<img src="https://visitor-badge.laobi.icu/badge?page_id=SamoTech.devlens&left_color=%23555555&right_color=%2301696f&left_text=visitors" alt="Visitors"/>
 
 # 🔭 DevLens Repo Health
 
@@ -62,7 +62,6 @@ Paste this anywhere in your `README.md` where you want the live health badge to 
 
 ```markdown
 <!-- DEVLENS:START -->
-![DevLens Health](https://img.shields.io/badge/DevLens%20Health-92%2F100-brightgreen?style=flat-square&logo=github) The health of SamoTech/devlens is at 92%.
 <!-- DEVLENS:END -->
 ```
 
