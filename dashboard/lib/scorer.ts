@@ -56,7 +56,7 @@ async function scoreDocs(owner: string, name: string, token?: string): Promise<n
     const paths: string[] = tree.tree.map((t: { path: string }) => t.path);
     const keyFiles = ["LICENSE","CONTRIBUTING.md","CHANGELOG.md","CODE_OF_CONDUCT.md","SECURITY.md","docs/"];
     let s = 0;
-    for (const f of keyFiles) if (paths.some((p: string) => p.startsWith(f.replace(/\/$/,"")))) s += 16;
+    for (const f of keyFiles) if (paths.some((p: string) => p.startsWith(f.replace(/\/$/,"")))) s += 17;
     return Math.min(s, 100);
   } catch { return 0; }
 }
