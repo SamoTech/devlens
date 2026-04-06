@@ -40,14 +40,14 @@ export default function StatsPage() {
   const maxDaily = data ? Math.max(...data.dailyActivity.map(d => d.count), 1) : 1;
 
   const kpis = data ? [
-    { icon: <Zap size={18} />,       label: "Total Analyses",    value: data.totalAnalyses.toLocaleString(),                        sub: "all time" },
-    { icon: <TrendingUp size={18} />, label: "Analyses Today",    value: data.analysesToday.toLocaleString(),                        sub: "since midnight UTC" },
-    { icon: <Users size={18} />,      label: "Unique Visitors",   value: data.uniqueVisitors.toLocaleString(),                       sub: "by IP" },
-    { icon: <GitFork size={18} />,    label: "Repos Checked",     value: data.totalReposChecked.toLocaleString(),                    sub: "unique repos" },
-    { icon: <Building2 size={18} />,  label: "Orgs Checked",      value: data.totalOrgsChecked.toLocaleString(),                     sub: "organizations" },
-    { icon: <Star size={18} />,       label: "Avg Health Score",  value: data.avgScore !== null ? `${data.avgScore}/100` : "—",      sub: "across watchlist" },
-    { icon: <Code2 size={18} />,      label: "Top Language",      value: data.topLanguage ?? "—",                                    sub: "most checked repos" },
-    { icon: <BarChart2 size={18} />,  label: "Peak Day",          value: (Math.max(...data.dailyActivity.map(d => d.count)) || 0).toLocaleString(), sub: "analyses in one day" },
+    { icon: <Zap size={18} />,        label: "Total Analyses",   value: data.totalAnalyses.toLocaleString(),                                          sub: "all time" },
+    { icon: <TrendingUp size={18} />, label: "Analyses Today",   value: data.analysesToday.toLocaleString(),                                           sub: "since midnight UTC" },
+    { icon: <Users size={18} />,      label: "Unique Visitors",  value: data.uniqueVisitors.toLocaleString(),                                          sub: "by IP" },
+    { icon: <GitFork size={18} />,    label: "Repos Checked",    value: data.totalReposChecked.toLocaleString(),                                       sub: "unique repos" },
+    { icon: <Building2 size={18} />,  label: "Orgs Checked",     value: data.totalOrgsChecked.toLocaleString(),                                        sub: "organizations" },
+    { icon: <Star size={18} />,       label: "Avg Health Score", value: data.avgScore !== null ? `${data.avgScore}/100` : "—",                        sub: "across watchlist" },
+    { icon: <Code2 size={18} />,      label: "Top Language",     value: data.topLanguage ?? "—",                                                      sub: "most checked repos" },
+    { icon: <BarChart2 size={18} />,  label: "Peak Day",         value: (Math.max(...data.dailyActivity.map(d => d.count)) || 0).toLocaleString(),    sub: "analyses in one day" },
   ] : [];
 
   return (
@@ -70,7 +70,7 @@ export default function StatsPage() {
 
       {data && (
         <>
-          {/* KPI grid — 4 cols desktop, 2 mobile */}
+          {/* KPI grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(200px,100%),1fr))", gap: "var(--space-4)" }}>
             {kpis.map(k => (
               <div key={k.label} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-5)", display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
@@ -91,7 +91,7 @@ export default function StatsPage() {
                 background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)",
                 padding: "var(--space-4) var(--space-4) 0" }}
             >
-              {data.dailyActivity.map((d, idx) => (
+              {data.dailyActivity.map(d => (
                 <div
                   key={d.date}
                   onMouseEnter={e => {
@@ -106,7 +106,6 @@ export default function StatsPage() {
                     borderRadius: "3px 3px 0 0",
                     height: `${Math.max((d.count / maxDaily) * 100, d.count > 0 ? 8 : 3)}%`,
                     opacity: d.count > 0 ? 0.85 : 0.3,
-                    cursor: d.count > 0 ? "default" : "default",
                     transition: "opacity .15s, height .3s",
                     minWidth: 0,
                   }}
@@ -146,7 +145,10 @@ export default function StatsPage() {
                   <div key={r.slug} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-3) var(--space-4)" }}>
                     <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", minWidth: "20px", textAlign: "right", fontWeight: 700 }}>#{i + 1}</span>
                     <div style={{ flex: 1, overflow: "hidden" }}>
-                      <Link href={`/?repo=${r.slug}`} style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text)", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
+                      <Link
+                        href={`/repo/${r.slug}`}
+                        style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text)", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}
+                      >
                         {r.slug}
                       </Link>
                       {r.lastSeen && (
@@ -178,7 +180,10 @@ export default function StatsPage() {
                   <div key={o.org} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-3) var(--space-4)" }}>
                     <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", minWidth: "20px", textAlign: "right", fontWeight: 700 }}>#{i + 1}</span>
                     <div style={{ flex: 1, overflow: "hidden" }}>
-                      <Link href={`/org?org=${o.org}`} style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text)", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
+                      <Link
+                        href={`/org?org=${o.org}`}
+                        style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text)", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}
+                      >
                         {o.org}
                       </Link>
                       <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", margin: 0 }}>
