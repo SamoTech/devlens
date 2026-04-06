@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart2, Github, Menu, X } from "lucide-react";
+import { Github, Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 export default function Nav() {
   const path = usePathname();
@@ -11,6 +11,7 @@ export default function Nav() {
   const links = [
     { href: "/", label: "Analyze" },
     { href: "/compare", label: "Compare" },
+    { href: "/leaderboard", label: "Leaderboard" },
     { href: "/docs", label: "Docs" },
     { href: "/changelog", label: "Changelog" },
     { href: "/sponsor", label: "Sponsor" },
