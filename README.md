@@ -16,20 +16,18 @@ and sends a weekly dev analytics digest — 100% free, forever.**
 </div>
 
 <!-- DEVLENS:START -->
-## Repo Health
+## Repository Health
 ![DevLens Health](https://img.shields.io/badge/DevLens%20Health-75%2F100-green?style=flat-square&logo=github)
-This repository's health score is 75.
+This repository has a health score of 75.
 
-### Scores Breakdown
-| Metric    | Score |
-|-----------|-------|
-| Readme    | 68    |
-| Activity  | 75    |
-| Freshness | 100   |
-| Docs      | 48    |
-| CI        | 100   |
-| Issues    | 100   |
-| Community | 0     |
+**Repo Status:** 
+- **readme**: 68
+- **activity**: 75
+- **freshness**: 100
+- **docs**: 48
+- **ci**: 100
+- **issues**: 100
+- **community**: 0
 <!-- DEVLENS:END -->
 
 ---
@@ -72,6 +70,18 @@ Paste this anywhere in your `README.md` where you want the live health badge to 
 
 ```markdown
 <!-- DEVLENS:START -->
+## Repository Health
+![DevLens Health](https://img.shields.io/badge/DevLens%20Health-75%2F100-green?style=flat-square&logo=github)
+This repository has a health score of 75.
+
+**Repo Status:** 
+- **readme**: 68
+- **activity**: 75
+- **freshness**: 100
+- **docs**: 48
+- **ci**: 100
+- **issues**: 100
+- **community**: 0
 <!-- DEVLENS:END -->
 ```
 
