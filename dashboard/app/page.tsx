@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, Loader2, ArrowRight, Bookmark, X, ExternalLink, Github, Zap, ShieldCheck, BarChart2 } from "lucide-react";
+import { Search, Loader2, ArrowRight, Bookmark, X, ExternalLink, Github } from "lucide-react";
 import RepoCard from "@/components/RepoCard";
 import TrendChart from "@/components/TrendChart";
 import SnippetModal from "@/components/SnippetModal";
@@ -63,15 +63,21 @@ export default function Home() {
     <>
       {showSnippet && report && <SnippetModal repo={report.repo} onClose={() => setShowSnippet(false)} />}
 
-      {/* Hero */}
+      {/* Unified Hero */}
       <section style={{ padding: "clamp(3rem,8vw,6rem) var(--space-6)", textAlign: "center" }}>
-        <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+        <div style={{ maxWidth: "640px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+
+          {/* Title */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
             <h1 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-2xl)", fontWeight: 800, color: "var(--text)", lineHeight: 1.1 }}>
-              Repo Health.<br /><span style={{ color: "var(--primary)" }}>In 7 Dimensions.</span>
+              Repo Health. <span style={{ color: "var(--primary)" }}>In 7 Dimensions.</span>
             </h1>
-            <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", maxWidth: "480px", margin: "0 auto" }}>Paste any public GitHub repo URL and get a live health score — free, forever.</p>
+            <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", lineHeight: 1.7 }}>
+              Paste any public GitHub repo and get a live health score across README quality, commit activity, CI/CD, documentation, and more — <strong>free, no login, no data stored.</strong>
+            </p>
           </div>
+
+          {/* Search bar */}
           <form onSubmit={(e) => analyze(e)} style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", justifyContent: "center" }}>
             <div style={{ position: "relative", flex: "1 1 320px", maxWidth: "460px" }}>
               <Search size={16} style={{ position: "absolute", left: "var(--space-3)", top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)", pointerEvents: "none" }} />
@@ -83,31 +89,16 @@ export default function Home() {
             </button>
           </form>
           {error && <p style={{ color: "var(--error)", fontSize: "var(--text-sm)" }}>{error}</p>}
-        </div>
-      </section>
 
-      {/* About DevLens bio */}
-      <section style={{ padding: "0 var(--space-6) var(--space-10)", maxWidth: "780px", margin: "0 auto" }}>
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-lg)", fontWeight: 800 }}>What is DevLens?</h2>
-          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", lineHeight: 1.75 }}>
-            DevLens is a free, open-source GitHub repo health scorer. It analyses any public repository across <strong>7 weighted dimensions</strong> — from README quality and commit activity to CI/CD setup and community signal — and returns a single score out of 100.
-          </p>
-          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", lineHeight: 1.75 }}>
-            Built for developers who care about code quality, project maintainability, and open-source best practices. No login required. No data stored. Just paste a repo and go.
-          </p>
-          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap", paddingTop: "var(--space-2)" }}>
-            {[
-              { icon: <Zap size={14} />, label: "Instant — live GitHub API" },
-              { icon: <BarChart2 size={14} />, label: "7 weighted dimensions" },
-              { icon: <ShieldCheck size={14} />, label: "Free forever, no login" },
-            ].map(b => (
-              <span key={b.label} style={{ display: "flex", alignItems: "center", gap: "var(--space-1)", fontSize: "var(--text-xs)", color: "var(--primary)", background: "var(--primary-hl)", padding: "var(--space-1) var(--space-3)", borderRadius: "var(--radius-full)" }}>
-                {b.icon}{b.label}
-              </span>
+          {/* Pill badges */}
+          <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", justifyContent: "center" }}>
+            {["⚡ Live GitHub API", "📊 7 weighted dimensions", "🛡️ Free forever"].map(label => (
+              <span key={label} style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", background: "var(--surface-off)", border: "1px solid var(--border)", padding: "2px 10px", borderRadius: "var(--radius-full)" }}>{label}</span>
             ))}
           </div>
-          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+
+          {/* CTAs */}
+          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap", justifyContent: "center" }}>
             <a href="https://github.com/SamoTech/devlens" target="_blank" rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-2) var(--space-4)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", background: "var(--surface-off)", fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)", textDecoration: "none" }}>
               <Github size={14} /> Star on GitHub
@@ -117,6 +108,7 @@ export default function Home() {
               Read the Docs →
             </a>
           </div>
+
         </div>
       </section>
 
@@ -128,7 +120,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* Checked Repos — last 10 */}
+      {/* Recently Checked — last 10 */}
       {(recent.length > 0 || watchLoading) && (
         <section style={{ padding: "0 var(--space-6) var(--space-16)", maxWidth: "780px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
