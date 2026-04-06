@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 export const metadata: Metadata = {
   title: { default: "DevLens", template: "%s | DevLens" },
   description: "Repo health scoring — 7 dimensions, live from GitHub API.",
@@ -19,6 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Nav />
         <main style={{ flex:1 }}>{children}</main>
         <Footer />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
