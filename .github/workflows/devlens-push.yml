@@ -3,8 +3,8 @@ name: DevLens Health Check
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
+    paths-ignore:
+      - 'README.md'
   workflow_dispatch:
 
 permissions:
