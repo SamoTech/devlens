@@ -79,7 +79,10 @@ export default function CheckedPage() {
                 <div key={w.slug} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-3) var(--space-4)" }}>
                   <span style={{ fontWeight: 800, fontSize: "var(--text-sm)", color: scoreColor(w.score), minWidth: "36px", textAlign: "center" }}>{w.score}</span>
                   <div style={{ flex: 1, overflow: "hidden" }}>
-                    <Link href={`/?repo=${w.slug}`} style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text)", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
+                    <Link
+                      href={`/repo/${w.slug}`}
+                      style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text)", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}
+                    >
                       {w.slug}
                     </Link>
                     {w.description && <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: 0 }}>{w.description}</p>}
