@@ -23,12 +23,13 @@ and sends a weekly dev analytics digest — 100% free, forever.**
 
 | Dimension | Progress | Score | Weight |
 |---|---|---|---|
-| 📝 **README Quality** | `█████████░` | ![88](https://img.shields.io/badge/88-brightgreen?style=flat-square) | 20% |
+| 📝 **README Quality** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
 | 🔥 **Commit Activity** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
 | 🌿 **Repo Freshness** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
 | 📚 **Documentation** | `██████████` | ![96](https://img.shields.io/badge/96-brightgreen?style=flat-square) | 15% |
 | ⚙️ **CI/CD Setup** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
-| 🎯 **Issue Response** |
+| 🎯 **Issue Response** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
+| ⭐ **Community Signal** | `░░░░░░░░░░` | ![0](https://img.shields.io/badge/0-red?style=flat-square) | 5% |
 <!-- DEVLENS:END -->
 
 ---
@@ -71,16 +72,6 @@ Paste this anywhere in your `README.md` where you want the live health badge to 
 
 ```markdown
 <!-- DEVLENS:START -->
-![DevLens Health](https://img.shields.io/badge/DevLens%20Health-92%2F100-brightgreen?style=flat-square&logo=github) **Overall health: 92/100** — *Last updated: 2026-04-06*
-
-| Dimension | Progress | Score | Weight |
-|---|---|---|---|
-| 📝 **README Quality** | `█████████░` | ![88](https://img.shields.io/badge/88-brightgreen?style=flat-square) | 20% |
-| 🔥 **Commit Activity** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
-| 🌿 **Repo Freshness** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
-| 📚 **Documentation** | `██████████` | ![96](https://img.shields.io/badge/96-brightgreen?style=flat-square) | 15% |
-| ⚙️ **CI/CD Setup** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
-| 🎯 **Issue Response** |
 <!-- DEVLENS:END -->
 ```
 

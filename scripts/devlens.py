@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DevLens - Core Analysis Engine v1.1"""
+"""DevLens - Core Analysis Engine v1.2"""
 import os, json, re, math, requests
 from datetime import datetime, timezone
 from github import Github, Auth
@@ -88,9 +88,9 @@ def score_issues():
     try:
         open_i   = repo.open_issues_count
         closed_i = list(repo.get_issues(state="closed"))[:50]
-        if not closed_i and open_i == 0: return 50
+        if not closed_i and open_i == 0: return 100
         total = open_i + len(closed_i)
-        if total == 0: return 50
+        if total == 0: return 100
         return int(len(closed_i) / total * 100)
     except: return 50
 
@@ -110,7 +110,6 @@ def badge_color(s):
     return "red"
 
 def dim_bar(score):
-    """Return a 10-char progress bar for a dimension score."""
     filled = round(score / 10)
     return "\u2588" * filled + "\u2591" * (10 - filled)
 
@@ -127,7 +126,6 @@ with open(os.environ.get("GITHUB_OUTPUT","/dev/null"),"a") as f:
     f.write(f"badge_url={badge_url}\n")
     f.write(f"report_json={json.dumps(report)}\n")
 
-# Dimension metadata: emoji, label, weight
 DIM_META = {
     "readme":    ("\U0001f4dd", "README Quality",   "20%"),
     "activity":  ("\U0001f525", "Commit Activity",  "20%"),
@@ -139,23 +137,20 @@ DIM_META = {
 }
 
 def build_readme_block():
-    """Build the full DEVLENS README block with badge + dimension table."""
     rows = ""
     for k, (emoji, label, weight) in DIM_META.items():
         score = scores[k]
         bar   = dim_bar(score)
         color = badge_color(score)
-        score_badge = (f"https://img.shields.io/badge/{score}-{color}"
-                       f"?style=flat-square")
+        score_badge = f"https://img.shields.io/badge/{score}-{color}?style=flat-square"
         rows += f"| {emoji} **{label}** | `{bar}` | ![{score}]({score_badge}) | {weight} |\n"
-
     return (
         f"![DevLens Health]({badge_url}) "
-        f"**Overall health: {health}/100** — "
+        f"**Overall health: {health}/100** \u2014 "
         f"*Last updated: {now.strftime('%Y-%m-%d')}*\n\n"
         f"| Dimension | Progress | Score | Weight |\n"
         f"|---|---|---|---|\n"
-        f"{rows}"
+        f"{rows.rstrip()}"
     )
 
 def ai_section():
@@ -166,10 +161,10 @@ def ai_section():
         headers={"Authorization":f"Bearer {GROQ_API_KEY}","Content-Type":"application/json"},
         json={"model": GROQ_MODEL,
               "messages":[{"role":"user","content":
-              f"Append ONE short sentence of AI insight (no heading) after this markdown block. "
-              f"Keep the block intact, just add the sentence at the end. Block:\n{block}\n"
+              f"Append ONE short sentence of AI insight (no heading, no extra newlines) after this markdown block. "
+              f"Keep the full block intact and add the sentence at the very end on a new line. Block:\n{block}\n"
               f"Data: {json.dumps(report)}. Output ONLY the full block + 1 sentence."}],
-              "max_tokens":300})
+              "max_tokens":350})
     if resp.status_code == 200:
         return resp.json()["choices"][0]["message"]["content"].strip()
     print(f"Groq error ({resp.status_code}): {resp.text}")
@@ -184,7 +179,10 @@ if UPDATE_README:
         body = ai if ai else build_readme_block()
         block = f"{s_tag}\n{body}\n{e_tag}"
         if s_tag in content:
-            new = re.sub(f"{re.escape(s_tag)}.*?{re.escape(e_tag)}", block, content, flags=re.DOTALL)
+            # Use a splitter approach — immune to pipe chars in table rows
+            before = content.split(s_tag)[0]
+            after  = content.split(e_tag)[1]
+            new    = before + block + after
         else:
             new = content + "\n\n" + block + "\n"
         if new != content:
