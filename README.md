@@ -4,13 +4,14 @@
 <img src="https://img.shields.io/github/license/SamoTech/devlens?style=for-the-badge" alt="License"/>
 <img src="https://img.shields.io/github/stars/SamoTech/devlens?style=for-the-badge" alt="Stars"/>
 <img src="https://img.shields.io/badge/Free%20Forever-$0-blue?style=for-the-badge" alt="Free Forever"/>
+<a href="https://github.com/marketplace/actions/devlens-repo-health"><img src="https://img.shields.io/badge/GitHub%20Marketplace-DevLens%20Repo%20Health-orange?style=for-the-badge&logo=github" alt="GitHub Marketplace"/></a>
 
-# 🔭 DevLens
+# 🔭 DevLens Repo Health
 
 **The GitHub Action that gives your repo a health score, auto-updates your README,  
 and sends a weekly dev analytics digest — 100% free, forever.**
 
-[Install in 30s](#-quick-start) · [Live Demo](https://samotech.github.io/devlens) · [💛 Sponsor](https://github.com/sponsors/SamoTech)
+[Install in 30s](#-quick-start) · [GitHub Marketplace](https://github.com/marketplace/actions/devlens-repo-health) · [💛 Sponsor](https://github.com/sponsors/SamoTech)
 
 </div>
 
@@ -65,6 +66,21 @@ Community Signal  ██░░░░░░░░   5%  — stars, forks, watcher
 
 ## ⚡ Quick Start
 
+### Step 1 — Add markers to your README
+
+Paste this anywhere in your `README.md` where you want the live health badge to appear:
+
+```markdown
+<!-- DEVLENS:START -->
+<!-- DEVLENS:END -->
+```
+
+> ⚠️ DevLens injects the health section **between these two markers**. Without them, nothing will be written to your README.
+
+---
+
+### Step 2 — Add the workflow
+
 Create `.github/workflows/devlens.yml` in your repo:
 
 ```yaml
@@ -92,9 +108,24 @@ jobs:
           notify_discord: ${{ secrets.DISCORD_WEBHOOK }} # optional
 ```
 
+---
+
+### Step 3 — Add secrets (optional but recommended)
+
+| Secret | Where to get it | Why |
+|---|---|---|
+| `GROQ_API_KEY` | [console.groq.com/keys](https://console.groq.com/keys) | Enables AI-written README insights |
+| `DISCORD_WEBHOOK` | Discord channel → Edit → Integrations → Webhooks | Weekly digest to your team |
+
+Add secrets at: **`your-repo` → Settings → Secrets and variables → Actions → New repository secret**
+
+> ✅ `GITHUB_TOKEN` is automatic — no setup needed.
+
+---
+
 On the next push, DevLens will:
 1. Score your repo across 7 dimensions
-2. Inject a live health badge into your README between `<!-- DEVLENS:START -->` markers
+2. Auto-commit a live health badge into your README between the `<!-- DEVLENS:START -->` markers
 3. Send a rich Discord embed (if webhook configured)
 
 ---
@@ -105,10 +136,10 @@ On the next push, DevLens will:
 |---|---|---|---|
 | `github_token` | ✅ | — | `${{ secrets.GITHUB_TOKEN }}` |
 | `groq_api_key` | ❌ | `""` | Free Groq key for AI README insights |
-| `groq_model` | ❌ | `llama-3.1-8b-instant` | Groq model to use for AI insights |
+| `groq_model` | ❌ | `llama-3.1-8b-instant` | Groq model ID (must be enabled in your Groq project) |
 | `badge_style` | ❌ | `flat` | `flat`, `flat-square`, `for-the-badge` |
 | `update_readme` | ❌ | `true` | Auto-inject health badge into README |
-| `notify_discord` | ❌ | `""` | Discord webhook for weekly digest |
+| `notify_discord` | ❌ | `""` | Discord webhook URL for weekly digest |
 
 ## 📤 Outputs
 
