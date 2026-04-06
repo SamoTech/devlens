@@ -1,57 +1,45 @@
 # DevLens Dashboard
 
-Next.js 15 web dashboard for DevLens — live GitHub repo health scores, trend charts, and side-by-side comparisons.
+> GitHub repo health scorer — 9 dimensions, live analysis, free forever.
 
-**Live:** https://devlens-io.vercel.app
+## Features (v2)
 
-## Stack
+- **9-dimension scoring**: README, Activity, Freshness, Docs, CI/CD, Issues, Community, PR Velocity, Security
+- **Redis caching** (Upstash): 15-min cache per repo, real trend history up to 12 weeks
+- **Shareable report pages**: `/report/{owner}/{repo}`
+- **Badge generator**: `/badge` — Markdown, HTML, raw URL snippets
+- **Org leaderboard**: `/org` — score all public repos in an org
+- **Compare mode**: `/compare` — side-by-side repo comparison
+- **Rate limit CTA**: yellow banner with GitHub sign-in when API quota is hit
+- **Weight customization**: adjust dimension weights via sliders
+- **Dark/light mode**
 
-- **Next.js 15** (App Router, Edge Runtime)
-- **TypeScript** + **Tailwind CSS v4**
-- **Recharts** for trend charts
-- **GitHub REST API** — live data on every request, no DB
-
-## Features
-
-| Feature | Route |
-|---|---|
-| Live score for any public repo | `/` |
-| 7-dimension health table with progress bars | `/` |
-| Historical trend chart (8-week simulated) | `/` |
-| Compare two repos side by side | `/compare` |
-| "Add to your repo" copy-paste snippet | modal on result card |
-| Dark / light mode | everywhere |
-
-## Local Development
+## Setup
 
 ```bash
 cd dashboard
 npm install
 cp .env.example .env.local
-# Fill in GITHUB_TOKEN for higher rate limits (optional)
+# fill in .env.local
 npm run dev
 ```
 
-Open http://localhost:3000
+## Environment Variables
 
-## Deploy to Vercel
-
-```bash
-vercel --cwd dashboard
-```
-
-Set these in Vercel project settings:
-
-| Variable | Required | Notes |
+| Variable | Required | Description |
 |---|---|---|
-| `GITHUB_TOKEN` | Recommended | Raises API limit 60 → 5,000 req/hr |
+| `AUTH_SECRET` | Yes | NextAuth secret (`openssl rand -base64 32`) |
+| `GITHUB_ID` | Yes | GitHub OAuth App client ID |
+| `GITHUB_SECRET` | Yes | GitHub OAuth App client secret |
+| `GITHUB_TOKEN` | Optional | Server-side GitHub PAT (increases rate limit) |
+| `UPSTASH_REDIS_REST_URL` | Optional | Upstash Redis REST URL — enables caching & history |
+| `UPSTASH_REDIS_REST_TOKEN` | Optional | Upstash Redis REST token |
 
-## API Routes
+> Without Redis env vars the app works fine — caching and history are silently skipped.
 
-| Route | Description |
-|---|---|
-| `GET /api/analyze?repo=owner/name` | Full 7-dimension analysis |
-| `GET /api/compare?a=owner/a&b=owner/b` | Parallel analysis of two repos |
-| `GET /api/history?repo=owner/name` | Current score + 8-week trend |
+## Deployment (Vercel)
 
-All routes run on **Edge Runtime** and are cached for 5 minutes.
+1. Push `main` to GitHub
+2. Import project in Vercel, set root directory to `dashboard/`
+3. Add all env vars in Vercel project settings
+4. Deploy
