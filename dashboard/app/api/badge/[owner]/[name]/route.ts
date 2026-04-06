@@ -5,10 +5,10 @@ import { auth } from "@/lib/auth";
 type Params = { params: Promise<{ owner: string; name: string }> };
 
 function scoreColor(score: number): string {
-  if (score >= 80) return "4c9a2a"; // green
-  if (score >= 60) return "e6a817"; // yellow
-  if (score >= 40) return "d97706"; // orange
-  return "dc2626";                  // red
+  if (score >= 80) return "4c9a2a";
+  if (score >= 60) return "e6a817";
+  if (score >= 40) return "d97706";
+  return "dc2626";
 }
 
 function buildSvg(owner: string, name: string, score: number): string {
@@ -46,7 +46,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const session = await auth();
     const token = (session as any)?.accessToken ?? process.env.GITHUB_TOKEN;
     const report = await analyzeRepo(owner, name, token);
-    score = report.health_score ?? 0;
+    score = report.healthScore ?? 0;
   } catch { /* return 0-score badge on error */ }
 
   const svg = buildSvg(owner, name, score);

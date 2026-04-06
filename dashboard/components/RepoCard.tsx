@@ -1,6 +1,6 @@
 "use client";
 import type { RepoReport } from "@/lib/scorer";
-import { DIM_META } from "@/lib/constants";
+import { DIMMETA } from "@/lib/constants";
 import ScoreRing from "./ScoreRing";
 import DimBar from "./DimBar";
 import { Star, GitFork, ExternalLink, Code2 } from "lucide-react";
@@ -22,13 +22,13 @@ export default function RepoCard({ report, onSnippet }: { report: RepoReport; on
             {report.language && <span style={{ display:"flex",gap:"var(--space-1)",alignItems:"center",fontSize:"var(--text-xs)",color:"var(--text-muted)" }}><Code2 size={12}/>{report.language}</span>}
           </div>
         </div>
-        <ScoreRing score={report.health_score} size={96} />
+        <ScoreRing score={report.healthScore} size={96} />
       </div>
       <div style={{ display:"flex",flexDirection:"column",gap:"var(--space-4)" }}>
-        {DIM_META.map(d => <DimBar key={d.key} emoji={d.emoji} label={d.label} weight={d.weight} score={report.scores[d.key as keyof typeof report.scores]} />)}
+        {DIMMETA.map(d => <DimBar key={d.key} emoji={d.emoji} label={d.label} weight={d.weight} score={report.scores[d.key as keyof typeof report.scores]} />)}
       </div>
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:"var(--space-4)",borderTop:"1px solid var(--divider)",flexWrap:"wrap",gap:"var(--space-2)" }}>
-        <span style={{ fontSize:"var(--text-xs)",color:"var(--text-faint)" }}>Analyzed {new Date(report.generated_at).toLocaleString()}</span>
+        <span style={{ fontSize:"var(--text-xs)",color:"var(--text-faint)" }}>Analyzed {new Date(report.generatedAt).toLocaleString()}</span>
         {onSnippet && <button onClick={onSnippet} style={{ fontSize:"var(--text-xs)",fontWeight:600,color:"var(--primary)",padding:"var(--space-1) var(--space-3)",border:"1px solid var(--primary-hl)",borderRadius:"var(--radius-md)",background:"var(--primary-hl)" }}>Add to your repo →</button>}
       </div>
     </div>

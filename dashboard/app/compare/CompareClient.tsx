@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Loader2, ArrowLeftRight } from "lucide-react";
 import ScoreRing from "@/components/ScoreRing";
-import { DIM_META, badgeColor } from "@/lib/constants";
+import { DIMMETA, badgeColor } from "@/lib/constants";
 import type { RepoReport } from "@/lib/scorer";
 
 const inputStyle: React.CSSProperties = {
@@ -57,7 +57,6 @@ export default function CompareClient() {
           gap: "var(--space-8)",
         }}
       >
-        {/* Header */}
         <div>
           <h1
             style={{
@@ -70,11 +69,10 @@ export default function CompareClient() {
             Compare Repos
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
-            Analyze two repositories side by side across all 7 health dimensions.
+            Analyze two repositories side by side across all 9 health dimensions.
           </p>
         </div>
 
-        {/* Form */}
         <form
           onSubmit={compare}
           style={{
@@ -133,17 +131,14 @@ export default function CompareClient() {
           />
         </form>
 
-        {/* Error */}
         {error && (
           <p style={{ color: "var(--error)", textAlign: "center", fontSize: "var(--text-sm)" }}>
             {error}
           </p>
         )}
 
-        {/* Results */}
         {result && (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-            {/* Score rings */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-4)" }}>
               {[result.a, result.b].map((r) => (
                 <div
@@ -160,7 +155,7 @@ export default function CompareClient() {
                     boxShadow: "var(--shadow-sm)",
                   }}
                 >
-                  <ScoreRing score={r.health_score} size={100} />
+                  <ScoreRing score={r.healthScore} size={100} />
                   <p
                     style={{
                       fontFamily: "var(--font-display)",
@@ -185,7 +180,6 @@ export default function CompareClient() {
               ))}
             </div>
 
-            {/* Dimension breakdown */}
             <div
               style={{
                 background: "var(--surface)",
@@ -209,7 +203,7 @@ export default function CompareClient() {
               >
                 Dimension Breakdown
               </h2>
-              {DIM_META.map((d) => {
+              {DIMMETA.map((d) => {
                 const sa = result.a.scores[d.key as keyof typeof result.a.scores];
                 const sb = result.b.scores[d.key as keyof typeof result.b.scores];
                 return (
