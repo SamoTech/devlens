@@ -1,104 +1,92 @@
-"use client";
-import { useState } from "react";
-import { Loader2, ArrowLeftRight, ArrowLeft } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
-import ScoreRing from "@/components/ScoreRing";
-import DimBar from "@/components/DimBar";
-import { DIM_META, badgeColor } from "@/lib/constants";
-import type { RepoReport } from "@/lib/scorer";
-import Link from "next/link";
+'use client';
+import { useState } from 'react';
+import RepoCard from '@/components/RepoCard';
+import ThemeToggle from '@/components/ThemeToggle';
+import type { AnalysisResult } from '@/lib/types';
 
 export default function ComparePage() {
-  const [repoA, setRepoA] = useState("");
-  const [repoB, setRepoB] = useState("");
+  const [a, setA] = useState('');
+  const [b, setB] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ a: RepoReport; b: RepoReport } | null>(null);
-  const [error, setError] = useState("");
+  const [results, setResults] = useState<[AnalysisResult, AnalysisResult] | null>(null);
+  const [error, setError] = useState('');
 
-  async function compare(e: React.FormEvent) {
-    e.preventDefault();
-    if (!repoA.trim()||!repoB.trim()) return;
-    setLoading(true); setError(""); setResult(null);
+  const parseRepo = (val: string) => {
+    const m = val.match(/github\.com\/([^/]+\/[^/]+)/);
+    if (m) return m[1].replace(/\.git$/, '');
+    if (/^[\w.-]+\/[\w.-]+$/.test(val)) return val;
+    return null;
+  };
+
+  const compare = async () => {
+    const ra = parseRepo(a.trim());
+    const rb = parseRepo(b.trim());
+    if (!ra || !rb) { setError('Enter two valid repo slugs'); return; }
+    setError('');
+    setLoading(true);
+    setResults(null);
     try {
-      const res = await fetch(`/api/compare?a=${encodeURIComponent(repoA)}&b=${encodeURIComponent(repoB)}`);
+      const res = await fetch(`/api/compare?a=${encodeURIComponent(ra)}&b=${encodeURIComponent(rb)}`);
       const data = await res.json();
-      if (!res.ok) { setError(data.error??"Compare failed"); return; }
-      setResult(data);
-    } catch { setError("Network error."); }
-    finally { setLoading(false); }
-  }
-
-  const inputStyle: React.CSSProperties = { padding:"var(--space-3) var(--space-4)",border:"1px solid var(--border)",borderRadius:"var(--radius-lg)",background:"var(--surface-2)",color:"var(--text)",fontSize:"var(--text-sm)",outline:"none",width:"100%" };
+      if (!res.ok) throw new Error(data.error || 'Compare failed');
+      setResults([data.a, data.b]);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ minHeight:"100dvh",display:"flex",flexDirection:"column" }}>
-      <header style={{ position:"sticky",top:0,zIndex:50,background:"var(--surface)",borderBottom:"1px solid var(--divider)" }}>
-        <div style={{ maxWidth:"1200px",margin:"0 auto",padding:"var(--space-3) var(--space-6)",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:"var(--space-3)" }}>
-            <Link href="/" style={{ color:"var(--text-muted)",display:"flex",alignItems:"center",gap:"var(--space-1)",textDecoration:"none",fontSize:"var(--text-sm)" }}><ArrowLeft size={15}/> Back</Link>
-            <span style={{ color:"var(--divider)" }}>|</span>
-            <span style={{ fontFamily:"var(--font-display)",fontWeight:800,fontSize:"var(--text-base)" }}>Compare Repos</span>
-          </div>
-          <ThemeToggle/>
+    <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+      <nav style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}
+        className="sticky top-0 z-50 px-6 py-3 flex items-center justify-between">
+        <a href="/" className="flex items-center gap-2 font-bold text-lg" style={{ color: 'var(--color-primary)' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          DevLens
+        </a>
+        <div className="flex items-center gap-4">
+          <a href="/" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }} className="hover:underline">Home</a>
+          <ThemeToggle />
         </div>
-      </header>
-      <main style={{ flex:1,padding:"var(--space-12) var(--space-6)" }}>
-        <div style={{ maxWidth:"900px",margin:"0 auto",display:"flex",flexDirection:"column",gap:"var(--space-8)" }}>
-          <form onSubmit={compare} style={{ display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:"var(--space-3)",alignItems:"center" }}>
-            <input value={repoA} onChange={e=>setRepoA(e.target.value)} placeholder="owner/repo-a" aria-label="First repository" style={inputStyle}/>
-            <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:"var(--space-2)" }}>
-              <ArrowLeftRight size={18} color="var(--text-faint)"/>
-              <button type="submit" disabled={loading} style={{ padding:"var(--space-2) var(--space-4)",background:"var(--primary)",color:"white",borderRadius:"var(--radius-md)",fontWeight:600,fontSize:"var(--text-sm)",display:"flex",alignItems:"center",gap:"var(--space-1)" }}>
-                {loading?<Loader2 size={14} style={{ animation:"spin 1s linear infinite" }}/>:"Compare"}
-              </button>
-            </div>
-            <input value={repoB} onChange={e=>setRepoB(e.target.value)} placeholder="owner/repo-b" aria-label="Second repository" style={inputStyle}/>
-          </form>
-          {error && <p style={{ color:"var(--error)",textAlign:"center",fontSize:"var(--text-sm)" }}>{error}</p>}
-          {result && (
-            <div style={{ display:"flex",flexDirection:"column",gap:"var(--space-6)" }}>
-              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"var(--space-4)" }}>
-                {[result.a,result.b].map(r=>(
-                  <div key={r.repo} style={{ background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-xl)",padding:"var(--space-6)",display:"flex",flexDirection:"column",alignItems:"center",gap:"var(--space-3)",boxShadow:"var(--shadow-sm)" }}>
-                    <ScoreRing score={r.health_score} size={100}/>
-                    <p style={{ fontFamily:"var(--font-display)",fontWeight:700,fontSize:"var(--text-sm)",textAlign:"center",wordBreak:"break-all" }}>{r.repo}</p>
-                    <p style={{ fontSize:"var(--text-xs)",color:"var(--text-muted)",textAlign:"center" }}>{r.description??"No description"}</p>
-                  </div>
-                ))}
-              </div>
-              <div style={{ background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-xl)",padding:"var(--space-6)",boxShadow:"var(--shadow-sm)",display:"flex",flexDirection:"column",gap:"var(--space-5)" }}>
-                <h2 style={{ fontFamily:"var(--font-display)",fontSize:"var(--text-base)",fontWeight:700,paddingBottom:"var(--space-3)",borderBottom:"1px solid var(--divider)" }}>Dimension Breakdown</h2>
-                {DIM_META.map(d=>{
-                  const sa=result.a.scores[d.key as keyof typeof result.a.scores];
-                  const sb=result.b.scores[d.key as keyof typeof result.b.scores];
-                  return (
-                    <div key={d.key} style={{ display:"flex",flexDirection:"column",gap:"var(--space-2)" }}>
-                      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-                        <span style={{ fontSize:"var(--text-sm)",fontWeight:600 }}>{d.emoji} {d.label}</span>
-                        <span style={{ fontSize:"var(--text-xs)",color:"var(--text-faint)" }}>{d.weight}</span>
-                      </div>
-                      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"var(--space-2)" }}>
-                        {[{r:result.a,s:sa},{r:result.b,s:sb}].map(({r,s})=>(
-                          <div key={r.repo} style={{ display:"flex",flexDirection:"column",gap:"4px" }}>
-                            <div style={{ display:"flex",justifyContent:"space-between" }}>
-                              <span style={{ fontSize:"var(--text-xs)",color:"var(--text-muted)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{r.name}</span>
-                              <span style={{ fontSize:"var(--text-xs)",fontWeight:700,color:badgeColor(s),flexShrink:0,marginLeft:"4px" }}>{s}</span>
-                            </div>
-                            <div style={{ height:"6px",borderRadius:"var(--radius-full)",background:"var(--surface-off)" }}>
-                              <div style={{ height:"100%",borderRadius:"var(--radius-full)",background:badgeColor(s),width:`${s}%`,transition:"width 0.7s cubic-bezier(0.16,1,0.3,1)" }}/>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+      </nav>
+
+      <section className="px-6 py-14 text-center">
+        <h1 className="text-4xl font-bold mb-3" style={{ color: 'var(--color-text)' }}>Compare Two Repos</h1>
+        <p className="mb-10" style={{ color: 'var(--color-text-muted)' }}>Side-by-side health scores for any two public repos.</p>
+
+        <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-4">
+          <input value={a} onChange={e => setA(e.target.value)} placeholder="owner/repo-a"
+            className="flex-1 px-4 py-3 rounded-xl text-base outline-none"
+            style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', color: 'var(--color-text)' }} />
+          <span className="self-center font-bold" style={{ color: 'var(--color-text-muted)' }}>vs</span>
+          <input value={b} onChange={e => setB(e.target.value)} placeholder="owner/repo-b"
+            className="flex-1 px-4 py-3 rounded-xl text-base outline-none"
+            style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', color: 'var(--color-text)' }} />
         </div>
-      </main>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} input:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px var(--primary-hl)}`}</style>
+        <button onClick={compare} disabled={loading}
+          className="px-8 py-3 rounded-xl font-semibold text-white"
+          style={{ background: loading ? 'var(--color-text-muted)' : 'var(--color-primary)' }}>
+          {loading ? 'Analyzing…' : 'Compare'}
+        </button>
+        {error && <p className="mt-4 text-sm" style={{ color: 'var(--color-error)' }}>{error}</p>}
+      </section>
+
+      {results && (
+        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto px-6 pb-16 animate-fadein">
+          <RepoCard result={results[0]} />
+          <RepoCard result={results[1]} />
+        </div>
+      )}
+
+      <footer className="text-center py-10" style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+        Built by{' '}
+        <a href="https://github.com/SamoTech" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)' }}>SamoTech</a>
+        {' · '}
+        <a href="https://github.com/SamoTech/devlens" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)' }}>GitHub</a>
+      </footer>
     </div>
   );
 }

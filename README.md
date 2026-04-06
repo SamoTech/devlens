@@ -14,7 +14,7 @@
 **The GitHub Action that gives your repo a health score, auto-updates your README,
 and sends a weekly dev analytics digest — 100% free, forever.**
 
-[Install in 30s](#-quick-start) · [GitHub Marketplace](https://github.com/marketplace/actions/devlens-repo-health) · [💛 Sponsor](https://github.com/sponsors/SamoTech)
+[Install in 30s](#-quick-start) · [🌐 Live Dashboard](https://devlens-io.vercel.app) · [GitHub Marketplace](https://github.com/marketplace/actions/devlens-repo-health) · [💛 Sponsor](https://github.com/sponsors/SamoTech)
 
 </div>
 
@@ -43,10 +43,37 @@ and sends a weekly dev analytics digest — 100% free, forever.**
 | 📊 **Analytics Badge** | shields.io badge auto-generated | ✅ |
 | 📬 **Weekly Digest** | Discord report every Monday 8am UTC | ✅ |
 | 🤖 **AI Insights** | Groq-powered 1-line suggestion (free key) | ✅ |
+| 🌐 **Web Dashboard** | Live score for any public repo | ✅ |
 | ♾️ **Unlimited Repos** | No seat limits, no per-repo pricing | ✅ |
 
 > **vs. Code Climate ($37/dev) · LinearB ($49/dev) · GitClear ($15/dev)**
 > DevLens is 100% free, runs inside GitHub Actions, zero vendor lock-in.
+
+---
+
+## 🌐 Web Dashboard
+
+**[→ devlens-io.vercel.app](https://devlens-io.vercel.app)**
+
+Paste any public GitHub repo URL and get a live health report — no signup, no API key needed.
+
+| Feature | Details |
+|---|---|
+| Live score | Reads directly from GitHub API on every load |
+| 7-row health table | Progress bars for each dimension |
+| Historical trend chart | 8-week score trend |
+| Side-by-side compare | `/compare` — analyze two repos at once |
+| "Add to your repo" | Copy-paste README marker + workflow in one click |
+| Dark / light mode | System preference + manual toggle |
+
+```bash
+# Run the dashboard locally
+cd dashboard
+npm install && npm run dev
+# → http://localhost:3000
+```
+
+See [`dashboard/README.md`](dashboard/README.md) for full setup and deployment instructions.
 
 ---
 
@@ -75,23 +102,7 @@ Paste these two comment lines anywhere in your `README.md`:
 <!-- DEVLENS:END -->
 ```
 
-On the next push, DevLens will **automatically inject a full 7-row health table** between them:
-
-```markdown
-<!-- DEVLENS:START -->
-![DevLens Health](badge-url) **Overall health: 85/100** — Last updated: 2026-04-06
-
-| Dimension        | Progress     | Score | Weight |
-|---|---|---|---|
-| 📝 README Quality  | ████████░░ |   80  |  20%   |
-| 🔥 Commit Activity | ██████████ |  100  |  20%   |
-| 🌿 Repo Freshness  | ██████████ |  100  |  15%   |
-| 📚 Documentation   | ██████░░░░ |   64  |  15%   |
-| ⚙️ CI/CD Setup      | ██████████ |  100  |  15%   |
-| 🎯 Issue Response   | ██████████ |  100  |  10%   |
-| ⭐ Community Signal | ░░░░░░░░░░ |    0  |   5%   |
-<!-- DEVLENS:END -->
-```
+On the next push, DevLens will **automatically inject a full 7-row health table** between them.
 
 > ⚠️ **Do NOT add anything between the markers.** DevLens replaces everything between them on every run.
 
@@ -162,10 +173,10 @@ jobs:
 - [x] Auto README table injection (all 7 rows)
 - [x] Weekly Discord digest
 - [x] AI README insights (Groq/Llama 3)
-- [ ] Web dashboard (Next.js)
+- [x] Web dashboard (Next.js) — **live at [devlens-io.vercel.app](https://devlens-io.vercel.app)**
 - [ ] Email digest (Resend free tier)
 - [ ] PR quality scoring
-- [ ] Historical trend charts
+- [ ] Historical trend charts (persisted)
 - [ ] Multi-repo portfolio view
 - [ ] Slack integration
 

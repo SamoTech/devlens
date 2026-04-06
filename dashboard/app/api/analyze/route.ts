@@ -1,20 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { analyzeRepo } from "@/lib/scorer";
-import { auth } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { analyzeRepo } from '@/lib/analyzer';
+
+export const runtime = 'edge';
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const repo = searchParams.get("repo");
-  if (!repo) return NextResponse.json({ error: "repo param required" }, { status: 400 });
-  const parts = repo.replace("https://github.com/", "").replace(/\/+$/, "").split("/");
-  if (parts.length < 2) return NextResponse.json({ error: "Invalid repo format. Use owner/name" }, { status: 400 });
-  const [owner, name] = parts;
+  const repo = req.nextUrl.searchParams.get('repo');
+  if (!repo || !/^[\w.-]+\/[\w.-]+$/.test(repo)) {
+    return NextResponse.json({ error: 'Invalid repo format. Use owner/repo' }, { status: 400 });
+  }
   try {
-    const session = await auth();
-    const token = (session as any)?.accessToken ?? process.env.GITHUB_TOKEN;
-    const report = await analyzeRepo(owner, name, token);
-    return NextResponse.json(report);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "Analysis failed" }, { status: 500 });
+    const result = await analyzeRepo(repo);
+    return NextResponse.json(result, {
+      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' }
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Analysis failed';
+    const status = msg.includes('Not Found') ? 404 : 500;
+    return NextResponse.json({ error: msg }, { status });
   }
 }

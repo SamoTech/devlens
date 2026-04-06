@@ -1,17 +1,38 @@
-"use client";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+'use client';
+import { useEffect, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
-export default function TrendChart({ data }: { data: { week: string; score: number }[] }) {
+export default function TrendChart({ repo }: { repo: string }) {
+  const [data, setData] = useState<{ week: string; score: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/history?repo=${encodeURIComponent(repo)}`)
+      .then(r => r.json())
+      .then(d => { setData(d.history || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [repo]);
+
+  if (loading) return <div className="skeleton h-32 w-full" />;
+  if (!data.length) return null;
+
   return (
-    <div style={{ background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-xl)",padding:"var(--space-6)",boxShadow:"var(--shadow-sm)" }}>
-      <h3 style={{ fontFamily:"var(--font-display)",fontSize:"var(--text-base)",fontWeight:700,marginBottom:"var(--space-4)",color:"var(--text)" }}>Health Trend (last 8 weeks)</h3>
-      <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={data} margin={{ top:4,right:4,left:-20,bottom:0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--divider)" />
-          <XAxis dataKey="week" tick={{ fontSize:11,fill:"var(--text-muted)" }} />
-          <YAxis domain={[0,100]} tick={{ fontSize:11,fill:"var(--text-muted)" }} />
-          <Tooltip contentStyle={{ background:"var(--surface-2)",border:"1px solid var(--border)",borderRadius:"var(--radius-md)",fontSize:"13px",color:"var(--text)" }} />
-          <Line type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={2.5} dot={{ fill:"var(--primary)",r:4 }} activeDot={{ r:6 }} />
+    <div>
+      <p className="text-xs font-semibold mb-2" style={{ color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        Health Trend (last 8 weeks)
+      </p>
+      <ResponsiveContainer width="100%" height={130}>
+        <LineChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+          <XAxis dataKey="week" tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
+          <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
+          <Tooltip
+            contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
+            labelStyle={{ color: 'var(--color-text-muted)' }}
+            itemStyle={{ color: 'var(--color-primary)' }}
+          />
+          <ReferenceLine y={80} stroke="var(--color-border)" strokeDasharray="3 3" />
+          <Line type="monotone" dataKey="score" stroke="var(--color-primary)" strokeWidth={2}
+            dot={{ r: 3, fill: 'var(--color-primary)' }} activeDot={{ r: 5 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>

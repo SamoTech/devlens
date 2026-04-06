@@ -1,24 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
-import { analyzeRepo } from "@/lib/scorer";
-import { auth } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { analyzeRepo } from '@/lib/analyzer';
+
+export const runtime = 'edge';
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const a = searchParams.get("a"), b = searchParams.get("b");
-  if (!a || !b) return NextResponse.json({ error: "a and b params required" }, { status: 400 });
-  function parse(r: string) {
-    const p = r.replace("https://github.com/", "").replace(/\/+$/, "").split("/");
-    return { owner: p[0], name: p[1] };
-  }
+  const a = req.nextUrl.searchParams.get('a');
+  const b = req.nextUrl.searchParams.get('b');
+  if (!a || !b) return NextResponse.json({ error: 'Both a and b params required' }, { status: 400 });
   try {
-    const session = await auth();
-    const token = (session as any)?.accessToken ?? process.env.GITHUB_TOKEN;
-    const [ra, rb] = await Promise.all([
-      analyzeRepo(parse(a).owner, parse(a).name, token),
-      analyzeRepo(parse(b).owner, parse(b).name, token),
-    ]);
-    return NextResponse.json({ a: ra, b: rb });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "Compare failed" }, { status: 500 });
+    const [ra, rb] = await Promise.all([analyzeRepo(a), analyzeRepo(b)]);
+    return NextResponse.json({ a: ra, b: rb }, {
+      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' }
+    });
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : 'Failed' }, { status: 500 });
   }
 }

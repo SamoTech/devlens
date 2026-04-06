@@ -1,19 +1,26 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "DevLens Dashboard",
-  description: "Repo health scoring — 7 dimensions, live from GitHub API",
+  title: 'DevLens — Repo Health Dashboard',
+  description: 'Live GitHub repo health scores across 7 dimensions. Free forever.',
+  openGraph: {
+    title: 'DevLens — Repo Health Dashboard',
+    description: 'Live GitHub repo health scores. Free forever.',
+    url: 'https://devlens-io.vercel.app',
+    siteName: 'DevLens'
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://api.fontshare.com" />
-        <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=cabinet-grotesk@800&display=swap" rel="stylesheet" />
-      </head>
-      <body>{children}</body>
+      <body className={inter.className}>
+        {children}
+      </body>
     </html>
   );
 }
