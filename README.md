@@ -39,10 +39,10 @@ and sends a weekly dev analytics digest — 100% free, forever.**
 | Feature | Description | Free |
 |---|---|---|
 | 🏥 **Health Score** | 0–100 score across 7 dimensions | ✅ |
-| 📝 **AI README Update** | Injects live health badge on every push | ✅ |
+| 📝 **AI README Update** | Injects live 7-row health table on every push | ✅ |
 | 📊 **Analytics Badge** | shields.io badge auto-generated | ✅ |
 | 📬 **Weekly Digest** | Discord report every Monday 8am UTC | ✅ |
-| 🤖 **AI Insights** | Groq-powered suggestions (free key) | ✅ |
+| 🤖 **AI Insights** | Groq-powered 1-line suggestion (free key) | ✅ |
 | ♾️ **Unlimited Repos** | No seat limits, no per-repo pricing | ✅ |
 
 > **vs. Code Climate ($37/dev) · LinearB ($49/dev) · GitClear ($15/dev)**
@@ -68,14 +68,32 @@ Community Signal  ░░░░░░░░░░   5%  — stars, forks, watcher
 
 ### Step 1 — Add markers to your README
 
-Paste this anywhere in your `README.md`:
+Paste these two comment lines anywhere in your `README.md`:
 
-```
-[DEVLENS-START]
-[DEVLENS-END]
+```markdown
+<!-- DEVLENS:START -->
+<!-- DEVLENS:END -->
 ```
 
-> ⚠️ Replace the brackets with HTML comment syntax: `<!--` and `-->`. DevLens injects the health badge between these markers.
+On the next push, DevLens will **automatically inject a full 7-row health table** between them:
+
+```markdown
+<!-- DEVLENS:START -->
+![DevLens Health](badge-url) **Overall health: 85/100** — Last updated: 2026-04-06
+
+| Dimension        | Progress     | Score | Weight |
+|---|---|---|---|
+| 📝 README Quality  | ████████░░ |   80  |  20%   |
+| 🔥 Commit Activity | ██████████ |  100  |  20%   |
+| 🌿 Repo Freshness  | ██████████ |  100  |  15%   |
+| 📚 Documentation   | ██████░░░░ |   64  |  15%   |
+| ⚙️ CI/CD Setup      | ██████████ |  100  |  15%   |
+| 🎯 Issue Response   | ██████████ |  100  |  10%   |
+| ⭐ Community Signal | ░░░░░░░░░░ |    0  |   5%   |
+<!-- DEVLENS:END -->
+```
+
+> ⚠️ **Do NOT add anything between the markers.** DevLens replaces everything between them on every run.
 
 ---
 
@@ -110,7 +128,7 @@ jobs:
 
 | Secret | Where to get it | Why |
 |---|---|---|
-| `GROQ_API_KEY` | [console.groq.com/keys](https://console.groq.com/keys) | AI README insights |
+| `GROQ_API_KEY` | [console.groq.com/keys](https://console.groq.com/keys) | AI insight line below the table |
 | `DISCORD_WEBHOOK` | Discord → Channel Settings → Integrations | Weekly digest |
 
 > ✅ `GITHUB_TOKEN` is automatic — no setup needed.
@@ -125,7 +143,7 @@ jobs:
 | `groq_api_key` | ❌ | `""` | Free Groq key for AI insights |
 | `groq_model` | ❌ | `llama-3.1-8b-instant` | Groq model ID |
 | `badge_style` | ❌ | `flat` | `flat`, `flat-square`, `for-the-badge` |
-| `update_readme` | ❌ | `true` | Auto-inject health badge into README |
+| `update_readme` | ❌ | `true` | Auto-inject health table into README |
 | `notify_discord` | ❌ | `""` | Discord webhook URL |
 
 ## 📤 Outputs
@@ -134,14 +152,14 @@ jobs:
 |---|---|
 | `health_score` | Integer 0–100 |
 | `badge_url` | Ready-to-embed shields.io URL |
-| `report_json` | Full JSON of all dimension scores |
+| `report_json` | Full JSON of all 7 dimension scores |
 
 ---
 
 ## 🛣️ Roadmap
 
 - [x] 7-dimension health score engine
-- [x] Auto README badge injection
+- [x] Auto README table injection (all 7 rows)
 - [x] Weekly Discord digest
 - [x] AI README insights (Groq/Llama 3)
 - [ ] Web dashboard (Next.js)
