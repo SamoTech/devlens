@@ -1,6 +1,6 @@
 'use client'
-import { useState } from 'react'
-import { Search, Loader2, ArrowRight, Github, AlertTriangle, X, Zap, BarChart2, Shield, BookOpen } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Loader2, ArrowRight, Github, AlertTriangle, X, Zap, BarChart2, Shield, BookOpen, ExternalLink } from 'lucide-react'
 import RepoCard from '@/components/RepoCard'
 import TrendChart from '@/components/TrendChart'
 import SnippetModal from '@/components/SnippetModal'
@@ -9,6 +9,7 @@ import type { RepoReport } from '@/lib/scorer'
 import { DEFAULT_WEIGHTS, DimKey } from '@/lib/constants'
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
+import type { WatchEntry } from '@/app/api/watchlist/route'
 
 export default function Home() {
   const [input, setInput] = useState('')
@@ -18,6 +19,14 @@ export default function Home() {
   const [error, setError] = useState<{ type: string; message: string } | null>(null)
   const [showSnippet, setShowSnippet] = useState(false)
   const [weights, setWeights] = useState<Record<DimKey, number>>({ ...DEFAULT_WEIGHTS })
+  const [recentList, setRecentList] = useState<WatchEntry[]>([])
+
+  useEffect(() => {
+    fetch('/api/watchlist')
+      .then(r => r.json())
+      .then(d => setRecentList((d.list ?? []).slice(-10).reverse()))
+      .catch(() => {})
+  }, [])
 
   async function analyze(e: React.FormEvent) {
     e.preventDefault()
@@ -45,6 +54,8 @@ export default function Home() {
     } catch { setError({ type: 'error', message: 'Network error. Please try again.' }) }
     finally { setLoading(false) }
   }
+
+  const scoreColor = (s: number) => s >= 80 ? 'var(--success)' : s >= 50 ? 'var(--warning)' : 'var(--danger)'
 
   return (
     <>
@@ -95,6 +106,33 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Recently Checked */}
+        {recentList.length > 0 && !report && !loading && (
+          <section style={{ maxWidth: 680, margin: '0 auto var(--space-12)', padding: '0 var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--text)' }}>Recently Checked</h2>
+              <Link href="/checked" style={{ fontSize: 'var(--text-xs)', color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>View all →</Link>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              {recentList.map(w => (
+                <div key={w.slug} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-3) var(--space-4)' }}>
+                  <span style={{ fontWeight: 800, fontSize: 'var(--text-sm)', color: scoreColor(w.score), minWidth: 36, textAlign: 'center' }}>{w.score}</span>
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <Link href={`/?repo=${w.slug}`} style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--text)', textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
+                      {w.slug}
+                    </Link>
+                    {w.description && <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{w.description}</p>}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexShrink: 0 }}>
+                    {w.language && <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-faint)' }}>{w.language}</span>}
+                    <a href={`/repo/${w.slug}`} title="Full report" style={{ color: 'var(--text-faint)', display: 'flex' }}><ExternalLink size={14} /></a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {error?.type === 'rate_limited' && (
           <div style={{ maxWidth: 680, margin: '0 auto var(--space-6)', padding: '0 var(--space-6)' }}>
