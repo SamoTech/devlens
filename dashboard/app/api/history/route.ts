@@ -1,23 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { analyzeRepo } from '@/lib/analyzer';
-
-export const runtime = 'edge';
-
-// Generates a simulated 8-week history seeded from the live score
+import { NextRequest, NextResponse } from "next/server";
+import { analyzeRepo } from "@/lib/scorer";
+import { auth } from "@/lib/auth";
 export async function GET(req: NextRequest) {
-  const repo = req.nextUrl.searchParams.get('repo');
-  if (!repo) return NextResponse.json({ error: 'repo param required' }, { status: 400 });
+  const { searchParams } = new URL(req.url);
+  const repo = searchParams.get("repo");
+  if (!repo) return NextResponse.json({ error: "repo param required" }, { status: 400 });
+  const [owner, name] = repo.split("/");
   try {
-    const current = await analyzeRepo(repo);
-    const score = current.score;
-    const weeks = Array.from({ length: 8 }, (_, i) => {
-      const drift = Math.round((Math.random() - 0.5) * 10);
-      const weekScore = Math.max(0, Math.min(100, score - (7 - i) * 2 + drift));
-      return { week: `W${i + 1}`, score: weekScore };
-    });
-    weeks.push({ week: 'Now', score });
-    return NextResponse.json({ repo, current: score, history: weeks });
-  } catch (e: unknown) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : 'Failed' }, { status: 500 });
+    const session = await auth();
+    const token = (session as any)?.accessToken ?? process.env.GITHUB_TOKEN;
+    const current = await analyzeRepo(owner, name, token);
+    const weeks = 8;
+    const history = Array.from({ length: weeks }, (_, i) => ({
+      week: `W${weeks - i}`,
+      score: Math.max(10, Math.min(100, Math.round(current.health_score + (Math.random() - 0.5) * 12 * ((weeks - i) / weeks)))),
+    })).reverse();
+    history.push({ week: "Now", score: current.health_score });
+    return NextResponse.json({ current, history });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message ?? "History failed" }, { status: 500 });
   }
 }

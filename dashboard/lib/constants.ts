@@ -7,16 +7,13 @@ export const DIM_META = [
   { key: "issues",    emoji: "🎯", label: "Issue Response",  weight: "10%" },
   { key: "community", emoji: "⭐", label: "Community Signal", weight: "5%" },
 ] as const;
-
 export type DimKey = typeof DIM_META[number]["key"];
-
 export function badgeColor(s: number): string {
   if (s >= 80) return "#22c55e";
   if (s >= 60) return "#84cc16";
   if (s >= 40) return "#eab308";
   return "#ef4444";
 }
-
 export function scoreLabel(s: number): string {
   if (s >= 90) return "Excellent";
   if (s >= 75) return "Good";

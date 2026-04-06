@@ -1,9 +1,7 @@
-
 export interface DimScores {
   readme: number; activity: number; freshness: number;
   docs: number; ci: number; issues: number; community: number;
 }
-
 export interface RepoReport {
   repo: string; owner: string; name: string;
   description: string | null; stars: number; forks: number;
@@ -11,22 +9,18 @@ export interface RepoReport {
   health_score: number; scores: DimScores;
   badge_url: string; generated_at: string;
 }
-
 const WEIGHTS: DimScores = { readme:0.20,activity:0.20,freshness:0.15,docs:0.15,ci:0.15,issues:0.10,community:0.05 };
 const GH = "https://api.github.com";
 const headers = (token?: string) => ({ Accept: "application/vnd.github+json", ...(token ? { Authorization: `Bearer ${token}` } : {}) });
-
 async function ghFetch(url: string, token?: string) {
   const r = await fetch(url, { headers: headers(token), next: { revalidate: 300 } });
   if (!r.ok) throw new Error(`GitHub API error ${r.status}: ${url}`);
   return r.json();
 }
-
 function badgeColor(s: number) {
   if (s >= 80) return "brightgreen"; if (s >= 60) return "green";
   if (s >= 40) return "yellow"; return "red";
 }
-
 async function scoreReadme(owner: string, name: string, token?: string): Promise<number> {
   try {
     const data = await ghFetch(`${GH}/repos/${owner}/${name}/readme`, token);
@@ -44,7 +38,6 @@ async function scoreReadme(owner: string, name: string, token?: string): Promise
     return Math.min(s, 100);
   } catch { return 0; }
 }
-
 async function scoreActivity(owner: string, name: string, token?: string): Promise<number> {
   try {
     const since = new Date(); since.setDate(since.getDate() - 90);
@@ -53,12 +46,10 @@ async function scoreActivity(owner: string, name: string, token?: string): Promi
     if (n >= 30) return 100; if (n >= 15) return 75; if (n >= 5) return 50; if (n >= 1) return 25; return 0;
   } catch { return 0; }
 }
-
 function scoreFreshness(pushedAt: string): number {
   const days = Math.floor((Date.now() - new Date(pushedAt).getTime()) / 86400000);
   if (days <= 7) return 100; if (days <= 30) return 80; if (days <= 90) return 55; if (days <= 180) return 30; return 10;
 }
-
 async function scoreDocs(owner: string, name: string, token?: string): Promise<number> {
   try {
     const tree = await ghFetch(`${GH}/repos/${owner}/${name}/git/trees/HEAD?recursive=1`, token);
@@ -69,7 +60,6 @@ async function scoreDocs(owner: string, name: string, token?: string): Promise<n
     return Math.min(s, 100);
   } catch { return 0; }
 }
-
 async function scoreCI(owner: string, name: string, token?: string): Promise<number> {
   try {
     const data = await ghFetch(`${GH}/repos/${owner}/${name}/actions/workflows`, token);
@@ -77,7 +67,6 @@ async function scoreCI(owner: string, name: string, token?: string): Promise<num
     if (n >= 3) return 100; if (n >= 1) return 60; return 0;
   } catch { return 0; }
 }
-
 async function scoreIssues(owner: string, name: string, openCount: number, token?: string): Promise<number> {
   try {
     const closed = await ghFetch(`${GH}/repos/${owner}/${name}/issues?state=closed&per_page=50`, token);
@@ -88,11 +77,9 @@ async function scoreIssues(owner: string, name: string, openCount: number, token
     return Math.round((c / total) * 100);
   } catch { return 50; }
 }
-
 function scoreCommunity(stars: number, forks: number): number {
   return Math.min(Math.floor(Math.log1p(stars)*15)+Math.floor(Math.log1p(forks)*10), 100);
 }
-
 export async function analyzeRepo(owner: string, name: string, token?: string): Promise<RepoReport> {
   const repoData = await ghFetch(`${GH}/repos/${owner}/${name}`, token);
   const [readme, activity, docs, ci, issues] = await Promise.all([
