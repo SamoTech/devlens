@@ -24,6 +24,24 @@ export default function OrgPage() {
       if (!res.ok) { setError(data.error ?? 'Failed'); return }
       setRepos(data.repos)
       setOrgName(data.org)
+
+      // Save to org watchlist
+      if (data.repos?.length > 0) {
+        const scores: number[] = data.repos.map((r: any) => r.healthScore ?? 0)
+        const avgScore = Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
+        const top = data.repos[0]
+        fetch('/api/org-watchlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            org: data.org,
+            repoCount: data.repos.length,
+            avgScore,
+            topRepo: top ? top.name : null,
+            savedAt: new Date().toISOString(),
+          }),
+        }).catch(() => {})
+      }
     } catch { setError('Network error.') } finally { setLoading(false) }
   }
 
