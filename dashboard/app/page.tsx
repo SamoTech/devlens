@@ -55,6 +55,23 @@ export default function Home() {
         return
       }
       setReport(data)
+
+      // Save to watchlist so "Recently Checked" is live
+      const entry: WatchEntry = {
+        slug,
+        score: data.score,
+        description: data.description ?? null,
+        language: data.language ?? null,
+        savedAt: new Date().toISOString(),
+      }
+      fetch('/api/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry),
+      }).catch(() => {})
+      // Optimistic update — prepend and dedupe
+      setRecentList(prev => [entry, ...prev.filter(w => w.slug !== slug)].slice(0, 10))
+
       const hData = await histRes.json()
       if (histRes.ok) setHistory(hData.history ?? [])
     } catch { setError({ type: 'error', message: 'Network error. Please try again.' }) }
@@ -131,7 +148,7 @@ export default function Home() {
                     <div key={w.slug} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-3) var(--space-4)' }}>
                       <span style={{ fontWeight: 800, fontSize: 'var(--text-sm)', color: scoreColor(w.score), minWidth: 36, textAlign: 'center' }}>{w.score}</span>
                       <div style={{ flex: 1, overflow: 'hidden' }}>
-                        <Link href={`/?repo=${w.slug}`} style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--text)', textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
+                        <Link href={`/repo/${w.slug}`} style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--text)', textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
                           {w.slug}
                         </Link>
                         {w.description && <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{w.description}</p>}
