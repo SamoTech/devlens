@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     const token = (session as any)?.accessToken ?? process.env.GITHUB_TOKEN
     const report = await analyzeRepo(owner, name, token, customWeights)
 
-    // ── Track stats in Redis (fire-and-forget, never blocks the response) ──
+    // ── Track stats in Redis (fire-and-forget) ──
     const today = new Date().toISOString().slice(0, 10)
     const ip =
       req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
@@ -37,14 +37,11 @@ export async function GET(req: NextRequest) {
       'unknown'
 
     Promise.all([
-      // Global counters
       redis.incr('stats:total_analyses'),
       redis.incr(`stats:daily:${today}`),
-      // Per-repo hit count + last score + last seen
       redis.hincrby('stats:repo_hits', slug, 1),
-      redis.hset('stats:repo_scores', { [slug]: report.score }),
+      redis.hset('stats:repo_scores', { [slug]: report.healthScore }),
       redis.hset('stats:repo_last_seen', { [slug]: new Date().toISOString() }),
-      // Unique visitor IPs
       redis.sadd('stats:unique_ips', ip),
       // Watchlist (recently checked) — dedupe then prepend
       redis.lrange('devlens:watchlist', 0, 99).then(async (existing: any[]) => {
@@ -53,15 +50,15 @@ export async function GET(req: NextRequest) {
         }
         await redis.lpush('devlens:watchlist', {
           slug,
-          score: report.score,
-          description: (report as any).description ?? null,
-          language: (report as any).language ?? null,
+          score: report.healthScore,
+          description: report.description ?? null,
+          language: report.language ?? null,
           savedAt: new Date().toISOString(),
         })
         await redis.ltrim('devlens:watchlist', 0, 99)
       }),
-    ]).catch(() => {}) // never let tracking errors surface to the user
-    // ─────────────────────────────────────────────────────────────────────
+    ]).catch(() => {})
+    // ─────────────────────────────────────
 
     return NextResponse.json(report)
   } catch (e: any) {
