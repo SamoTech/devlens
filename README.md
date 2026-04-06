@@ -17,7 +17,18 @@ and sends a weekly dev analytics digest — 100% free, forever.**
 <!-- DEVLENS:START -->
 ## Repo Health
 ![DevLens Health](https://img.shields.io/badge/DevLens%20Health-75%2F100-green?style=flat-square&logo=github)
-This repository has received a health score of 75, which requires improvement across different aspects.
+This repository's health score is 75.
+
+### Scores Breakdown
+| Metric    | Score |
+|-----------|-------|
+| Readme    | 68    |
+| Activity  | 75    |
+| Freshness | 100   |
+| Docs      | 48    |
+| CI        | 100   |
+| Issues    | 100   |
+| Community | 0     |
 <!-- DEVLENS:END -->
 
 ---
