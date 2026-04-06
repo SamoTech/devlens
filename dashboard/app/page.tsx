@@ -43,7 +43,6 @@ export default function Home() {
       setReport(data);
       const hData = await histRes.json();
       if (histRes.ok) setHistory(hData.history ?? []);
-      // Save to watchlist
       const entry: WatchEntry = { slug: target, score: data.health_score, description: data.description, language: data.language, savedAt: new Date().toISOString() };
       const updated = [entry, ...loadWatchlist().filter(w => w.slug !== target)];
       saveWatchlist(updated);
@@ -95,33 +94,28 @@ export default function Home() {
         </section>
       )}
 
-      {/* My Repos watchlist */}
+      {/* Checked Repos watchlist */}
       {watchlist.length > 0 && (
         <section style={{ padding:"0 var(--space-6) var(--space-16)",maxWidth:"780px",margin:"0 auto",display:"flex",flexDirection:"column",gap:"var(--space-4)" }}>
           <div style={{ display:"flex",alignItems:"center",gap:"var(--space-2)" }}>
             <Bookmark size={16} style={{ color:"var(--primary)" }}/>
-            <h2 style={{ fontFamily:"var(--font-display)",fontSize:"var(--text-base)",fontWeight:800 }}>My Repos</h2>
+            <h2 style={{ fontFamily:"var(--font-display)",fontSize:"var(--text-base)",fontWeight:800 }}>Checked Repos</h2>
             <span style={{ fontSize:"var(--text-xs)",color:"var(--text-faint)",marginLeft:"auto" }}>{watchlist.length} saved</span>
           </div>
           <div style={{ display:"flex",flexDirection:"column",gap:"var(--space-2)" }}>
             {watchlist.map(w => (
               <div key={w.slug} style={{ display:"flex",alignItems:"center",gap:"var(--space-3)",background:"var(--surface-off)",border:"1px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"var(--space-3) var(--space-4)",cursor:"pointer",transition:"background .15s" }}
                 onClick={() => { setInput(w.slug); analyze(null, w.slug); }}>
-                {/* Score pill */}
                 <span style={{ fontWeight:800,fontSize:"var(--text-sm)",color:scoreColor(w.score),minWidth:"36px",textAlign:"center" }}>{w.score}</span>
-                {/* Info */}
                 <div style={{ flex:1,overflow:"hidden" }}>
                   <p style={{ fontWeight:600,fontSize:"var(--text-sm)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis" }}>{w.slug}</p>
                   {w.description && <p style={{ fontSize:"var(--text-xs)",color:"var(--text-muted)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis" }}>{w.description}</p>}
                 </div>
-                {/* Language */}
                 {w.language && <span style={{ fontSize:"var(--text-xs)",color:"var(--text-faint)",flexShrink:0 }}>{w.language}</span>}
-                {/* Permalink */}
                 <a href={`/repo/${w.slug}`} onClick={e=>e.stopPropagation()} target="_blank" rel="noopener noreferrer"
                   style={{ color:"var(--text-faint)",flexShrink:0,display:"flex" }} title="Open permalink">
                   <ExternalLink size={14}/>
                 </a>
-                {/* Remove */}
                 <button onClick={e=>{ e.stopPropagation(); removeFromWatchlist(w.slug); }}
                   style={{ color:"var(--text-faint)",flexShrink:0,display:"flex",background:"none",border:"none",cursor:"pointer",padding:0 }} title="Remove">
                   <X size={14}/>
