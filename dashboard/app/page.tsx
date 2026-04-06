@@ -49,17 +49,18 @@ export default function Home() {
         fetch(`/api/analyze?repo=${encodeURIComponent(slug)}&weights=${encodeURIComponent(weightsJson)}`),
         fetch(`/api/history?repo=${encodeURIComponent(slug)}`),
       ])
-      const data = await res.json()
+      const data: RepoReport = await res.json()
       if (!res.ok) {
-        setError({ type: data.error ?? 'error', message: data.message ?? data.error ?? 'Analysis failed' })
+        const err = data as any
+        setError({ type: err.error ?? 'error', message: err.message ?? err.error ?? 'Analysis failed' })
         return
       }
       setReport(data)
 
-      // Save to watchlist so "Recently Checked" is live
+      // Save to watchlist so "Recently Checked" and /checked are live
       const entry: WatchEntry = {
         slug,
-        score: data.score,
+        score: data.healthScore,
         description: data.description ?? null,
         language: data.language ?? null,
         savedAt: new Date().toISOString(),
@@ -136,7 +137,6 @@ export default function Home() {
         {showRecent && (
           <section style={{ maxWidth: 1100, margin: '0 auto var(--space-12)', padding: '0 var(--space-6)', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(480px,100%), 1fr))', gap: 'var(--space-8)', alignItems: 'start' }}>
 
-            {/* Recently Checked Repos */}
             {recentList.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -163,7 +163,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Recently Checked Orgs */}
             {recentOrgs.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -182,9 +181,7 @@ export default function Home() {
                           {o.repoCount} repos{o.topRepo ? ` · top: ${o.topRepo}` : ''}
                         </p>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexShrink: 0 }}>
-                        <Building2 size={13} style={{ color: 'var(--text-faint)' }} />
-                      </div>
+                      <Building2 size={13} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
                     </div>
                   ))}
                 </div>
