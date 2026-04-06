@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Search, Loader2, ArrowRight, Github, BarChart2, Building2, Tag, AlertTriangle, X } from 'lucide-react'
+import { Search, Loader2, ArrowRight, Github, AlertTriangle, X, Zap, BarChart2, Shield, BookOpen } from 'lucide-react'
 import RepoCard from '@/components/RepoCard'
 import TrendChart from '@/components/TrendChart'
 import SnippetModal from '@/components/SnippetModal'
@@ -70,6 +70,29 @@ export default function Home() {
               </button>
             </form>
             <WeightEditor weights={weights} onChange={setWeights} />
+
+            {/* Feature badges */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'var(--space-2)' }}>
+              {[
+                { icon: <Zap size={13} />, label: 'Live GitHub API' },
+                { icon: <BarChart2 size={13} />, label: '9 weighted dimensions' },
+                { icon: <Shield size={13} />, label: 'Free forever' },
+              ].map(({ icon, label }) => (
+                <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-full)', padding: 'var(--space-1) var(--space-3)' }}>
+                  {icon}{label}
+                </span>
+              ))}
+            </div>
+
+            {/* CTA buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'var(--space-3)' }}>
+              <a href="https://github.com/SamoTech/devlens" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', padding: 'var(--space-2) var(--space-5)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', fontSize: 'var(--text-sm)', color: 'var(--text)', fontWeight: 500, textDecoration: 'none' }}>
+                <Github size={15} /> Star on GitHub
+              </a>
+              <Link href="/docs" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', padding: 'var(--space-2) var(--space-5)', background: 'var(--primary-hl)', border: '1px solid transparent', borderRadius: 'var(--radius-lg)', fontSize: 'var(--text-sm)', color: 'var(--primary)', fontWeight: 500, textDecoration: 'none' }}>
+                <BookOpen size={15} /> Read the Docs →
+              </Link>
+            </div>
           </div>
         </section>
 
