@@ -24,4 +24,4 @@ jobs:
           groq_api_key: ${{ secrets.GROQ_API_KEY }}
           groq_model: 'llama-3.1-8b-instant'
           badge_style: flat-square
-          update_readme: 'true'
+          update_readme: 'false'

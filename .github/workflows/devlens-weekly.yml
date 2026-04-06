@@ -12,14 +12,15 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  weekly:
+  devlens-weekly:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
-      - uses: SamoTech/devlens@v1
+      - uses: SamoTech/devlens@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           groq_api_key: ${{ secrets.GROQ_API_KEY }}
+          groq_model: 'llama-3.1-8b-instant'
+          badge_style: flat-square
+          update_readme: 'false'
           notify_discord: ${{ secrets.DISCORD_WEBHOOK }}
-          update_readme: 'true'
-          badge_style: for-the-badge
