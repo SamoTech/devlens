@@ -3,9 +3,9 @@ import GitHub from "next-auth/providers/github";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     GitHub({
-      clientId:     process.env.AUTH_GITHUB_ID!,
-      clientSecret: process.env.AUTH_GITHUB_SECRET!,
-      authorization: { params: { scope: "read:user repo" } },
+      clientId:     process.env.AUTH_GITHUB_ID ?? "",
+      clientSecret: process.env.AUTH_GITHUB_SECRET ?? "",
+      authorization: { params: { scope: "read:user" } },
     }),
   ],
   callbacks: {
@@ -14,7 +14,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      (session as any).accessToken = token.accessToken;
+      (session as any).accessToken = (token as any).accessToken;
       return session;
     },
   },
