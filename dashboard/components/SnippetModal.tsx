@@ -5,7 +5,7 @@ export default function SnippetModal({ repo, onClose }: { repo: string; onClose:
   const [copiedSnippet, setCopiedSnippet] = useState(false);
   const [copiedWf, setCopiedWf] = useState(false);
   const snippet = `<!-- DEVLENS:START -->\n<!-- DEVLENS:END -->`;
-  const workflow = `name: DevLens Health Check\non:\n  push:\n    branches: [main]\n  schedule:\n    - cron: '0 8 * * 1'\npermissions:\n  contents: write\njobs:\n  devlens:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: SamoTech/devlens@main\n        with:\n          github_token: \${{ secrets.GITHUB_TOKEN }}\n          groq_api_key: \${{ secrets.GROQ_API_KEY }}`;
+  const workflow = `name: DevLens Health Check\non:\n  push:\n    branches: [main]\n  schedule:\n    - cron: '0 8 * * 1'\npermissions:\n  contents: write\njobs:\n  devlens:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: SamoTech/devlens@v1\n        with:\n          github_token: \${{ secrets.GITHUB_TOKEN }}\n          groq_api_key: \${{ secrets.GROQ_API_KEY }}`;
   function copy(text: string, which: "s"|"w") {
     navigator.clipboard.writeText(text);
     if (which==="s") { setCopiedSnippet(true); setTimeout(()=>setCopiedSnippet(false),2000); }
