@@ -14,7 +14,7 @@ export default function Footer() {
             </svg>
             <span style={{ fontFamily:"var(--font-display)",fontWeight:800,fontSize:"var(--text-sm)" }}>DevLens</span>
           </div>
-          <p style={{ fontSize:"var(--text-xs)",color:"var(--text-muted)",maxWidth:"200px",lineHeight:1.6 }}>Repo health scoring in 7 dimensions. Free forever, live from GitHub API.</p>
+          <p style={{ fontSize:"var(--text-xs)",color:"var(--text-muted)",maxWidth:"200px",lineHeight:1.6 }}>Repo health scoring in 9 dimensions. Free forever, live from GitHub API.</p>
           <p style={{ fontSize:"var(--text-xs)",color:"var(--text-faint)" }}>&copy; {year} SamoTech</p>
         </div>
         <div style={{ display:"flex",flexDirection:"column",gap:"var(--space-2)" }}>
