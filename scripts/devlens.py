@@ -22,7 +22,6 @@ def days_since(dt):
     return (now - dt).days
 
 def score_readme():
-    """Score README quality across 10 criteria (max 100)."""
     try:
         content = repo.get_readme().decoded_content.decode()
         lower   = content.lower()
@@ -110,6 +109,11 @@ def badge_color(s):
     if s >= 40: return "yellow"
     return "red"
 
+def dim_bar(score):
+    """Return a 10-char progress bar for a dimension score."""
+    filled = round(score / 10)
+    return "\u2588" * filled + "\u2591" * (10 - filled)
+
 badge_url = (f"https://img.shields.io/badge/DevLens%20Health-{health}%2F100"
              f"-{badge_color(health)}?style={BADGE_STYLE}&logo=github")
 
@@ -123,17 +127,51 @@ with open(os.environ.get("GITHUB_OUTPUT","/dev/null"),"a") as f:
     f.write(f"badge_url={badge_url}\n")
     f.write(f"report_json={json.dumps(report)}\n")
 
+# Dimension metadata: emoji, label, weight
+DIM_META = {
+    "readme":    ("\U0001f4dd", "README Quality",   "20%"),
+    "activity":  ("\U0001f525", "Commit Activity",  "20%"),
+    "freshness": ("\U0001f33f", "Repo Freshness",   "15%"),
+    "docs":      ("\U0001f4da", "Documentation",    "15%"),
+    "ci":        ("\u2699\ufe0f",  "CI/CD Setup",      "15%"),
+    "issues":    ("\U0001f3af", "Issue Response",   "10%"),
+    "community": ("\u2b50",     "Community Signal",  "5%"),
+}
+
+def build_readme_block():
+    """Build the full DEVLENS README block with badge + dimension table."""
+    rows = ""
+    for k, (emoji, label, weight) in DIM_META.items():
+        score = scores[k]
+        bar   = dim_bar(score)
+        color = badge_color(score)
+        score_badge = (f"https://img.shields.io/badge/{score}-{color}"
+                       f"?style=flat-square")
+        rows += f"| {emoji} **{label}** | `{bar}` | ![{score}]({score_badge}) | {weight} |\n"
+
+    return (
+        f"![DevLens Health]({badge_url}) "
+        f"**Overall health: {health}/100** — "
+        f"*Last updated: {now.strftime('%Y-%m-%d')}*\n\n"
+        f"| Dimension | Progress | Score | Weight |\n"
+        f"|---|---|---|---|\n"
+        f"{rows}"
+    )
+
 def ai_section():
     if not GROQ_API_KEY: return None
+    block = build_readme_block()
     resp = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization":f"Bearer {GROQ_API_KEY}","Content-Type":"application/json"},
         json={"model": GROQ_MODEL,
               "messages":[{"role":"user","content":
-              f"Write ONE single line of markdown (no headings, no bullet points, no newlines). Include the badge ![DevLens Health]({badge_url}) followed by a single short sentence summarizing the repo health. Output ONLY that one line. Data: {json.dumps(report)}"}],
-              "max_tokens":80})
+              f"Append ONE short sentence of AI insight (no heading) after this markdown block. "
+              f"Keep the block intact, just add the sentence at the end. Block:\n{block}\n"
+              f"Data: {json.dumps(report)}. Output ONLY the full block + 1 sentence."}],
+              "max_tokens":300})
     if resp.status_code == 200:
-        return resp.json()["choices"][0]["message"]["content"].strip().split("\n")[0]
+        return resp.json()["choices"][0]["message"]["content"].strip()
     print(f"Groq error ({resp.status_code}): {resp.text}")
     return None
 
@@ -143,9 +181,8 @@ if UPDATE_README:
         content = rf.decoded_content.decode()
         s_tag, e_tag = "<!-- DEVLENS:START -->", "<!-- DEVLENS:END -->"
         ai = ai_section()
-        # Always 1 clean line: badge + short summary
-        one_liner = ai if ai else f"![DevLens Health]({badge_url}) Health score: **{health}/100** — powered by [DevLens](https://github.com/SamoTech/devlens)."
-        block = f"{s_tag}\n{one_liner}\n{e_tag}"
+        body = ai if ai else build_readme_block()
+        block = f"{s_tag}\n{body}\n{e_tag}"
         if s_tag in content:
             new = re.sub(f"{re.escape(s_tag)}.*?{re.escape(e_tag)}", block, content, flags=re.DOTALL)
         else:
