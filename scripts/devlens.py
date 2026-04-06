@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""DevLens - Core Analysis Engine v1.2"""
-import os, json, re, math, requests
+"""DevLens - Core Analysis Engine v1.3"""
+import os, json, math, requests
 from datetime import datetime, timezone
 from github import Github, Auth
 
@@ -34,7 +34,7 @@ def score_readme():
         if "```"   in content: s += 8
         if "!["    in content: s += 6
         if "## "   in content: s += 4
-        if "- ["   in content or "- [x" in content: s += 4
+        if "- ["   in content: s += 4
         if "<!-- devlens" in lower:  s += 6
         if "setup" in lower:         s += 4
         if "roadmap" in lower:       s += 4
@@ -98,9 +98,15 @@ def score_community():
     return min(int(math.log1p(repo.stargazers_count)*15)+int(math.log1p(repo.forks_count)*10), 100)
 
 weights = {"readme":0.20,"activity":0.20,"freshness":0.15,"docs":0.15,"ci":0.15,"issues":0.10,"community":0.05}
-scores  = {"readme":score_readme(),"activity":score_activity(),"freshness":score_freshness(),
-           "docs":score_docs(),"ci":score_ci(),"issues":score_issues(),"community":score_community()}
-
+scores  = {
+    "readme":    score_readme(),
+    "activity":  score_activity(),
+    "freshness": score_freshness(),
+    "docs":      score_docs(),
+    "ci":        score_ci(),
+    "issues":    score_issues(),
+    "community": score_community(),
+}
 health = int(sum(scores[k]*weights[k] for k in weights))
 
 def badge_color(s):
@@ -126,81 +132,104 @@ with open(os.environ.get("GITHUB_OUTPUT","/dev/null"),"a") as f:
     f.write(f"badge_url={badge_url}\n")
     f.write(f"report_json={json.dumps(report)}\n")
 
-DIM_META = {
-    "readme":    ("\U0001f4dd", "README Quality",   "20%"),
-    "activity":  ("\U0001f525", "Commit Activity",  "20%"),
-    "freshness": ("\U0001f33f", "Repo Freshness",   "15%"),
-    "docs":      ("\U0001f4da", "Documentation",    "15%"),
-    "ci":        ("\u2699\ufe0f",  "CI/CD Setup",      "15%"),
-    "issues":    ("\U0001f3af", "Issue Response",   "10%"),
-    "community": ("\u2b50",     "Community Signal",  "5%"),
-}
+DIM_META = [
+    ("readme",    "\U0001f4dd", "README Quality",   "20%"),
+    ("activity",  "\U0001f525", "Commit Activity",  "20%"),
+    ("freshness", "\U0001f33f", "Repo Freshness",   "15%"),
+    ("docs",      "\U0001f4da", "Documentation",    "15%"),
+    ("ci",        "\u2699\ufe0f",  "CI/CD Setup",    "15%"),
+    ("issues",    "\U0001f3af", "Issue Response",   "10%"),
+    ("community", "\u2b50",     "Community Signal",  "5%"),
+]
 
-def build_readme_block():
-    rows = ""
-    for k, (emoji, label, weight) in DIM_META.items():
-        score = scores[k]
-        bar   = dim_bar(score)
-        color = badge_color(score)
-        score_badge = f"https://img.shields.io/badge/{score}-{color}?style=flat-square"
-        rows += f"| {emoji} **{label}** | `{bar}` | ![{score}]({score_badge}) | {weight} |\n"
-    return (
+def build_table():
+    """Build the full 7-row markdown table. Never truncated by AI."""
+    header = (
         f"![DevLens Health]({badge_url}) "
         f"**Overall health: {health}/100** \u2014 "
         f"*Last updated: {now.strftime('%Y-%m-%d')}*\n\n"
-        f"| Dimension | Progress | Score | Weight |\n"
-        f"|---|---|---|---|\n"
-        f"{rows.rstrip()}"
+        "| Dimension | Progress | Score | Weight |\n"
+        "|---|---|---|---|\n"
     )
+    rows = ""
+    for key, emoji, label, weight in DIM_META:
+        s     = scores[key]
+        bar   = dim_bar(s)
+        color = badge_color(s)
+        score_badge = f"https://img.shields.io/badge/{s}-{color}?style=flat-square"
+        rows += f"| {emoji} **{label}** | `{bar}` | ![{s}]({score_badge}) | {weight} |\n"
+    return header + rows.rstrip()
 
-def ai_section():
-    if not GROQ_API_KEY: return None
-    block = build_readme_block()
-    resp = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        headers={"Authorization":f"Bearer {GROQ_API_KEY}","Content-Type":"application/json"},
-        json={"model": GROQ_MODEL,
-              "messages":[{"role":"user","content":
-              f"Append ONE short sentence of AI insight (no heading, no extra newlines) after this markdown block. "
-              f"Keep the full block intact and add the sentence at the very end on a new line. Block:\n{block}\n"
-              f"Data: {json.dumps(report)}. Output ONLY the full block + 1 sentence."}],
-              "max_tokens":350})
-    if resp.status_code == 200:
-        return resp.json()["choices"][0]["message"]["content"].strip()
-    print(f"Groq error ({resp.status_code}): {resp.text}")
-    return None
+def get_ai_insight():
+    """Ask Groq for ONE sentence of insight. Returns empty string on any failure."""
+    if not GROQ_API_KEY:
+        return ""
+    prompt = (
+        f"The DevLens repo health score is {health}/100. "
+        f"Scores: {json.dumps(scores)}. "
+        "Write exactly ONE short sentence of actionable insight (no markdown, no heading). "
+        "Output ONLY that sentence."
+    )
+    try:
+        resp = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+            json={"model": GROQ_MODEL, "messages": [{"role": "user", "content": prompt}], "max_tokens": 80},
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            sentence = resp.json()["choices"][0]["message"]["content"].strip()
+            # Safety: reject anything that contains markdown table syntax
+            if "|" in sentence or "```" in sentence or "#" in sentence:
+                return ""
+            return sentence
+    except Exception as e:
+        print(f"Groq insight skipped: {e}")
+    return ""
 
 if UPDATE_README:
     try:
-        rf = repo.get_readme()
+        rf      = repo.get_readme()
         content = rf.decoded_content.decode()
-        s_tag, e_tag = "<!-- DEVLENS:START -->", "<!-- DEVLENS:END -->"
-        ai = ai_section()
-        body = ai if ai else build_readme_block()
-        block = f"{s_tag}\n{body}\n{e_tag}"
-        if s_tag in content:
-            # Use a splitter approach — immune to pipe chars in table rows
-            before = content.split(s_tag)[0]
-            after  = content.split(e_tag)[1]
+        S_TAG   = "<!-- DEVLENS:START -->"
+        E_TAG   = "<!-- DEVLENS:END -->"
+
+        # Build table first — guaranteed complete
+        table   = build_table()
+        insight = get_ai_insight()
+        body    = table + ("\n\n" + insight if insight else "")
+        block   = f"{S_TAG}\n{body}\n{E_TAG}"
+
+        if S_TAG in content and E_TAG in content:
+            before = content.split(S_TAG)[0]
+            after  = content.split(E_TAG)[1]
             new    = before + block + after
         else:
             new = content + "\n\n" + block + "\n"
+
         if new != content:
-            repo.update_file(rf.path, f"docs: update DevLens health score {health}/100", new, rf.sha)
+            repo.update_file(
+                rf.path,
+                f"docs: update DevLens health score {health}/100",
+                new, rf.sha
+            )
             print(f"README updated. Score: {health}/100")
+        else:
+            print("README unchanged.")
     except Exception as e:
-        print(f"README update skipped: {e}")
+        print(f"README update failed: {e}")
 
 if DISCORD_WH:
     try:
         color = 0x2ecc71 if health>=80 else 0xe67e22 if health>=60 else 0xe74c3c
         requests.post(DISCORD_WH, json={"embeds":[{
-            "title":f"DevLens Weekly Report \u2014 {REPO_NAME}",
-            "description":f"Overall health: **{health}/100**",
-            "color":color,
-            "fields":[{"name":k.replace('_',' ').title(),"value":f"{v}/100","inline":True} for k,v in scores.items()],
-            "footer":{"text":"Powered by DevLens \u00b7 github.com/SamoTech/devlens"},
-            "timestamp":now.isoformat()}]})
+            "title": f"DevLens Weekly Report \u2014 {REPO_NAME}",
+            "description": f"Overall health: **{health}/100**",
+            "color": color,
+            "fields": [{"name": k.replace('_',' ').title(), "value": f"{v}/100", "inline": True} for k,v in scores.items()],
+            "footer": {"text": "Powered by DevLens \u00b7 github.com/SamoTech/devlens"},
+            "timestamp": now.isoformat()
+        }]})
         print("Discord digest sent.")
     except Exception as e:
         print(f"Discord failed: {e}")
