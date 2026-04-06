@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { kv } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
 
-export const revalidate = 60; // cache 60s
+const redis = Redis.fromEnv();
+
+export const revalidate = 60;
 
 export async function GET() {
   try {
@@ -12,11 +14,11 @@ export async function GET() {
       repoLastSeen,
       uniqueIpCount,
     ] = await Promise.all([
-      kv.get<number>("stats:total_analyses"),
-      kv.hgetall<Record<string, number>>("stats:repo_hits"),
-      kv.hgetall<Record<string, number>>("stats:repo_scores"),
-      kv.hgetall<Record<string, string>>("stats:repo_last_seen"),
-      kv.scard("stats:unique_ips"),
+      redis.get<number>("stats:total_analyses"),
+      redis.hgetall("stats:repo_hits"),
+      redis.hgetall("stats:repo_scores"),
+      redis.hgetall("stats:repo_last_seen"),
+      redis.scard("stats:unique_ips"),
     ]);
 
     // Daily activity for the last 30 days
@@ -27,15 +29,22 @@ export async function GET() {
       days.push(d.toISOString().slice(0, 10));
     }
     const dailyCounts = await Promise.all(
-      days.map(d => kv.get<number>(`stats:daily:${d}`).then(v => ({ date: d, count: v ?? 0 })))
+      days.map(d =>
+        redis.get<number>(`stats:daily:${d}`).then(v => ({ date: d, count: v ?? 0 }))
+      )
     );
 
-    // Build top repos list
-    const hits = repoHits ?? {};
-    const scores = repoScores ?? {};
-    const lastSeen = repoLastSeen ?? {};
+    const hits = (repoHits ?? {}) as Record<string, number>;
+    const scores = (repoScores ?? {}) as Record<string, number>;
+    const lastSeen = (repoLastSeen ?? {}) as Record<string, string>;
+
     const topRepos = Object.entries(hits)
-      .map(([slug, count]) => ({ slug, count, score: scores[slug] ?? null, lastSeen: lastSeen[slug] ?? null }))
+      .map(([slug, count]) => ({
+        slug,
+        count: Number(count),
+        score: scores[slug] != null ? Number(scores[slug]) : null,
+        lastSeen: lastSeen[slug] ?? null,
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 50);
 
