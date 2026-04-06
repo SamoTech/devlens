@@ -4,6 +4,7 @@ import { Search, Loader2, ArrowRight, Bookmark, X, ExternalLink, Github, Zap, Sh
 import RepoCard from "@/components/RepoCard";
 import TrendChart from "@/components/TrendChart";
 import SnippetModal from "@/components/SnippetModal";
+import Link from "next/link";
 import type { RepoReport } from "@/lib/scorer";
 import type { WatchEntry } from "@/app/api/watchlist/route";
 
@@ -55,6 +56,8 @@ export default function Home() {
   }
 
   const scoreColor = (s: number) => s >= 80 ? "var(--success)" : s >= 50 ? "var(--warning)" : "var(--danger)";
+  const recent = watchlist.slice(0, 10);
+  const hasMore = watchlist.length > 10;
 
   return (
     <>
@@ -83,8 +86,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About DevLens bio — always visible, above results */}
-      <section style={{ padding: "0 var(--space-6) var(--space-10)", maxWidth: "780px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+      {/* About DevLens bio */}
+      <section style={{ padding: "0 var(--space-6) var(--space-10)", maxWidth: "780px", margin: "0 auto" }}>
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-lg)", fontWeight: 800 }}>What is DevLens?</h2>
           <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", lineHeight: 1.75 }}>
@@ -125,13 +128,22 @@ export default function Home() {
         </section>
       )}
 
-      {/* Checked Repos */}
-      {(watchlist.length > 0 || watchLoading) && (
+      {/* Checked Repos — last 10, link to full page */}
+      {(recent.length > 0 || watchLoading) && (
         <section style={{ padding: "0 var(--space-6) var(--space-16)", maxWidth: "780px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
             <Bookmark size={16} style={{ color: "var(--primary)" }} />
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-base)", fontWeight: 800 }}>Checked Repos</h2>
-            {!watchLoading && <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", marginLeft: "auto" }}>{watchlist.length} repos</span>}
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-base)", fontWeight: 800 }}>Recently Checked</h2>
+            {!watchLoading && (
+              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+                <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)" }}>{watchlist.length} total</span>
+                {hasMore && (
+                  <Link href="/checked" style={{ fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--primary)", textDecoration: "none" }}>
+                    View all →
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
           {watchLoading ? (
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-faint)", fontSize: "var(--text-sm)" }}>
@@ -139,7 +151,7 @@ export default function Home() {
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-              {watchlist.map(w => (
+              {recent.map(w => (
                 <div key={w.slug} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", background: "var(--surface-off)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-3) var(--space-4)", cursor: "pointer", transition: "background .15s" }}
                   onClick={() => { setInput(w.slug); analyze(null, w.slug); }}>
                   <span style={{ fontWeight: 800, fontSize: "var(--text-sm)", color: scoreColor(w.score), minWidth: "36px", textAlign: "center" }}>{w.score}</span>
@@ -158,6 +170,11 @@ export default function Home() {
                   </button>
                 </div>
               ))}
+              {hasMore && (
+                <Link href="/checked" style={{ textAlign: "center", fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--primary)", padding: "var(--space-3)", borderRadius: "var(--radius-lg)", border: "1px dashed var(--border)", textDecoration: "none" }}>
+                  View all {watchlist.length} checked repos →
+                </Link>
+              )}
             </div>
           )}
         </section>

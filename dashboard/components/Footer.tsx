@@ -19,7 +19,7 @@ export default function Footer() {
         </div>
         <div style={{ display:"flex",flexDirection:"column",gap:"var(--space-2)" }}>
           <p style={{ fontSize:"var(--text-xs)",fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:"var(--space-1)" }}>Product</p>
-          {[["/","Analyze"],["/compare","Compare"],["/docs","Docs"],["/changelog","Changelog"]].map(([href,label]) => (
+          {[["/","Analyze"],["/compare","Compare"],["/leaderboard","Leaderboard"],["/checked","Checked Repos"],["/docs","Docs"],["/changelog","Changelog"]].map(([href,label]) => (
             <Link key={href} href={href} style={{ fontSize:"var(--text-xs)",color:"var(--text-muted)",textDecoration:"none" }}>{label}</Link>
           ))}
         </div>
