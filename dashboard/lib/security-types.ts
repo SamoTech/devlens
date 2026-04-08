@@ -86,6 +86,94 @@ export interface TrivyFinding {
   target:            string;
 }
 
+// ── Code Quality Types (Options B + C) ───────────────────────────────────────
+
+export type CheckRunConclusion =
+  | 'success' | 'failure' | 'neutral' | 'cancelled'
+  | 'skipped'  | 'timed_out' | 'action_required';
+
+export interface CiCheckRun {
+  name:        string;
+  app:         string;   // e.g. "GitHub Actions", "ESLint", "TypeScript"
+  conclusion:  CheckRunConclusion | null;
+  status:      string;   // queued | in_progress | completed
+  started_at:  string;
+  completed_at: string | null;
+  url:         string;
+}
+
+export interface CiQualityModule {
+  /** Conclusion: pass | fail | partial | unknown */
+  overall:     'pass' | 'fail' | 'partial' | 'unknown';
+  total_runs:  number;
+  passed:      number;
+  failed:      number;
+  skipped:     number;
+  runs:        CiCheckRun[];
+  lint_found:  boolean;   // ESLint / TSC check detected
+  test_found:  boolean;   // Jest / Vitest / Playwright detected
+  error?:      string;
+}
+
+export interface SonarIssue {
+  key:      string;
+  type:     'BUG' | 'VULNERABILITY' | 'CODE_SMELL';
+  severity: 'BLOCKER' | 'CRITICAL' | 'MAJOR' | 'MINOR' | 'INFO';
+  message:  string;
+  component: string;
+  line:     number | null;
+  url:      string;
+}
+
+export interface SonarModule {
+  available:        boolean;
+  project_key?:     string;
+  bugs?:            number;
+  vulnerabilities?: number;
+  code_smells?:     number;
+  coverage?:        number | null;  // percentage
+  duplications?:    number | null;  // percentage
+  issues:           SonarIssue[];
+  url?:             string;
+  error?:           string;
+}
+
+export interface DeepSourceCheck {
+  issue_code:  string;
+  category:    string;  // bug-risk | anti-pattern | performance | style
+  title:       string;
+  occurrences: number;
+  url:         string;
+}
+
+export interface DeepSourceModule {
+  available:   boolean;
+  bugs?:       number;
+  anti_patterns?: number;
+  checks:      DeepSourceCheck[];
+  url?:        string;
+  error?:      string;
+}
+
+export interface CodecovModule {
+  available:   boolean;
+  coverage?:   number | null;  // 0-100
+  patch?:      number | null;  // coverage on changed lines
+  url?:        string;
+  error?:      string;
+}
+
+export interface CodeQualityModule {
+  ci:         CiQualityModule;
+  sonar:      SonarModule;
+  deepsource: DeepSourceModule;
+  codecov:    CodecovModule;
+  /** Aggregate score 0-100 for code quality only */
+  score:      number;
+}
+
+// ── Module Interfaces ────────────────────────────────────────────────────────
+
 export interface DependabotModule {
   enabled:  boolean;
   findings: DependabotFinding[];
@@ -126,10 +214,12 @@ export interface CliModule<T> {
 }
 
 export interface LicenseModule {
-  found: boolean;
-  spdx:  string | null;
-  risk:  'low' | 'medium' | 'high' | 'unknown';
-  url?:  string;
+  found:        boolean;
+  spdx:         string | null;
+  displaySpdx?: string;
+  risk:         'low' | 'medium' | 'high' | 'unknown';
+  url?:         string;
+  note?:        string;
 }
 
 export interface ScoreDeduction {
@@ -162,17 +252,18 @@ export interface MegaScanMeta {
 }
 
 export interface MegaScanReport {
-  meta:            MegaScanMeta;
-  dependabot?:     DependabotModule;
-  secrets_github?: SecretsModule;
-  code_scanning?:  CodeScanModule;
-  osv?:            OsvModule;
-  trufflehog?:     CliModule<TrufflehogFinding>;
-  semgrep?:        CliModule<SemgrepFinding>;
-  nuclei?:         CliModule<NucleiFinding> & { target?: string };
-  trivy?:          CliModule<TrivyFinding>;
-  license?:        LicenseModule;
-  has_security_md: boolean;
-  totals:          TotalCounts;
-  scoring:         ScoringResult;
+  meta:             MegaScanMeta;
+  dependabot?:      DependabotModule;
+  secrets_github?:  SecretsModule;
+  code_scanning?:   CodeScanModule;
+  osv?:             OsvModule;
+  trufflehog?:      CliModule<TrufflehogFinding>;
+  semgrep?:         CliModule<SemgrepFinding>;
+  nuclei?:          CliModule<NucleiFinding> & { target?: string };
+  trivy?:           CliModule<TrivyFinding>;
+  license?:         LicenseModule;
+  code_quality?:    CodeQualityModule;   // NEW
+  has_security_md:  boolean;
+  totals:           TotalCounts;
+  scoring:          ScoringResult;
 }
