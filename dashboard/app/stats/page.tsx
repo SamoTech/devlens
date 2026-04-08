@@ -19,14 +19,19 @@ interface StatsData {
 export default function StatsPage() {
   const [data, setData] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [tooltip, setTooltip] = useState<{ text: string; x: number } | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const load = () =>
-      fetch("/api/stats")
+      // cache: 'no-store' ensures the browser always hits the server, never a stale cache
+      fetch("/api/stats", { cache: "no-store" })
         .then(r => r.json())
-        .then(setData)
+        .then(d => {
+          setData(d);
+          setLastUpdated(new Date());
+        })
         .catch(() => {})
         .finally(() => setLoading(false));
     load();
@@ -45,8 +50,8 @@ export default function StatsPage() {
     { icon: <Users size={18} />,      label: "Unique Visitors",  value: data.uniqueVisitors.toLocaleString(),                                          sub: "by IP" },
     { icon: <GitFork size={18} />,    label: "Repos Checked",    value: data.totalReposChecked.toLocaleString(),                                       sub: "unique repos" },
     { icon: <Building2 size={18} />,  label: "Orgs Checked",     value: data.totalOrgsChecked.toLocaleString(),                                        sub: "organizations" },
-    { icon: <Star size={18} />,       label: "Avg Health Score", value: data.avgScore !== null ? `${data.avgScore}/100` : "—",                        sub: "across watchlist" },
-    { icon: <Code2 size={18} />,      label: "Top Language",     value: data.topLanguage ?? "—",                                                      sub: "most checked repos" },
+    { icon: <Star size={18} />,       label: "Avg Health Score", value: data.avgScore !== null ? `${data.avgScore}/100` : "\u2014",                        sub: "across watchlist" },
+    { icon: <Code2 size={18} />,      label: "Top Language",     value: data.topLanguage ?? "\u2014",                                                      sub: "most checked repos" },
     { icon: <BarChart2 size={18} />,  label: "Peak Day",         value: (Math.max(...data.dailyActivity.map(d => d.count)) || 0).toLocaleString(),    sub: "analyses in one day" },
   ] : [];
 
@@ -58,7 +63,14 @@ export default function StatsPage() {
         <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)" }}>
           <Link href="/" style={{ color: "var(--primary)", textDecoration: "none" }}>← Home</Link>
         </p>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-2xl)", fontWeight: 800 }}>Usage Stats</h1>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-4)", flexWrap: "wrap" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-2xl)", fontWeight: 800 }}>Usage Stats</h1>
+          {lastUpdated && (
+            <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)" }}>
+              Updated {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
         <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>Live usage across all DevLens visitors — refreshes every 60 seconds.</p>
       </div>
 
@@ -84,7 +96,7 @@ export default function StatsPage() {
 
           {/* Daily activity bar chart */}
           <section style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-base)", fontWeight: 800 }}>Daily Activity — Last 30 Days</h2>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-base)", fontWeight: 800 }}>Daily Activity \u2014 Last 30 Days</h2>
             <div
               ref={chartRef}
               style={{ position: "relative", display: "flex", alignItems: "flex-end", gap: "3px", height: "120px",
@@ -139,7 +151,7 @@ export default function StatsPage() {
               <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-base)", fontWeight: 800 }}>Most Analysed Repos</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
                 {data.topRepos.length === 0 && (
-                  <p style={{ fontSize: "var(--text-sm)", color: "var(--text-faint)" }}>No data yet — analyse a repo to start tracking.</p>
+                  <p style={{ fontSize: "var(--text-sm)", color: "var(--text-faint)" }}>No data yet \u2014 analyse a repo to start tracking.</p>
                 )}
                 {data.topRepos.map((r, i) => (
                   <div key={r.slug} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-3) var(--space-4)" }}>
@@ -157,7 +169,7 @@ export default function StatsPage() {
                         </p>
                       )}
                     </div>
-                    <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", flexShrink: 0 }}>{r.count}×</span>
+                    <span style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", flexShrink: 0 }}>{r.count}\u00d7</span>
                     {r.score !== null && (
                       <span style={{ fontSize: "var(--text-sm)", fontWeight: 800, color: scoreColor(r.score), minWidth: "32px", textAlign: "center" }}>{r.score}</span>
                     )}
@@ -174,7 +186,7 @@ export default function StatsPage() {
               <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-base)", fontWeight: 800 }}>Top Checked Orgs</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
                 {data.topOrgs.length === 0 && (
-                  <p style={{ fontSize: "var(--text-sm)", color: "var(--text-faint)" }}>No orgs checked yet — <Link href="/org" style={{ color: "var(--primary)", textDecoration: "none" }}>analyse an org</Link>.</p>
+                  <p style={{ fontSize: "var(--text-sm)", color: "var(--text-faint)" }}>No orgs checked yet \u2014 <Link href="/org" style={{ color: "var(--primary)", textDecoration: "none" }}>analyse an org</Link>.</p>
                 )}
                 {data.topOrgs.map((o, i) => (
                   <div key={o.org} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-3) var(--space-4)" }}>
@@ -187,7 +199,7 @@ export default function StatsPage() {
                         {o.org}
                       </Link>
                       <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", margin: 0 }}>
-                        {o.repoCount} repos{o.topRepo ? ` · top: ${o.topRepo}` : ""}
+                        {o.repoCount} repos{o.topRepo ? ` \u00b7 top: ${o.topRepo}` : ""}
                       </p>
                     </div>
                     <span style={{ fontSize: "var(--text-sm)", fontWeight: 800, color: scoreColor(o.avgScore), minWidth: "32px", textAlign: "center" }}>{o.avgScore}</span>
