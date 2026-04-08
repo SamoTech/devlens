@@ -5,7 +5,8 @@ import type { OrgEntry } from "@/app/api/org-watchlist/route";
 
 const redis = Redis.fromEnv();
 
-export const revalidate = 60;
+// Always fetch live from Redis — never serve a stale edge-cached snapshot
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
@@ -76,18 +77,26 @@ export async function GET() {
     const totalOrgsChecked = ol.length;
     const topOrgs = [...ol].slice(0, 20);
 
-    return NextResponse.json({
-      totalAnalyses: totalAnalyses ?? 0,
-      uniqueVisitors: uniqueIpCount ?? 0,
-      totalReposChecked: Object.keys(hits).length,
-      analysesToday: analysesToday ?? 0,
-      avgScore,
-      topLanguage,
-      totalOrgsChecked,
-      topRepos,
-      topOrgs,
-      dailyActivity: dailyCounts,
-    });
+    return NextResponse.json(
+      {
+        totalAnalyses: totalAnalyses ?? 0,
+        uniqueVisitors: uniqueIpCount ?? 0,
+        totalReposChecked: Object.keys(hits).length,
+        analysesToday: analysesToday ?? 0,
+        avgScore,
+        topLanguage,
+        totalOrgsChecked,
+        topRepos,
+        topOrgs,
+        dailyActivity: dailyCounts,
+      },
+      {
+        headers: {
+          // Tell CDN/browser: never cache this endpoint
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
