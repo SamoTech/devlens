@@ -1,5 +1,6 @@
 import { DEFAULT_WEIGHTS, DimKey, Suggestion } from './constants'
 import { getRedis } from './redis'
+import { runAdvisoryCheck } from './advisory'
 
 export interface DimScores {
   readme: number
@@ -28,6 +29,15 @@ export interface RepoReport {
   suggestions: Suggestion[]
   badgeUrl: string
   generatedAt: string
+  /** Lightweight advisory summary attached to every report */
+  advisory?: {
+    total:    number
+    critical: number
+    high:     number
+    moderate: number
+    low:      number
+    ecosystems: string[]
+  }
 }
 
 const GH = 'https://api.github.com'
@@ -163,20 +173,46 @@ async function scorePRVelocity(owner: string, name: string, token?: string): Pro
   } catch { return 50 }
 }
 
-async function scoreSecurity(owner: string, name: string, token?: string): Promise<number> {
+/**
+ * Real security score — powered by advisory.ts
+ * Fetches actual CVE findings from GitHub Advisory DB + Dependabot + OSV.dev,
+ * cross-referenced against the repo's installed package versions.
+ * Falls back to file-presence heuristic if the advisory scan fails or times out.
+ */
+async function scoreSecurityReal(
+  owner: string,
+  name: string,
+  token?: string,
+  treePaths?: string[],
+): Promise<{ score: number; advisory: RepoReport['advisory'] }> {
   try {
-    const tree = await ghFetch(`${GH}/repos/${owner}/${name}/git/trees/HEAD?recursive=1`, token)
-    const paths: string[] = tree.tree.map((t: any) => (t.path as string).toLowerCase())
+    const report = await runAdvisoryCheck(owner, name, token, treePaths)
+    return {
+      score:    report.securityScore,
+      advisory: {
+        total:      report.counts.total,
+        critical:   report.counts.critical,
+        high:       report.counts.high,
+        moderate:   report.counts.moderate,
+        low:        report.counts.low,
+        ecosystems: report.ecosystems,
+      },
+    }
+  } catch {
+    // Fallback: file-presence heuristic (original logic)
+    const paths = treePaths ?? []
     let s = 0
     if (paths.some(p => p === 'security.md' || p.endsWith('/security.md'))) s += 30
     if (paths.some(p => p.includes('dependabot.yml') || p.includes('dependabot.yaml'))) s += 35
-    const wfPaths = paths.filter(p => p.includes('.github/workflows/'))
-    if (wfPaths.some(p => p.includes('codeql') || p.includes('trivy') || p.includes('snyk'))) s += 35
-    return Math.min(s, 100)
-  } catch { return 0 }
+    if (paths.some(p => p.includes('.github/workflows/') && (
+      p.includes('codeql') || p.includes('trivy') || p.includes('snyk')
+    ))) s += 35
+    return { score: Math.min(s, 100), advisory: undefined }
+  }
 }
 
-function buildSuggestions(scores: DimScores): Suggestion[] {
+function buildSuggestions(scores: DimScores, advisoryCounts?: RepoReport['advisory']): Suggestion[] {
+  const critHigh = (advisoryCounts?.critical ?? 0) + (advisoryCounts?.high ?? 0)
   const MSGS: Record<DimKey, string> = {
     readme:      'Add a usage section, code examples, and at least one screenshot or GIF to your README.',
     activity:    'Commit more regularly. Aim for at least 15 commits per 90 days.',
@@ -186,7 +222,9 @@ function buildSuggestions(scores: DimScores): Suggestion[] {
     issues:      'Close or triage open issues. A high open:closed ratio signals poor maintenance.',
     community:   'Promote the repo. Stars and forks improve the community signal dimension.',
     pr_velocity: 'Merge pull requests faster. Aim for an average PR merge time under 7 days.',
-    security:    'Add SECURITY.md, configure Dependabot in .github/dependabot.yml, and consider CodeQL scanning.',
+    security:    critHigh > 0
+      ? `${critHigh} critical/high CVE(s) found in installed dependencies. Run the Advisory scan for fix versions.`
+      : 'Add SECURITY.md, configure Dependabot in .github/dependabot.yml, and consider CodeQL scanning.',
   }
   return (Object.keys(scores) as DimKey[])
     .filter(k => scores[k] < 80)
@@ -214,14 +252,29 @@ export async function analyzeRepo(
 
   const repoData = await ghFetch(`${GH}/repos/${owner}/${name}`, token)
 
-  const [readme, activity, docs, ci, issues, pr_velocity, security] = await Promise.all([
+  // Fetch tree once, share with scoreDocs + scoreSecurityReal to save API calls
+  let treePaths: string[] = []
+  try {
+    const tree = await ghFetch(`${GH}/repos/${owner}/${name}/git/trees/HEAD?recursive=1`, token)
+    treePaths = tree.tree.map((t: any) => (t.path as string).toLowerCase())
+  } catch {}
+
+  const [readme, activity, docs, ci, issues, pr_velocity, secResult] = await Promise.all([
     scoreReadme(owner, name, token),
     scoreActivity(owner, name, token),
-    scoreDocs(owner, name, token),
+    // docs uses the already-fetched treePaths
+    (async () => {
+      const keyFiles = ['license', 'contributing.md', 'changelog.md', 'code_of_conduct.md', 'security.md', 'docs']
+      let s = 0
+      for (const f of keyFiles) {
+        if (treePaths.some((p: string) => p.startsWith(f))) s += 16
+      }
+      return Math.min(s, 100)
+    })(),
     scoreCI(owner, name, token),
     scoreIssues(owner, name, repoData.open_issues_count, token),
     scorePRVelocity(owner, name, token),
-    scoreSecurity(owner, name, token),
+    scoreSecurityReal(owner, name, token, treePaths),
   ])
 
   const scores: DimScores = {
@@ -233,7 +286,7 @@ export async function analyzeRepo(
     issues,
     community: scoreCommunity(repoData.stargazers_count, repoData.forks_count),
     pr_velocity,
-    security,
+    security:  secResult.score,
   }
 
   const weights = { ...DEFAULT_WEIGHTS, ...customWeights }
@@ -243,7 +296,7 @@ export async function analyzeRepo(
   )
 
   const badgeUrl = `https://img.shields.io/badge/DevLens%20Health-${health}%2F100-${badgeShieldColor(health)}?style=flat-square&logo=github`
-  const suggestions = buildSuggestions(scores)
+  const suggestions = buildSuggestions(scores, secResult.advisory)
 
   const report: RepoReport = {
     repo: `${owner}/${name}`,
@@ -260,6 +313,7 @@ export async function analyzeRepo(
     suggestions,
     badgeUrl,
     generatedAt: new Date().toISOString(),
+    advisory: secResult.advisory,
   }
 
   if (redis && !customWeights) {
