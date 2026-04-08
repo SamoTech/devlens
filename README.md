@@ -8,16 +8,16 @@
 
 # 🔭 DevLens
 
-**Repo health scoring in 9 dimensions. Free forever, live from the GitHub API.**
+**Repo health scoring in 9 dimensions + real cybersecurity vulnerability scanning. Free forever, live from the GitHub API.**
 
-[🌐 Live Dashboard](https://devlens-io.vercel.app) · [📖 Docs](https://devlens-io.vercel.app/docs) · [📊 Stats](https://devlens-io.vercel.app/stats) · [💛 Sponsor](https://github.com/sponsors/SamoTech)
+[🌐 Live Dashboard](https://devlens-io.vercel.app) · [🔐 Security Scanner](https://devlens-io.vercel.app/security) · [📖 Docs](https://devlens-io.vercel.app/docs) · [📊 Stats](https://devlens-io.vercel.app/stats) · [💛 Sponsor](https://github.com/sponsors/SamoTech)
 
 </div>
 
 ---
 
 <!-- DEVLENS:START -->
-![DevLens Health](https://img.shields.io/badge/DevLens%20Health-97%2F100-brightgreen?style=flat-square&logo=github) **Overall health: 97/100** — *Last updated: 2026-04-07*
+![DevLens Health](https://img.shields.io/badge/DevLens%20Health-97%2F100-brightgreen?style=flat-square&logo=github) **Overall health: 97/100** — *Last updated: 2026-04-08*
 
 | Dimension | Score | Weight |
 |---|---|---|
@@ -29,18 +29,19 @@
 | 🎯 Issue Response | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
 | ⭐ Community Signal | ![0](https://img.shields.io/badge/0-red?style=flat-square) | 5% |
 | 🔀 PR Velocity | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 3% |
-| 🔒 Security | ![65](https://img.shields.io/badge/65-yellow?style=flat-square) | 2% |
+| 🔒 Security | ![82](https://img.shields.io/badge/82-brightgreen?style=flat-square) | 2% |
 <!-- DEVLENS:END -->
 
 ---
 
 ## ✨ What DevLens Does
 
-Paste any public GitHub repo URL into [devlens-io.vercel.app](https://devlens-io.vercel.app) and get a live health report — no signup, no API key needed.
+Paste any public GitHub repo URL into [devlens-io.vercel.app](https://devlens-io.vercel.app) and get a live health report + deep security scan — no signup, no API key needed.
 
 | Feature | Details | Free |
 |---|---|---|
 | 🏥 **9-dimension health score** | Weighted 0–100 score, adjustable sliders | ✅ |
+| 🔐 **Security Intelligence Engine** | 13 real scan modules — CVEs, secrets, SAST, NVD, advisories | ✅ |
 | 📊 **Live GitHub API** | Every score fetched fresh from GitHub, 15-min Redis cache | ✅ |
 | 📈 **Trend history** | Real weekly snapshots stored in Redis, shown as a trend chart | ✅ |
 | 🏢 **Org analysis** | Score all public repos in any GitHub org, ranked by health | ✅ |
@@ -53,7 +54,56 @@ Paste any public GitHub repo URL into [devlens-io.vercel.app](https://devlens-io
 
 ---
 
-## 📊 The 9 Dimensions
+## 🔐 Security Intelligence Engine — 13 Free Scan Modules
+
+DevLens v1.1.0 ships a full vulnerability scanner at [/security](https://devlens-io.vercel.app/security). Every module uses a **100% free API** — no paid plans, no credit card.
+
+```
+Module                    Source                         Auth Needed
+──────────────────────────────────────────────────────────────────────────
+1. Dependabot CVEs        github.com API                 GITHUB_TOKEN
+2. Secret Scanning        github.com API                 GITHUB_TOKEN
+3. Code Scanning (SAST)   github.com API (CodeQL)        GITHUB_TOKEN
+4. OSV.dev                api.osv.dev                    None (free)
+5. NIST NVD               services.nvd.nist.gov          Optional key (free)
+6. GitHub Advisory DB     api.github.com GraphQL         GITHUB_TOKEN
+7. PyPI Safety DB         osv.dev × requirements.txt     None (free)
+8. Retire.js CDN Check    osv.dev × HTML script src      None (free)
+9. License Risk           github.com API                 GITHUB_TOKEN
+10. CI Check Runs         github.com API                 GITHUB_TOKEN
+11. SonarCloud            sonarcloud.io API              None (public repos)
+12. DeepSource            api.deepsource.io GraphQL      None (public repos)
+13. Codecov               codecov.io API                 None (public repos)
+```
+
+### Security Score Formula (0–100)
+
+| Module | Max Deduction |
+|---|---|
+| Dependabot (critical/high/medium CVEs) | −30 pts |
+| Secret scanning open alerts | −25 pts |
+| Code scanning SAST findings | −24 pts |
+| OSV.dev dependency vulns | −28 pts |
+| NIST NVD CVEs | −27 pts |
+| GitHub Advisory DB hits | −21 pts |
+| PyPI Safety DB vulns | −27 pts |
+| Retire.js vulnerable CDN libs | −20 pts |
+| Missing SECURITY.md | −3 pts |
+| Copyleft / missing license | −5 pts |
+
+### Security API
+
+```bash
+# Full security scan (cached 15 min)
+GET https://devlens-io.vercel.app/api/security?repo=owner/name
+
+# Force fresh scan (bypass cache)
+GET https://devlens-io.vercel.app/api/security?repo=owner/name&force=1
+```
+
+---
+
+## 📊 The 9 Health Dimensions
 
 ```
 Dimension         Default Weight   What it measures
@@ -66,12 +116,10 @@ CI/CD Setup            10%   GitHub Actions workflow count
 Issue Response         10%   Closed-to-total issue ratio
 Community Signal        5%   Logarithmic score from stars + forks
 PR Velocity             3%   Average PR merge time (last 20 merged PRs)
-Security                2%   SECURITY.md + Dependabot + CodeQL/Trivy/Snyk
+Security                2%   Now powered by the full 13-module scanner
 ```
 
-Weights are **fully adjustable** in the UI via sliders — they auto-normalize to 100%. Custom-weight runs bypass the Redis cache for a fresh score.
-
-See the full algorithm breakdown in the [Docs](https://devlens-io.vercel.app/docs).
+Weights are **fully adjustable** in the UI via sliders — they auto-normalize to 100%.
 
 ---
 
@@ -80,6 +128,7 @@ See the full algorithm breakdown in the [Docs](https://devlens-io.vercel.app/doc
 | Page | URL | Description |
 |---|---|---|
 | Analyze | `/` | Analyze any public repo, adjust weights |
+| Security | `/security` | 13-module vulnerability & code quality scanner |
 | Org | `/org` | Score all repos in a GitHub org |
 | Compare | `/compare` | Side-by-side two-repo comparison |
 | Leaderboard | `/leaderboard` | Top-scoring repos from all users |
@@ -92,7 +141,7 @@ See the full algorithm breakdown in the [Docs](https://devlens-io.vercel.app/doc
 
 ---
 
-## 🚀 Quick Start — Add badge to your README
+## 🚀 Quick Start — Add Badge to Your README
 
 ### Option A — Static badge
 
@@ -141,6 +190,10 @@ jobs:
 # Analyze a repo
 GET https://devlens-io.vercel.app/api/analyze?repo=owner/name
 
+# Full security + vulnerability scan
+GET https://devlens-io.vercel.app/api/security?repo=owner/name
+GET https://devlens-io.vercel.app/api/security?repo=owner/name&force=1  # bypass cache
+
 # Compare two repos
 GET https://devlens-io.vercel.app/api/compare?a=owner/a&b=owner/b
 
@@ -157,8 +210,6 @@ GET https://devlens-io.vercel.app/api/badge?repo=owner/name
 GET https://devlens-io.vercel.app/api/stats
 ```
 
-Full API docs with response shapes: [devlens-io.vercel.app/docs](https://devlens-io.vercel.app/docs)
-
 ---
 
 ## 🛠️ Self-Hosting
@@ -171,7 +222,7 @@ cp .env.example .env.local   # fill in env vars
 npm run dev                   # → http://localhost:3000
 ```
 
-**Required environment variables:**
+**Environment variables:**
 
 ```env
 # GitHub OAuth (Sign in with GitHub)
@@ -183,8 +234,13 @@ AUTH_SECRET=
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 
-# Optional — server-side GitHub token (60 → 5000 req/hr)
+# Server-side GitHub token (60 → 5000 req/hr)
+# Powers 9 of the 13 security scan modules
 GITHUB_TOKEN=
+
+# NIST NVD API key — free, raises rate limit 10×
+# Register at: https://nvd.nist.gov/developers/request-an-api-key
+NVD_API_KEY=        # optional but recommended
 ```
 
 **Deploy to Vercel:**
@@ -197,7 +253,7 @@ vercel --cwd dashboard
 
 ## 🗺️ Roadmap
 
-- [x] 9-dimension health score engine (README, Activity, Freshness, Docs, CI, Issues, Community, PR Velocity, Security)
+- [x] 9-dimension health score engine
 - [x] Adjustable weight sliders with auto-normalization
 - [x] Redis-backed watchlist, history snapshots, stats counters
 - [x] Live trend chart from real historical data
@@ -207,6 +263,12 @@ vercel --cwd dashboard
 - [x] GitHub Actions integration
 - [x] Dark / light mode
 - [x] SEO: sitemap, robots.txt, Open Graph
+- [x] **Security Intelligence Engine — 13 free scan modules** ✨ *new in v1.1.0*
+- [x] **NIST NVD integration** ✨ *new in v1.1.0*
+- [x] **GitHub Advisory Database GraphQL** ✨ *new in v1.1.0*
+- [x] **PyPI Safety DB scanning** ✨ *new in v1.1.0*
+- [x] **Retire.js CDN vulnerability heuristic** ✨ *new in v1.1.0*
+- [ ] GitHub Advisory cross-reference with actual installed versions
 - [ ] Email digest (Resend free tier)
 - [ ] Slack / Discord notifications
 - [ ] Private repo support (GitHub OAuth)
@@ -236,6 +298,6 @@ MIT © [SamoTech](https://github.com/SamoTech)
 ---
 
 <div align="center">
-  <sub>Built with Next.js + Upstash Redis + GitHub API + ☕ by SamoTech<br/>
+  <sub>Built with Next.js · Upstash Redis · GitHub API · NIST NVD · OSV.dev · ☕ by SamoTech<br/>
   Free forever. If it helped you, <a href="https://github.com/sponsors/SamoTech">a small sponsorship</a> keeps the lights on. 💛</sub>
 </div>
