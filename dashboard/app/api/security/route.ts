@@ -141,11 +141,38 @@ async function scanOsv(owner: string, repo: string): Promise<OsvModule> {
 }
 
 async function scanLicense(owner: string, repo: string): Promise<LicenseModule> {
-  const data = await ghGet<{ license?: { spdx_id: string }; html_url?: string }>(`/repos/${owner}/${repo}/license`);
-  if (!data) return { found: false, spdx: null, risk: 'unknown' };
-  const spdx = data.license?.spdx_id ?? 'NOASSERTION';
+  // Step 1: try the /license endpoint (works when GitHub auto-detects the license)
+  const data = await ghGet<{ license?: { spdx_id?: string | null }; html_url?: string }>(
+    `/repos/${owner}/${repo}/license`
+  );
+
+  // Step 2: resolve the SPDX id — GitHub may return null, 'NOASSERTION', or 'NONE'
+  const raw = data?.license?.spdx_id ?? null;
+  const spdx = (!raw || raw === 'NOASSERTION' || raw === 'NONE') ? null : raw;
+
+  // Step 3: if still null, try reading LICENSE / LICENSE.md / COPYING directly
+  // to distinguish "no license file" from "license file present but unrecognised"
+  if (!spdx) {
+    const candidates = ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'COPYING'];
+    let hasLicenseFile = false;
+    for (const filename of candidates) {
+      const f = await ghGet<{ content?: string }>(`/repos/${owner}/${repo}/contents/${filename}`);
+      if (f?.content) { hasLicenseFile = true; break; }
+    }
+    if (!hasLicenseFile) {
+      // Truly no license — very high risk (no rights granted to users)
+      return { found: false, spdx: null, displaySpdx: 'None', risk: 'high',
+               note: 'No license file found. All rights reserved by default — others cannot legally use, copy, or distribute this code.' };
+    }
+    // License file exists but GitHub couldn\'t identify the SPDX id
+    return { found: true, spdx: null, displaySpdx: 'Custom', risk: 'medium',
+             url: data?.html_url,
+             note: 'A license file was found but GitHub could not match it to a standard SPDX identifier. Review the file manually.' };
+  }
+
+  // Step 4: known SPDX id — classify risk
   const risk = PERMISSIVE.has(spdx) ? 'low' : COPYLEFT.has(spdx) ? 'high' : 'medium';
-  return { found: true, spdx, risk, url: data.html_url };
+  return { found: true, spdx, displaySpdx: spdx, risk, url: data?.html_url };
 }
 
 // ── Score Calculator ──────────────────────────────────────────────────────────
@@ -178,7 +205,7 @@ function calculateScore(report: Partial<MegaScanReport>): ScoringResult {
     }
   }
 
-  if (report.license?.risk === 'high') deduct(5, `Copyleft license: ${report.license.spdx}`);
+  if (report.license?.risk === 'high') deduct(5, `Copyleft license: ${report.license.spdx ?? 'None'}`);
   if (!report.has_security_md) deduct(3, 'Missing SECURITY.md');
 
   score = Math.max(0, score);
