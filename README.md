@@ -1,5 +1,7 @@
 <div align="center">
 
+![DevLens](docs/assets/banner.svg)
+
 <img src="https://img.shields.io/badge/DevLens-Repo%20Intelligence-brightgreen?style=for-the-badge&logo=github" alt="DevLens"/>
 <img src="https://img.shields.io/github/license/SamoTech/devlens?style=for-the-badge" alt="License"/>
 <img src="https://img.shields.io/github/stars/SamoTech/devlens?style=for-the-badge" alt="Stars"/>
