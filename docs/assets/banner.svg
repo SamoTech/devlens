@@ -1,60 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320">
   <defs>
     <linearGradient id="bg-dl" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0f1117;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#1a2332;stop-opacity:1"/>
+      <stop offset="0%" style="stop-color:#0d1117"/>
+      <stop offset="100%" style="stop-color:#0f2027"/>
     </linearGradient>
     <linearGradient id="accent-dl" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#01696f;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#4f98a3;stop-opacity:1"/>
+      <stop offset="0%" style="stop-color:#01696f"/>
+      <stop offset="100%" style="stop-color:#4f98a3"/>
     </linearGradient>
+    <pattern id="grid-dl" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1c2b2e" stroke-width="1"/>
+    </pattern>
+    <filter id="glow-dl">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
-  <rect width="1200" height="300" fill="url(#bg-dl)" rx="12"/>
-  <line x1="0" y1="60" x2="1200" y2="60" stroke="#1e2d3d" stroke-width="1"/>
-  <line x1="0" y1="120" x2="1200" y2="120" stroke="#1e2d3d" stroke-width="1"/>
-  <line x1="0" y1="180" x2="1200" y2="180" stroke="#1e2d3d" stroke-width="1"/>
-  <line x1="0" y1="240" x2="1200" y2="240" stroke="#1e2d3d" stroke-width="1"/>
-  <line x1="200" y1="0" x2="200" y2="300" stroke="#1e2d3d" stroke-width="1"/>
-  <line x1="400" y1="0" x2="400" y2="300" stroke="#1e2d3d" stroke-width="1"/>
-  <line x1="600" y1="0" x2="600" y2="300" stroke="#1e2d3d" stroke-width="1"/>
-  <line x1="800" y1="0" x2="800" y2="300" stroke="#1e2d3d" stroke-width="1"/>
-  <line x1="1000" y1="0" x2="1000" y2="300" stroke="#1e2d3d" stroke-width="1"/>
-  <rect x="0" y="0" width="6" height="300" fill="url(#accent-dl)" rx="3"/>
-  <g transform="translate(60, 110)">
-    <ellipse cx="40" cy="40" rx="38" ry="38" fill="#01696f" fill-opacity="0.15" stroke="#01696f" stroke-width="1.5"/>
-    <circle cx="40" cy="40" r="22" fill="none" stroke="#4f98a3" stroke-width="2"/>
-    <circle cx="40" cy="40" r="10" fill="#01696f" fill-opacity="0.4"/>
-    <line x1="40" y1="20" x2="40" y2="60" stroke="#4f98a3" stroke-width="1.5"/>
-    <line x1="20" y1="40" x2="60" y2="40" stroke="#4f98a3" stroke-width="1.5"/>
-    <circle cx="14" cy="68" r="3" fill="#01696f"/>
-    <circle cx="24" cy="68" r="3" fill="#01696f"/>
-    <circle cx="34" cy="68" r="3" fill="#4f98a3"/>
-    <circle cx="44" cy="68" r="3" fill="#4f98a3"/>
-    <circle cx="54" cy="68" r="3" fill="#22c55e"/>
-    <circle cx="64" cy="68" r="3" fill="#22c55e"/>
+  <rect width="1280" height="320" fill="url(#bg-dl)"/>
+  <rect width="1280" height="320" fill="url(#grid-dl)"/>
+  <rect x="0" y="0" width="4" height="320" fill="url(#accent-dl)"/>
+  <circle cx="1080" cy="160" r="200" fill="none" stroke="#01696f" stroke-width="1" opacity="0.12"/>
+  <circle cx="1080" cy="160" r="140" fill="none" stroke="#01696f" stroke-width="1" opacity="0.18"/>
+  <circle cx="1080" cy="160" r="80"  fill="none" stroke="#4f98a3" stroke-width="1.5" opacity="0.25"/>
+  <circle cx="1080" cy="160" r="28"  fill="#01696f" opacity="0.15"/>
+  <g transform="translate(80, 100)" filter="url(#glow-dl)">
+    <ellipse cx="60" cy="60" rx="56" ry="36" fill="none" stroke="url(#accent-dl)" stroke-width="3"/>
+    <circle cx="60" cy="60" r="22" fill="none" stroke="#4f98a3" stroke-width="2.5"/>
+    <circle cx="60" cy="60" r="10" fill="#01696f" opacity="0.9"/>
+    <circle cx="66" cy="54" r="4"  fill="#a0d4d8" opacity="0.7"/>
+    <line x1="4"  y1="60" x2="34" y2="60" stroke="#4f98a3" stroke-width="1.5" opacity="0.6"/>
+    <line x1="86" y1="60" x2="116" y2="60" stroke="#4f98a3" stroke-width="1.5" opacity="0.6"/>
   </g>
-  <text x="200" y="140" font-family="'Segoe UI', system-ui, sans-serif" font-size="72" font-weight="700" fill="#f0f6fc" letter-spacing="-2">DevLens</text>
-  <text x="202" y="182" font-family="'Segoe UI', system-ui, sans-serif" font-size="22" font-weight="400" fill="#4f98a3">Repo health scoring · 9 dimensions · Free forever</text>
-  <rect x="202" y="205" width="180" height="36" rx="6" fill="#01696f" fill-opacity="0.2" stroke="#01696f" stroke-width="1"/>
-  <text x="292" y="229" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" font-weight="600" fill="#4f98a3" text-anchor="middle">GitHub Action · Zero Cost</text>
-  <g transform="translate(920, 60)">
-    <circle cx="40" cy="40" r="36" fill="#01696f" fill-opacity="0.1" stroke="#01696f" stroke-width="1.5"/>
-    <text x="40" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="26" font-weight="700" fill="#4f98a3" text-anchor="middle">9</text>
-    <text x="40" y="55" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" fill="#4f98a3" text-anchor="middle">dims</text>
-  </g>
-  <g transform="translate(1040, 60)">
-    <circle cx="40" cy="40" r="36" fill="#22c55e" fill-opacity="0.1" stroke="#22c55e" stroke-width="1.5"/>
-    <text x="40" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="26" font-weight="700" fill="#22c55e" text-anchor="middle">13</text>
-    <text x="40" y="55" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" fill="#22c55e" text-anchor="middle">scans</text>
-  </g>
-  <g transform="translate(920, 170)">
-    <circle cx="40" cy="40" r="36" fill="#f0a500" fill-opacity="0.1" stroke="#f0a500" stroke-width="1.5"/>
-    <text x="40" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="20" font-weight="700" fill="#f0a500" text-anchor="middle">$0</text>
-    <text x="40" y="55" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" fill="#f0a500" text-anchor="middle">forever</text>
-  </g>
-  <g transform="translate(1040, 170)">
-    <circle cx="40" cy="40" r="36" fill="#a855f7" fill-opacity="0.1" stroke="#a855f7" stroke-width="1.5"/>
-    <text x="40" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="18" font-weight="700" fill="#a855f7" text-anchor="middle">97</text>
-    <text x="40" y="55" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" fill="#a855f7" text-anchor="middle">score</text>
-  </g>
+  <text x="220" y="148" font-family="'SF Mono',Consolas,monospace" font-size="72" font-weight="700" letter-spacing="-2" fill="#e6f4f5">Dev</text>
+  <text x="370" y="148" font-family="'SF Mono',Consolas,monospace" font-size="72" font-weight="700" letter-spacing="-2" fill="url(#accent-dl)">Lens</text>
+  <text x="222" y="190" font-family="'SF Mono',Consolas,monospace" font-size="20" fill="#4f98a3" letter-spacing="3" opacity="0.9">REPO HEALTH · SECURITY · INTELLIGENCE</text>
+  <rect x="220" y="208" width="520" height="2" fill="url(#accent-dl)" opacity="0.5"/>
+  <rect x="222" y="230" width="110" height="28" rx="14" fill="#01696f" opacity="0.2"/>
+  <text x="277" y="249" font-family="monospace" font-size="13" fill="#4f98a3" text-anchor="middle">9 Dimensions</text>
+  <rect x="344" y="230" width="130" height="28" rx="14" fill="#01696f" opacity="0.2"/>
+  <text x="409" y="249" font-family="monospace" font-size="13" fill="#4f98a3" text-anchor="middle">13 Scan Modules</text>
+  <rect x="486" y="230" width="100" height="28" rx="14" fill="#01696f" opacity="0.2"/>
+  <text x="536" y="249" font-family="monospace" font-size="13" fill="#4f98a3" text-anchor="middle">Free Forever</text>
 </svg>
