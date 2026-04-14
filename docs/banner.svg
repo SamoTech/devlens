@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1a1b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2426;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accent_grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#01696f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4f98a3;stop-opacity:1" />
+    </linearGradient>
+    <filter id="blur1"><feGaussianBlur stdDeviation="40"/></filter>
+    <filter id="blur2"><feGaussianBlur stdDeviation="25"/></filter>
+  </defs>
+  <rect width="1200" height="300" rx="16" ry="16" fill="url(#bg)"/>
+  <ellipse cx="200" cy="150" rx="220" ry="160" fill="#01696f" opacity="0.08" filter="url(#blur1)"/>
+  <ellipse cx="1050" cy="80" rx="180" ry="130" fill="#4f98a3" opacity="0.07" filter="url(#blur1)"/>
+  <ellipse cx="600" cy="280" rx="300" ry="100" fill="#01696f" opacity="0.05" filter="url(#blur2)"/>
+  <g opacity="0.05">
+    <circle cx="50" cy="20" r="1.2" fill="#4f98a3"/><circle cx="90" cy="20" r="1.2" fill="#4f98a3"/><circle cx="130" cy="20" r="1.2" fill="#4f98a3"/><circle cx="170" cy="20" r="1.2" fill="#4f98a3"/><circle cx="210" cy="20" r="1.2" fill="#4f98a3"/><circle cx="250" cy="20" r="1.2" fill="#4f98a3"/><circle cx="290" cy="20" r="1.2" fill="#4f98a3"/><circle cx="330" cy="20" r="1.2" fill="#4f98a3"/><circle cx="370" cy="20" r="1.2" fill="#4f98a3"/><circle cx="410" cy="20" r="1.2" fill="#4f98a3"/><circle cx="450" cy="20" r="1.2" fill="#4f98a3"/><circle cx="490" cy="20" r="1.2" fill="#4f98a3"/><circle cx="530" cy="20" r="1.2" fill="#4f98a3"/><circle cx="570" cy="20" r="1.2" fill="#4f98a3"/><circle cx="610" cy="20" r="1.2" fill="#4f98a3"/><circle cx="650" cy="20" r="1.2" fill="#4f98a3"/><circle cx="690" cy="20" r="1.2" fill="#4f98a3"/><circle cx="730" cy="20" r="1.2" fill="#4f98a3"/><circle cx="770" cy="20" r="1.2" fill="#4f98a3"/><circle cx="810" cy="20" r="1.2" fill="#4f98a3"/><circle cx="850" cy="20" r="1.2" fill="#4f98a3"/><circle cx="890" cy="20" r="1.2" fill="#4f98a3"/><circle cx="930" cy="20" r="1.2" fill="#4f98a3"/><circle cx="970" cy="20" r="1.2" fill="#4f98a3"/><circle cx="1010" cy="20" r="1.2" fill="#4f98a3"/><circle cx="1050" cy="20" r="1.2" fill="#4f98a3"/><circle cx="1090" cy="20" r="1.2" fill="#4f98a3"/><circle cx="1130" cy="20" r="1.2" fill="#4f98a3"/><circle cx="1170" cy="20" r="1.2" fill="#4f98a3"/>
+    <circle cx="50" cy="60" r="1.2" fill="#4f98a3"/><circle cx="90" cy="60" r="1.2" fill="#4f98a3"/><circle cx="130" cy="60" r="1.2" fill="#4f98a3"/><circle cx="170" cy="60" r="1.2" fill="#4f98a3"/><circle cx="210" cy="60" r="1.2" fill="#4f98a3"/><circle cx="250" cy="60" r="1.2" fill="#4f98a3"/><circle cx="290" cy="60" r="1.2" fill="#4f98a3"/><circle cx="330" cy="60" r="1.2" fill="#4f98a3"/><circle cx="370" cy="60" r="1.2" fill="#4f98a3"/><circle cx="410" cy="60" r="1.2" fill="#4f98a3"/><circle cx="450" cy="60" r="1.2" fill="#4f98a3"/><circle cx="490" cy="60" r="1.2" fill="#4f98a3"/><circle cx="530" cy="60" r="1.2" fill="#4f98a3"/><circle cx="570" cy="60" r="1.2" fill="#4f98a3"/><circle cx="610" cy="60" r="1.2" fill="#4f98a3"/><circle cx="650" cy="60" r="1.2" fill="#4f98a3"/>
+  </g>
+  <rect x="0" y="0" width="5" height="300" rx="2" fill="url(#accent_grad)" opacity="0.9"/>
+  <rect x="0" y="0" width="1200" height="2" rx="1" fill="url(#accent_grad)" opacity="0.6"/>
+  <rect x="0" y="298" width="1200" height="2" rx="1" fill="url(#accent_grad)" opacity="0.4"/>
+  <circle cx="100" cy="150" r="52" fill="#01696f" opacity="0.12"/>
+  <circle cx="100" cy="150" r="40" fill="#01696f" opacity="0.10"/>
+  <text x="100" y="168" font-size="38" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI Emoji,Apple Color Emoji,sans-serif">🔭</text>
+  <circle cx="1120" cy="60" r="60" fill="none" stroke="#4f98a3" stroke-width="1" opacity="0.12"/>
+  <circle cx="1120" cy="60" r="40" fill="none" stroke="#4f98a3" stroke-width="1" opacity="0.08"/>
+  <circle cx="1140" cy="250" r="35" fill="none" stroke="#01696f" stroke-width="1" opacity="0.10"/>
+  <text x="180" y="100" font-size="13" font-family="'Segoe UI',system-ui,sans-serif" fill="#4f98a3" opacity="0.7" font-weight="500" letter-spacing="3">SAMOTECH · OPEN SOURCE</text>
+  <text x="180" y="168" font-size="52" font-family="'Segoe UI',system-ui,sans-serif" fill="white" font-weight="700" letter-spacing="-0.5">DevLens</text>
+  <text x="180" y="210" font-size="20" font-family="'Segoe UI',system-ui,sans-serif" fill="#9ca3af" font-weight="400">Repo Health Scoring &amp; Security Intelligence</text>
+  <rect x="180" y="218" width="120" height="2.5" rx="1.5" fill="url(#accent_grad)" opacity="0.7"/>
+  <text x="1180" y="276" font-size="12" font-family="'Segoe UI',system-ui,sans-serif" fill="#4f98a3" opacity="0.4" text-anchor="end">github.com/SamoTech/devlens</text>
+  <rect x="1050" y="24" width="120" height="28" rx="14" fill="#01696f" opacity="0.15"/>
+  <rect x="1050" y="24" width="120" height="28" rx="14" fill="none" stroke="#4f98a3" stroke-width="1" opacity="0.3"/>
+  <text x="1110" y="43" font-size="12" font-family="'Segoe UI',system-ui,sans-serif" fill="#4f98a3" text-anchor="middle" font-weight="600" opacity="0.85">Open Source</text>
+</svg>
