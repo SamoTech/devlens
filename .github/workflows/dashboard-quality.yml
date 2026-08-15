@@ -1,0 +1,59 @@
+name: Dashboard Quality Gates
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'dashboard/**'
+      - '.github/workflows/dashboard-quality.yml'
+  pull_request:
+    paths:
+      - 'dashboard/**'
+      - '.github/workflows/dashboard-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dashboard-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Check diff whitespace
+        working-directory: .
+        run: git diff --check
