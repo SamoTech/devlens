@@ -12,6 +12,34 @@ const SEV: Record<string, { color: string; bg: string; label: string; icon: stri
   UNKNOWN:  { color: '#78909c', bg: 'rgba(120,144,156,0.12)', label: 'UNKNOWN', icon: '⚪' },
 };
 
+const STATUS_META: Record<string, { label: string; color: string }> = {
+  success:        { label: 'SUCCESS', color: '#4ade80' },
+  failed:         { label: 'SCAN FAILED', color: '#ff3b5c' },
+  unavailable:    { label: 'UNAVAILABLE', color: '#ff7c2a' },
+  not_configured: { label: 'NOT CONFIGURED', color: '#f5c518' },
+  rate_limited:  { label: 'RATE LIMITED', color: '#ff7c2a' },
+  timeout:        { label: 'TIMEOUT', color: '#ff7c2a' },
+  unauthorized:   { label: 'UNAUTHORIZED', color: '#ff3b5c' },
+};
+
+function ScannerStatusPanel({ report }: { report: MegaScanReport }) {
+  const statuses = Object.values(report.scanner_statuses ?? {});
+  const degraded = statuses.filter(s => s.status !== 'success');
+  if (degraded.length === 0) return null;
+  return (
+    <div role="status" style={{ background: 'rgba(255,124,42,0.08)', border: '1px solid rgba(255,124,42,0.35)', borderRadius: 12, padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
+      <div style={{ color: '#ffb347', fontWeight: 800, fontSize: 12, letterSpacing: '0.08em', marginBottom: 6 }}>⚠ SECURITY SCAN INCOMPLETE</div>
+      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, lineHeight: 1.6, margin: '0 0 10px' }}>A degraded scanner is not equivalent to a clean scan. Review the statuses below before treating this report as complete.</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {degraded.map(item => {
+          const meta = STATUS_META[item.status] ?? STATUS_META.failed;
+          return <span key={item.source} title={item.error} style={{ color: meta.color, border: `1px solid ${meta.color}55`, background: `${meta.color}14`, borderRadius: 4, padding: '3px 7px', fontSize: 10, fontFamily: 'var(--font-mono, monospace)' }}>{item.source}: {meta.label}</span>;
+        })}
+      </div>
+    </div>
+  );
+}
+
 function SevBadge({ sev }: { sev: string }) {
   const s = SEV[sev] ?? SEV.UNKNOWN;
   return (
@@ -616,11 +644,20 @@ export default function SecurityPage() {
     ? (report.code_quality.ci.failed) + (report.code_quality.sonar.bugs ?? 0) + (report.code_quality.deepsource.bugs ?? 0)
     : 0;
 
+  const vulnerabilityFindings = [
+    ...(report?.dependabot?.findings ?? []).map(f => ({ sev: f.severity, id: f.cve || f.id, pkg: f.package, summary: f.summary, fix: f.fixed_in, source: 'Dependabot', url: f.url })),
+    ...(report?.osv?.findings ?? []).map(f => ({ sev: f.severity, id: f.id, pkg: f.package, summary: f.summary, fix: 'See OSV.dev', source: 'OSV.dev', url: f.url })),
+    ...(report?.nvd?.findings ?? []).map(f => ({ sev: f.severity, id: f.cve_id, pkg: 'NVD', summary: f.description, fix: 'See NVD', source: 'NVD', url: f.url })),
+    ...(report?.gh_advisory?.findings ?? []).map(f => ({ sev: f.severity, id: f.cve_id ?? f.ghsa_id, pkg: f.package, summary: f.summary, fix: f.patched_versions, source: 'GitHub Advisory', url: f.url })),
+    ...(report?.pypi_safety?.findings ?? []).map(f => ({ sev: f.severity, id: f.id, pkg: f.package, summary: f.summary, fix: 'See OSV.dev', source: 'PyPI / OSV', url: f.url })),
+    ...(report?.retirejs?.findings ?? []).map(f => ({ sev: f.severity, id: f.vuln_id, pkg: `${f.library}@${f.version}`, summary: f.summary, fix: 'Update CDN library', source: 'Retire.js', url: f.url })),
+  ];
+
   const TABS = [
     { id: 'overview',        label: '🔭 Overview' },
     { id: 'remediation',     label: '🩹 Remediation' },
     { id: 'code_quality',    label: `🐛 Code Quality${cqTotal > 0 ? ` (${cqTotal})` : ''}` },
-    { id: 'vulnerabilities', label: `📦 CVEs${((report?.dependabot?.total ?? 0) + (report?.osv?.total ?? 0)) > 0 ? ` (${(report?.dependabot?.total ?? 0) + (report?.osv?.total ?? 0)})` : ''}` },
+    { id: 'vulnerabilities', label: `📦 CVEs${vulnerabilityFindings.length > 0 ? ` (${vulnerabilityFindings.length})` : ''}` },
     { id: 'secrets',         label: `🔑 Secrets${(report?.secrets_github?.total ?? 0) > 0 ? ` (${report?.secrets_github?.total})` : ''}` },
     { id: 'sast',            label: `🧬 SAST${(report?.code_scanning?.total ?? 0) > 0 ? ` (${report?.code_scanning?.total})` : ''}` },
     { id: 'license',         label: '⚖️ License' },
@@ -742,6 +779,7 @@ export default function SecurityPage() {
         {report && !loading && (
           <>
             <ThreatBanner score={sc!.score} repo={`${report.meta.owner}/${report.meta.repo}`} />
+            <ScannerStatusPanel report={report} />
 
             {/* Score row */}
             <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.5rem', background: '#0d1117',
@@ -853,26 +891,26 @@ export default function SecurityPage() {
 
             {tab === 'vulnerabilities' && (
               <div>
-                {[
-                  ...(report.dependabot?.findings ?? []).map(f => ({ sev: f.severity, id: f.cve || f.id, pkg: f.package, summary: f.summary, fix: f.fixed_in, source: 'Dependabot', url: f.url })),
-                  ...(report.osv?.findings ?? []).map(f => ({ sev: f.severity, id: f.id, pkg: f.package, summary: f.summary, fix: 'See OSV.dev', source: 'OSV.dev', url: f.url })),
-                ].length === 0
-                  ? <p style={{ color: '#4ade80', padding: '2rem', textAlign: 'center', fontSize: 13 }}>✓ No open CVEs or known vulnerabilities detected</p>
-                  : [
-                      ...(report.dependabot?.findings ?? []).map(f => ({ sev: f.severity, id: f.cve || f.id, pkg: f.package, summary: f.summary, fix: f.fixed_in, source: 'Dependabot', url: f.url })),
-                      ...(report.osv?.findings ?? []).map(f => ({ sev: f.severity, id: f.id, pkg: f.package, summary: f.summary, fix: 'See OSV.dev', source: 'OSV.dev', url: f.url })),
-                    ].map((f, i) => <FindingRow key={i} {...f} />)
+                {vulnerabilityFindings.length === 0
+                  ? <p style={{ color: report.scanner_summary?.degraded ? '#ffb347' : '#4ade80', padding: '2rem', textAlign: 'center', fontSize: 13 }}>{report.scanner_summary?.degraded ? 'Scan incomplete — no complete vulnerability result is available.' : '✓ No open CVEs or known vulnerabilities detected'}</p>
+                  : vulnerabilityFindings.map((f, i) => <FindingRow key={i} {...f} />)
                 }
               </div>
             )}
 
             {tab === 'secrets' && (
               (report.secrets_github?.total ?? 0) === 0
-                ? <div style={{ textAlign: 'center', padding: '3rem', color: '#4ade80', fontSize: 13 }}>
-                    <div style={{ fontSize: 36, marginBottom: 12 }}>🔒</div>
-                    <div>No leaked secrets detected</div>
-                    <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 8 }}>GitHub Secret Scanning monitors 200+ secret patterns</div>
-                  </div>
+                ? report.scanner_statuses?.secrets?.status !== 'success'
+                  ? <div role="status" style={{ textAlign: 'center', padding: '3rem', color: '#ffb347', fontSize: 13 }}>
+                      <div style={{ fontSize: 36, marginBottom: 12 }}>⚠</div>
+                      <div>Secret scanning did not complete</div>
+                      <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginTop: 8 }}>{report.scanner_statuses?.secrets?.error ?? 'No clean result is available.'}</div>
+                    </div>
+                  : <div style={{ textAlign: 'center', padding: '3rem', color: '#4ade80', fontSize: 13 }}>
+                      <div style={{ fontSize: 36, marginBottom: 12 }}>🔒</div>
+                      <div>No leaked secrets detected</div>
+                      <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 8 }}>GitHub Secret Scanning completed successfully.</div>
+                    </div>
                 : <div>
                     {(report.secrets_github?.findings ?? []).map((f, i) => (
                       <div key={i} style={{ background: '#0d1117', border: '1px solid rgba(192,132,252,0.2)', borderLeft: '3px solid #c084fc', borderRadius: 8, padding: '0.9rem 1.1rem', marginBottom: '0.6rem' }}>
@@ -889,13 +927,17 @@ export default function SecurityPage() {
 
             {tab === 'sast' && (
               (report.code_scanning?.total ?? 0) === 0
-                ? <div style={{ textAlign: 'center', padding: '3rem', color: '#4ade80', fontSize: 13 }}>
-                    <div style={{ fontSize: 36, marginBottom: 12 }}>🧬</div>
-                    <div>No open SAST findings</div>
-                    <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 8 }}>
-                      {report.code_scanning?.enabled ? `Tools active: ${report.code_scanning.tools.join(', ')}` : 'Enable CodeQL in GitHub Actions to start SAST scanning'}
+                ? report.scanner_statuses?.code_scanning?.status !== 'success'
+                  ? <div role="status" style={{ textAlign: 'center', padding: '3rem', color: '#ffb347', fontSize: 13 }}>
+                      <div style={{ fontSize: 36, marginBottom: 12 }}>⚠</div>
+                      <div>SAST scanning did not complete</div>
+                      <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginTop: 8 }}>{report.scanner_statuses?.code_scanning?.error ?? 'No clean result is available.'}</div>
                     </div>
-                  </div>
+                  : <div style={{ textAlign: 'center', padding: '3rem', color: '#4ade80', fontSize: 13 }}>
+                      <div style={{ fontSize: 36, marginBottom: 12 }}>🧬</div>
+                      <div>No open SAST findings</div>
+                      <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 8 }}>Code scanning completed successfully.</div>
+                    </div>
                 : <div>
                     {(report.code_scanning?.findings ?? []).map((f, i) => (
                       <div key={i} style={{ background: '#0d1117', border: `1px solid ${SEV[f.severity]?.color ?? '#78909c'}28`, borderLeft: `3px solid ${SEV[f.severity]?.color ?? '#78909c'}`, borderRadius: 8, padding: '0.9rem 1.1rem', marginBottom: '0.6rem' }}>

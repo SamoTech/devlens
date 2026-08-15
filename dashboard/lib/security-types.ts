@@ -3,6 +3,13 @@
 
 export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO' | 'UNKNOWN';
 export type Grade    = 'A' | 'B' | 'C' | 'D' | 'F';
+export type ScannerStatus = 'success' | 'failed' | 'unavailable' | 'not_configured' | 'rate_limited' | 'timeout' | 'unauthorized';
+
+export interface ScannerStatusResult {
+  source: string;
+  status: ScannerStatus;
+  error?: string;
+}
 
 export interface SeverityCounts {
   CRITICAL?: number;
@@ -198,11 +205,67 @@ export interface CodeScanModule {
   error?:   string;
 }
 
+export interface NvdFinding {
+  cve_id: string;
+  description: string;
+  severity: Severity;
+  cvss_score: number | null;
+  published: string;
+  url: string;
+}
+
+export interface NvdModule {
+  available: boolean;
+  total: number;
+  findings: NvdFinding[];
+  counts: SeverityCounts;
+  error?: string;
+}
+
+export interface GhAdvisoryFinding {
+  ghsa_id: string;
+  cve_id: string | null;
+  package: string;
+  ecosystem: string;
+  severity: Severity;
+  summary: string;
+  vulnerable_versions: string;
+  patched_versions: string;
+  url: string;
+}
+
+export interface GhAdvisoryModule {
+  available: boolean;
+  total: number;
+  findings: GhAdvisoryFinding[];
+  counts: SeverityCounts;
+  error?: string;
+}
+
+export interface PypiSafetyModule {
+  available: boolean;
+  packages_checked: number;
+  total: number;
+  findings: Array<{ id: string; package: string; version: string; severity: Severity; summary: string; url: string }>;
+  counts: SeverityCounts;
+  error?: string;
+}
+
+export interface RetireJsModule {
+  available: boolean;
+  cdn_libs_found: number;
+  total: number;
+  findings: Array<{ library: string; version: string; source: string; severity: Severity; vuln_id: string; summary: string; url: string }>;
+  counts: SeverityCounts;
+  error?: string;
+}
+
 export interface OsvModule {
   packages_checked: number;
   findings:         OsvFinding[];
   counts:           SeverityCounts;
   total:            number;
+  error?:           string;
 }
 
 export interface CliModule<T> {
@@ -220,6 +283,7 @@ export interface LicenseModule {
   risk:         'low' | 'medium' | 'high' | 'unknown';
   url?:         string;
   note?:        string;
+  error?:       string;
 }
 
 export interface ScoreDeduction {
@@ -232,6 +296,7 @@ export interface ScoringResult {
   grade:       Grade;
   deductions:  ScoreDeduction[];
   max_score:   number;
+  confidence?:  'complete' | 'degraded';
 }
 
 export interface TotalCounts {
@@ -257,6 +322,10 @@ export interface MegaScanReport {
   secrets_github?:  SecretsModule;
   code_scanning?:   CodeScanModule;
   osv?:             OsvModule;
+  nvd?:             NvdModule;
+  gh_advisory?:     GhAdvisoryModule;
+  pypi_safety?:     PypiSafetyModule;
+  retirejs?:        RetireJsModule;
   trufflehog?:      CliModule<TrufflehogFinding>;
   semgrep?:         CliModule<SemgrepFinding>;
   nuclei?:          CliModule<NucleiFinding> & { target?: string };
@@ -264,6 +333,8 @@ export interface MegaScanReport {
   license?:         LicenseModule;
   code_quality?:    CodeQualityModule;   // NEW
   has_security_md:  boolean;
+  scanner_statuses: Record<string, ScannerStatusResult>;
+  scanner_summary:  { complete: boolean; degraded: boolean; failed: number; unavailable: number };
   totals:           TotalCounts;
   scoring:          ScoringResult;
 }

@@ -23,6 +23,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { parseRepoSlug } from '@/lib/repo-validation.mjs';
+import { classifyScannerStatus, summarizeScannerStatuses } from '@/lib/scanner-status.mjs';
 import type {
   MegaScanReport, DependabotModule, SecretsModule, CodeScanModule,
   OsvModule, LicenseModule, TotalCounts, ScoringResult, ScoreDeduction,
@@ -55,18 +57,24 @@ async function ghGet<T>(path: string): Promise<T | null> {
   } catch { return null; }
 }
 
+type OsvQueryResult = { vulns: Record<string, unknown>[]; error?: string };
+
 async function osvQuery(
   pkg: string, version: string, ecosystem: string,
-): Promise<Record<string, unknown>[]> {
+): Promise<OsvQueryResult> {
   try {
     const res = await fetch('https://api.osv.dev/v1/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ version, package: { name: pkg, ecosystem } }),
+      signal: AbortSignal.timeout(8000),
     });
+    if (!res.ok) return { vulns: [], error: `OSV returned ${res.status}` };
     const data = await res.json() as { vulns?: Record<string, unknown>[] };
-    return data.vulns ?? [];
-  } catch { return []; }
+    return { vulns: data.vulns ?? [] };
+  } catch (error) {
+    return { vulns: [], error: error instanceof Error ? error.message : 'OSV request failed' };
+  }
 }
 
 const SEV_ORDER: Record<string, number> = {
@@ -106,7 +114,13 @@ async function scanDependabot(owner: string, repo: string): Promise<DependabotMo
   const alerts = await ghGet<Record<string, unknown>[]>(
     `/repos/${owner}/${repo}/dependabot/alerts?state=open&per_page=100`,
   );
-  if (!alerts) return { enabled: false, findings: [], counts: {}, total: 0, error: 'Not enabled or insufficient permissions' };
+  if (!alerts) return {
+    enabled: false,
+    findings: [],
+    counts: {},
+    total: 0,
+    error: GH_TOKEN ? 'Unauthorized or insufficient permissions' : 'Scanner not configured: GITHUB_TOKEN missing',
+  };
   const counts: SeverityCounts = {};
   const findings = alerts.map((a) => {
     const sev = ((a.security_advisory as Record<string, unknown>)?.severity as string ?? 'UNKNOWN').toUpperCase() as Severity;
@@ -130,7 +144,12 @@ async function scanSecrets(owner: string, repo: string): Promise<SecretsModule> 
   const alerts = await ghGet<Record<string, unknown>[]>(
     `/repos/${owner}/${repo}/secret-scanning/alerts?state=open&per_page=100`,
   );
-  if (!alerts) return { enabled: false, findings: [], total: 0, error: 'Not enabled' };
+  if (!alerts) return {
+    enabled: false,
+    findings: [],
+    total: 0,
+    error: GH_TOKEN ? 'Unauthorized or insufficient permissions' : 'Scanner not configured: GITHUB_TOKEN missing',
+  };
   const findings = alerts.map((a) => ({
     type:       (a.secret_type_display_name ?? a.secret_type ?? '') as string,
     state:      a.state as string ?? '',
@@ -146,7 +165,14 @@ async function scanCodeScanning(owner: string, repo: string): Promise<CodeScanMo
   const alerts = await ghGet<Record<string, unknown>[]>(
     `/repos/${owner}/${repo}/code-scanning/alerts?state=open&per_page=100`,
   );
-  if (!alerts) return { enabled: false, tools: [], findings: [], counts: {}, total: 0, error: 'Not enabled' };
+  if (!alerts) return {
+    enabled: false,
+    tools: [],
+    findings: [],
+    counts: {},
+    total: 0,
+    error: GH_TOKEN ? 'Unauthorized or insufficient permissions' : 'Scanner not configured: GITHUB_TOKEN missing',
+  };
   const counts: SeverityCounts = {};
   const tools = new Set<string>();
   const findings = alerts.map((a) => {
@@ -171,6 +197,7 @@ async function scanCodeScanning(owner: string, repo: string): Promise<CodeScanMo
 async function scanOsv(owner: string, repo: string): Promise<OsvModule> {
   const findings: OsvModule['findings'] = [];
   let checked = 0;
+  let failedQueries = 0;
   const pkgJsonRaw = await ghGet<{ content?: string }>(`/repos/${owner}/${repo}/contents/package.json`);
   if (pkgJsonRaw?.content) {
     try {
@@ -181,9 +208,10 @@ async function scanOsv(owner: string, repo: string): Promise<OsvModule> {
       };
       for (const [name, verRaw] of Object.entries(deps).slice(0, 50)) {
         const ver = (verRaw as string).replace(/^[^~>=<]*/, '').replace(/[^0-9.].*$/, '') || verRaw as string;
-        const vulns = await osvQuery(name, ver, 'npm');
+        const result = await osvQuery(name, ver, 'npm');
         checked++;
-        for (const v of vulns) {
+        if (result.error) failedQueries++;
+        for (const v of result.vulns) {
           let sev: Severity = 'UNKNOWN';
           for (const s of (v.severity as Record<string, string>[] ?? [])) {
             if (s.type === 'CVSS_V3') sev = cvssToSeverity(parseFloat(s.score ?? '0'));
@@ -199,7 +227,13 @@ async function scanOsv(owner: string, repo: string): Promise<OsvModule> {
   }
   const counts: SeverityCounts = {};
   for (const f of findings) counts[f.severity] = (counts[f.severity] ?? 0) + 1;
-  return { packages_checked: checked, findings: sevSort(findings), counts, total: findings.length };
+  return {
+    packages_checked: checked,
+    findings: sevSort(findings),
+    counts,
+    total: findings.length,
+    ...(checked > 0 && failedQueries === checked ? { error: 'OSV dependency queries failed' } : {}),
+  };
 }
 
 // ── 5. NIST NVD (NEW — free, optional API key) ────────────────────────────────
@@ -461,11 +495,14 @@ async function scanPypiSafety(owner: string, repo: string): Promise<PypiSafetyMo
 
   const findings: PypiSafetyModule['findings'] = [];
   let checked = 0;
+  let failedQueries = 0;
 
-  for (const { name, version } of deps.slice(0, 40)) {
-    const vulns = await osvQuery(name, version, 'PyPI');
+      for (const { name, version } of deps.slice(0, 40)) {
+    const result = await osvQuery(name, version, 'PyPI');
     checked++;
-    for (const v of vulns) {
+    if (result.error) failedQueries++;
+    for (const v of result.vulns) {
+
       let sev: Severity = 'UNKNOWN';
       for (const s of (v.severity as Record<string, string>[] ?? [])) {
         if (s.type === 'CVSS_V3') sev = cvssToSeverity(parseFloat(s.score ?? '0'));
@@ -490,6 +527,7 @@ async function scanPypiSafety(owner: string, repo: string): Promise<PypiSafetyMo
     total:            findings.length,
     findings:         sevSort(findings),
     counts,
+    ...(checked > 0 && failedQueries === checked ? { error: 'OSV PyPI queries failed' } : {}),
   };
 }
 
@@ -522,6 +560,8 @@ async function scanRetireJs(owner: string, repo: string): Promise<RetireJsModule
 
   const findings: RetireJsModule['findings'] = [];
   const libsFound = new Set<string>();
+  let checkedQueries = 0;
+  let failedQueries = 0;
 
   for (const htmlFile of htmlFiles) {
     const f = await ghGet<{ content?: string }>(`/repos/${owner}/${repo}/contents/${htmlFile}`);
@@ -536,8 +576,10 @@ async function scanRetireJs(owner: string, repo: string): Promise<RetireJsModule
       libsFound.add(key);
 
       // Check OSV.dev for this library + version in npm ecosystem
-      const vulns = await osvQuery(library, version, 'npm');
-      for (const v of vulns) {
+      const result = await osvQuery(library, version, 'npm');
+      checkedQueries++;
+      if (result.error) failedQueries++;
+      for (const v of result.vulns) {
         let sev: Severity = 'UNKNOWN';
         for (const s of (v.severity as Record<string, string>[] ?? [])) {
           if (s.type === 'CVSS_V3') sev = cvssToSeverity(parseFloat(s.score ?? '0'));
@@ -564,6 +606,7 @@ async function scanRetireJs(owner: string, repo: string): Promise<RetireJsModule
     total:          findings.length,
     findings:       sevSort(findings),
     counts,
+    ...(checkedQueries > 0 && failedQueries === checkedQueries ? { error: 'OSV CDN queries failed' } : {}),
   };
 }
 
@@ -573,7 +616,10 @@ async function scanLicense(owner: string, repo: string): Promise<LicenseModule> 
   const data = await ghGet<{ license?: { spdx_id?: string | null }; html_url?: string }>(
     `/repos/${owner}/${repo}/license`,
   );
-  const raw  = data?.license?.spdx_id ?? null;
+  if (!data) {
+    return { found: false, spdx: null, displaySpdx: 'Unavailable', risk: 'unknown', error: 'License request failed or was unavailable' };
+  }
+  const raw  = data.license?.spdx_id ?? null;
   const spdx = (!raw || raw === 'NOASSERTION' || raw === 'NONE') ? null : raw;
 
   if (!spdx) {
@@ -812,7 +858,7 @@ function calculateScore(report: Partial<MegaScanReport> & {
   gh_advisory?: GhAdvisoryModule;
   pypi_safety?: PypiSafetyModule;
   retirejs?: RetireJsModule;
-}): ScoringResult {
+}, scannerSummary?: { degraded: boolean; failed: number; unavailable: number }): ScoringResult {
   let score = 100;
   const deductions: ScoreDeduction[] = [];
   const deduct = (pts: number, reason: string) => { score -= pts; deductions.push({ points: pts, reason }); };
@@ -876,7 +922,13 @@ function calculateScore(report: Partial<MegaScanReport> & {
 
   score = Math.max(0, score);
   const grade = score >= 90 ? 'A' : score >= 75 ? 'B' : score >= 60 ? 'C' : score >= 40 ? 'D' : 'F';
-  return { score, grade, deductions, max_score: 100 };
+  return {
+    score,
+    grade,
+    deductions,
+    max_score: 100,
+    confidence: scannerSummary?.degraded ? 'degraded' : 'complete',
+  };
 }
 
 function aggregateTotals(report: Partial<MegaScanReport> & {
@@ -927,12 +979,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const repoParam = searchParams.get('repo') ?? '';
   const force     = searchParams.get('force') === '1';
 
-  if (!repoParam.includes('/')) {
-    return NextResponse.json({ error: 'repo param must be owner/name' }, { status: 400 });
+  const parsedRepo = parseRepoSlug(repoParam);
+  if (!parsedRepo) {
+    return NextResponse.json({ error: 'repo param must be owner/name or an https://github.com/owner/name URL' }, { status: 400 });
   }
 
-  const [owner, repo] = repoParam.split('/');
-  const cacheKey = `devlens:security:v2:${owner}/${repo}`;
+  const { owner, name: repo } = parsedRepo;
+  const cacheKey = `devlens:security:v3:${owner}/${repo}`;
 
   if (!force) {
     const cached = await cacheGet(cacheKey);
@@ -995,10 +1048,32 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     trivy:      { available: false, message: 'CLI tool — run scripts/mega_scanner.py locally', findings: [] },
   };
 
+  const scanner_statuses = {
+    dependabot:     classifyScannerStatus('dependabot', dependabot),
+    secrets:        classifyScannerStatus('secrets', secrets_github),
+    code_scanning:  classifyScannerStatus('code_scanning', code_scanning),
+    osv:            classifyScannerStatus('osv', osv),
+    nvd:            classifyScannerStatus('nvd', nvd),
+    gh_advisory:    classifyScannerStatus('gh_advisory', gh_advisory),
+    pypi_safety:    classifyScannerStatus('pypi_safety', pypi_safety),
+    retirejs:       classifyScannerStatus('retirejs', retirejs),
+    license:        classifyScannerStatus('license', license),
+    ci_checks:      classifyScannerStatus('ci_checks', code_quality.ci),
+    sonarcloud:     classifyScannerStatus('sonarcloud', code_quality.sonar),
+    deepsource:     classifyScannerStatus('deepsource', code_quality.deepsource),
+    codecov:        classifyScannerStatus('codecov', code_quality.codecov),
+    trufflehog:     { source: 'trufflehog', status: 'unavailable', error: 'Scanner not configured for this hosted endpoint' },
+    semgrep:        { source: 'semgrep', status: 'unavailable', error: 'Scanner not configured for this hosted endpoint' },
+    nuclei:         { source: 'nuclei', status: 'unavailable', error: 'Scanner not configured for this hosted endpoint' },
+    trivy:          { source: 'trivy', status: 'unavailable', error: 'Scanner not configured for this hosted endpoint' },
+  };
+  const scanner_summary = summarizeScannerStatuses(scanner_statuses);
   const report = {
     ...partial,
+    scanner_statuses,
+    scanner_summary,
     totals:  aggregateTotals(partial),
-    scoring: calculateScore(partial),
+    scoring: calculateScore(partial, scanner_summary),
   };
 
   await cacheSet(cacheKey, report);
