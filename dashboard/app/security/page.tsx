@@ -244,7 +244,8 @@ function RemediationPanel({ report }: { report: MegaScanReport }) {
   if (cq?.codecov.available && (cq.codecov.coverage ?? 100) < 60) tips.push({ icon: '📊', priority: 'medium', title: `Low test coverage: ${cq.codecov.coverage?.toFixed(1) ?? '?'}%`, body: 'Codecov reports less than 60% code coverage. Uncovered code paths hide bugs. Aim for 80%+ on critical modules.' });
   if (!report.has_security_md) tips.push({ icon: '📋', priority: 'medium', title: 'Add a SECURITY.md security policy', body: 'A SECURITY.md file tells researchers how to responsibly disclose vulnerabilities. GitHub will surface it automatically on the Security tab. Earns +3 score points.' });
   if (report.license?.risk === 'high') tips.push({ icon: '⚖️', priority: 'high', title: `Copyleft license (${report.license.spdx}) detected`, body: 'AGPL/GPL licenses require all derivatives to be open-sourced. If this conflicts with your business model, consult legal counsel and consider relicensing.' });
-  if (tips.length === 0) tips.push({ icon: '🏆', priority: 'medium', title: 'No critical issues — keep it up!', body: 'Continue running weekly scans, keep dependencies up to date, and enable Dependabot auto-merge for patch-level updates.' });
+  if (tips.length === 0 && report.scanner_summary?.degraded) tips.push({ icon: '⚠️', priority: 'high', title: 'Security scan incomplete', body: 'One or more scanners failed, were rate limited, or were not configured. Do not treat empty findings from those modules as proof of a clean repository.' });
+  if (tips.length === 0) tips.push({ icon: '🏆', priority: 'medium', title: 'No critical issues — keep it up!', body: 'All configured scanners completed without findings. Continue running weekly scans, keep dependencies up to date, and enable Dependabot auto-merge for patch-level updates.' });
   const priColor = { urgent: '#ff3b5c', high: '#ff7c2a', medium: '#f5c518' };
   return (
     <div>
@@ -693,7 +694,7 @@ export default function SecurityPage() {
             Cybersecurity &amp; Code Quality Scanner
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0, lineHeight: 1.6 }}>
-            Deep intelligence across 8 scan modules — Dependabot CVEs · Secret Leaks · SAST/CodeQL · OSV.dev · CI Check Runs · SonarCloud · DeepSource · Codecov
+            Status-aware intelligence across dependency, secret, SAST, advisory, license, CI, quality, and CDN scanners. A missing or failed scanner is shown as incomplete—not clean.
           </p>
         </div>
 
