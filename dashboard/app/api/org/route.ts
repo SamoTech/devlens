@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { analyzeRepo } from '@/lib/scorer'
 import { auth } from '@/lib/auth'
 
+const ORG_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/
+
 export async function GET(req: NextRequest) {
   const org = new URL(req.url).searchParams.get('org')
-  if (!org) return NextResponse.json({ error: 'org param required' }, { status: 400 })
+  if (!org || org.length > 39 || !ORG_PATTERN.test(org)) {
+    return NextResponse.json({ error: 'Invalid organization name' }, { status: 400 })
+  }
 
   try {
     const session = await auth()

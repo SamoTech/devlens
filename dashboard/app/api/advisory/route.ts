@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { runAdvisoryCheck }          from '@/lib/advisory'
 import { auth }                       from '@/lib/auth'
 import { Redis }                      from '@upstash/redis'
+import { parseRepoSlug }               from '@/lib/repo-validation.mjs'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,12 +17,10 @@ const redis = Redis.fromEnv()
 
 export async function GET(req: NextRequest) {
   const repo = new URL(req.url).searchParams.get('repo')
-  if (!repo) return NextResponse.json({ error: 'repo param required' }, { status: 400 })
+  const parsedRepo = parseRepoSlug(repo)
+  if (!parsedRepo) return NextResponse.json({ error: 'Invalid repo format. Use owner/name or an https://github.com/owner/name URL' }, { status: 400 })
 
-  const parts = repo.replace('https://github.com/', '').replace(/\/$/, '').split('/')
-  if (parts.length < 2) return NextResponse.json({ error: 'Invalid repo format' }, { status: 400 })
-
-  const [owner, name] = parts
+  const { owner, name } = parsedRepo
   const cacheKey      = `advisory:${owner}:${name}`
 
   // ── Try cache first ──

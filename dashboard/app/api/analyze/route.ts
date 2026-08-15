@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { analyzeRepo } from '@/lib/scorer'
 import { auth } from '@/lib/auth'
 import type { DimKey } from '@/lib/constants'
+import { parseRepoSlug } from '@/lib/repo-validation.mjs'
 import { Redis } from '@upstash/redis'
 
 const redis = Redis.fromEnv()
@@ -11,17 +12,22 @@ export async function GET(req: NextRequest) {
   const repo = searchParams.get('repo')
   const weightsParam = searchParams.get('weights')
 
-  if (!repo) return NextResponse.json({ error: 'repo param required' }, { status: 400 })
+  const parsedRepo = parseRepoSlug(repo)
+  if (!parsedRepo) return NextResponse.json({ error: 'Invalid repo format. Use owner/name or an https://github.com/owner/name URL' }, { status: 400 })
 
-  const parts = repo.replace('https://github.com/', '').replace(/\/$/, '').split('/')
-  if (parts.length < 2) return NextResponse.json({ error: 'Invalid repo format. Use owner/name' }, { status: 400 })
-
-  const [owner, name] = parts
-  const slug = `${owner}/${name}`
+  const { owner, name, slug } = parsedRepo
 
   let customWeights: Partial<Record<DimKey, number>> | undefined
   if (weightsParam) {
-    try { customWeights = JSON.parse(weightsParam) } catch {}
+    try {
+      const parsedWeights = JSON.parse(weightsParam)
+      if (!parsedWeights || typeof parsedWeights !== 'object' || Array.isArray(parsedWeights)) {
+        return NextResponse.json({ error: 'weights must be a JSON object' }, { status: 400 })
+      }
+      customWeights = parsedWeights
+    } catch {
+      return NextResponse.json({ error: 'weights must be valid JSON' }, { status: 400 })
+    }
   }
 
   try {

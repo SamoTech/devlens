@@ -1,6 +1,7 @@
 import { DEFAULT_WEIGHTS, DimKey, Suggestion } from './constants'
 import { getRedis } from './redis'
 import { runAdvisoryCheck } from './advisory'
+import { sanitizeWeights } from './weights.mjs'
 
 export interface DimScores {
   readme: number
@@ -109,7 +110,9 @@ async function scoreActivity(owner: string, name: string, token?: string): Promi
 }
 
 function scoreFreshness(pushedAt: string): number {
-  const days = Math.floor((Date.now() - new Date(pushedAt).getTime()) / 86400000)
+  const timestamp = new Date(pushedAt).getTime()
+  if (!Number.isFinite(timestamp)) return 0
+  const days = Math.floor((Date.now() - timestamp) / 86400000)
   if (days <= 7) return 100
   if (days <= 30) return 80
   if (days <= 90) return 55
@@ -152,7 +155,8 @@ async function scoreIssues(owner: string, name: string, openCount: number, token
 }
 
 function scoreCommunity(stars: number, forks: number): number {
-  return Math.min(Math.floor(Math.log1p(stars) * 15) + Math.floor(Math.log1p(forks) * 10), 100)
+  if (!Number.isFinite(stars) || !Number.isFinite(forks) || stars < 0 || forks < 0) return 0
+  return Math.max(0, Math.min(Math.floor(Math.log1p(stars) * 15) + Math.floor(Math.log1p(forks) * 10), 100))
 }
 
 async function scorePRVelocity(owner: string, name: string, token?: string): Promise<number> {
@@ -240,6 +244,13 @@ export async function analyzeRepo(
   const redis = getRedis()
   const cacheKey = `cache:${owner}:${name}`
 
+  // Always verify visibility before reading a shared cache. This prevents a
+  // private report from ever being served through a public owner/name key.
+  const repoData = await ghFetch(`${GH}/repos/${owner}/${name}`, token)
+  if (repoData.private === true) {
+    throw new Error('Private repositories are not supported')
+  }
+
   if (redis && !customWeights) {
     try {
       const cached = await redis.get<string>(cacheKey)
@@ -249,8 +260,6 @@ export async function analyzeRepo(
       }
     } catch {}
   }
-
-  const repoData = await ghFetch(`${GH}/repos/${owner}/${name}`, token)
 
   // Fetch tree once, share with scoreDocs + scoreSecurityReal to save API calls
   let treePaths: string[] = []
@@ -289,11 +298,13 @@ export async function analyzeRepo(
     security:  secResult.score,
   }
 
-  const weights = { ...DEFAULT_WEIGHTS, ...customWeights }
-  const weightSum = Object.values(weights).reduce((a, b) => a + b, 0)
-  const health = Math.round(
-    (Object.keys(weights) as DimKey[]).reduce((sum, k) => sum + scores[k] * (weights[k] / weightSum), 0)
-  )
+  const weights = sanitizeWeights(customWeights, DEFAULT_WEIGHTS)
+  const dimensions = Object.keys(DEFAULT_WEIGHTS) as DimKey[]
+  const weightSum = dimensions.reduce((sum, key) => sum + weights[key], 0)
+  const rawHealth = dimensions.reduce((sum, key) => sum + scores[key] * (weights[key] / weightSum), 0)
+  const health = Number.isFinite(rawHealth)
+    ? Math.max(0, Math.min(100, Math.round(rawHealth)))
+    : 0
 
   const badgeUrl = `https://img.shields.io/badge/DevLens%20Health-${health}%2F100-${badgeShieldColor(health)}?style=flat-square&logo=github`
   const suggestions = buildSuggestions(scores, secResult.advisory)

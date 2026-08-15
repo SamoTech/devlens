@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { analyzeRepo } from '@/lib/scorer'
 import { auth } from '@/lib/auth'
 import { getRedis } from '@/lib/redis'
+import { parseRepoSlug } from '@/lib/repo-validation.mjs'
 
 export async function GET(req: NextRequest) {
   const searchParams = new URL(req.url).searchParams
   const repo = searchParams.get('repo')
-  if (!repo) return NextResponse.json({ error: 'repo param required' }, { status: 400 })
+  const parsedRepo = parseRepoSlug(repo)
+  if (!parsedRepo) return NextResponse.json({ error: 'Invalid repo format. Use owner/name or an https://github.com/owner/name URL' }, { status: 400 })
 
-  const [owner, name] = repo.split('/')
+  const { owner, name } = parsedRepo
   const redis = getRedis()
 
   try {

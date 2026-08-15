@@ -52,7 +52,7 @@ export default function BadgePage() {
         <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
           <div style={{ textAlign: 'center' }}>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-2xl)', fontWeight: 800, marginBottom: 'var(--space-2)' }}>Embed your health badge</h1>
-            <p style={{ fontSize: 'var(--text-base)', color: 'var(--text-muted)' }}>Show your repo's DevLens score in your README with one line.</p>
+            <p style={{ fontSize: 'var(--text-base)', color: 'var(--text-muted)' }}>Show your repo&apos;s DevLens score in your README with one line.</p>
           </div>
           <form onSubmit={analyze} style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
             <div style={{ position: 'relative', flex: '1 1 280px' }}>

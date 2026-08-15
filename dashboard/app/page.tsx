@@ -41,8 +41,10 @@ export default function Home() {
     try {
       const slug = input.trim().replace('https://github.com/', '').replace(/\/$/, '')
       const weightsSum = Object.values(weights).reduce((a, b) => a + b, 0)
+      const sourceWeights = Number.isFinite(weightsSum) && weightsSum > 0 ? weights : DEFAULT_WEIGHTS
+      const sourceSum = Object.values(sourceWeights).reduce((a, b) => a + b, 0)
       const normalizedWeights = Object.fromEntries(
-        Object.entries(weights).map(([k, v]) => [k, v / weightsSum])
+        Object.entries(sourceWeights).map(([k, v]) => [k, v / sourceSum])
       ) as Record<DimKey, number>
       const weightsJson = JSON.stringify(normalizedWeights)
       const [res, histRes] = await Promise.all([
