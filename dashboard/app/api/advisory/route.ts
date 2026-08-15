@@ -10,6 +10,7 @@ import { runAdvisoryCheck }          from '@/lib/advisory'
 import { auth }                       from '@/lib/auth'
 import { Redis }                      from '@upstash/redis'
 import { parseRepoSlug }               from '@/lib/repo-validation.mjs'
+import { consumeRateLimit, requestIdentity } from '@/lib/rate-limit.mjs'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,6 +39,8 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth()
     const token   = (session as any)?.accessToken ?? process.env.GITHUB_TOKEN
+    const limit = await consumeRateLimit(redis, requestIdentity(req, (session as any)?.user?.email), 'advisory')
+    if (!limit.allowed) return NextResponse.json({ error: 'rate_limited', message: 'Advisory scan rate limit exceeded. Try again shortly.' }, { status: 429, headers: limit.headers })
 
     const report = await runAdvisoryCheck(owner, name, token)
 

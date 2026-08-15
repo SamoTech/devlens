@@ -3,6 +3,7 @@ import { analyzeRepo } from '@/lib/scorer'
 import { auth } from '@/lib/auth'
 import { getRedis } from '@/lib/redis'
 import { parseRepoSlug } from '@/lib/repo-validation.mjs'
+import { consumeRateLimit, requestIdentity } from '@/lib/rate-limit.mjs'
 
 export async function GET(req: NextRequest) {
   const searchParams = new URL(req.url).searchParams
@@ -16,6 +17,10 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth()
     const token = (session as any)?.accessToken ?? process.env.GITHUB_TOKEN
+    const limit = await consumeRateLimit(redis, requestIdentity(req, (session as any)?.user?.email), 'history')
+    if (!limit.allowed) return NextResponse.json({ error: 'rate_limited', message: 'History rate limit exceeded. Try again shortly.' }, { status: 429, headers: limit.headers })
+
+    const key = `history:${owner}:${name}`
     const current = await analyzeRepo(owner, name, token)
 
     let history: { week: string; score: number; date: string }[] = []

@@ -25,6 +25,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseRepoSlug } from '@/lib/repo-validation.mjs';
 import { classifyScannerStatus, summarizeScannerStatuses } from '@/lib/scanner-status.mjs';
+import { consumeRateLimit, requestIdentity } from '@/lib/rate-limit.mjs';
+import { getRedis } from '@/lib/redis';
 import type {
   MegaScanReport, DependabotModule, SecretsModule, CodeScanModule,
   OsvModule, LicenseModule, TotalCounts, ScoringResult, ScoreDeduction,
@@ -986,6 +988,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const { owner, name: repo } = parsedRepo;
   const cacheKey = `devlens:security:v3:${owner}/${repo}`;
+  const limit = await consumeRateLimit(getRedis(), requestIdentity(req), 'security');
+  if (!limit.allowed) return NextResponse.json({ error: 'rate_limited', message: 'Security scan rate limit exceeded. Try again shortly.' }, { status: 429, headers: limit.headers });
 
   if (!force) {
     const cached = await cacheGet(cacheKey);

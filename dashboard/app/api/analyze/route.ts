@@ -3,6 +3,7 @@ import { analyzeRepo } from '@/lib/scorer'
 import { auth } from '@/lib/auth'
 import type { DimKey } from '@/lib/constants'
 import { parseRepoSlug } from '@/lib/repo-validation.mjs'
+import { consumeRateLimit, requestIdentity } from '@/lib/rate-limit.mjs'
 import { Redis } from '@upstash/redis'
 
 const redis = Redis.fromEnv()
@@ -33,6 +34,8 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth()
     const token = (session as any)?.accessToken ?? process.env.GITHUB_TOKEN
+    const limit = await consumeRateLimit(redis, requestIdentity(req, (session as any)?.user?.email), 'analyze')
+    if (!limit.allowed) return NextResponse.json({ error: 'rate_limited', message: 'Analysis rate limit exceeded. Try again shortly.' }, { status: 429, headers: limit.headers })
     const report = await analyzeRepo(owner, name, token, customWeights)
 
     // ── Track stats in Redis (fire-and-forget) ──
