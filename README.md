@@ -19,33 +19,21 @@
 ---
 
 <!-- DEVLENS:START -->
-![DevLens Health](https://img.shields.io/badge/DevLens%20Health-97%2F100-brightgreen?style=flat-square&logo=github) **Overall health: 97/100** — *Last updated: 2026-04-08*
-
-| Dimension | Score | Weight |
-|---|---|---|
-| 📝 README Quality | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
-| ⚡ Commit Activity | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
-| 🌿 Repo Freshness | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
-| 📚 Documentation | ![96](https://img.shields.io/badge/96-brightgreen?style=flat-square) | 15% |
-| ⚙️ CI/CD Setup | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
-| 🎯 Issue Response | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
-| ⭐ Community Signal | ![0](https://img.shields.io/badge/0-red?style=flat-square) | 5% |
-| 🔀 PR Velocity | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 3% |
-| 🔒 Security | ![82](https://img.shields.io/badge/82-brightgreen?style=flat-square) | 2% |
+> The README health snapshot is maintained by the GitHub Action (`action-v1-7d`). It is a historical CI result, not a live `dashboard-v2-9d` dashboard score. Run the dashboard or the Action to generate a current result.
 <!-- DEVLENS:END -->
 
 ---
 
 ## ✨ What DevLens Does
 
-Paste any public GitHub repo URL into [devlens-io.vercel.app](https://devlens-io.vercel.app) and get a live health report + deep security scan — no signup, no API key needed.
+Paste a public GitHub repository slug or canonical URL into [devlens-io.vercel.app](https://devlens-io.vercel.app) to get a live health report. Security coverage depends on scanner availability and configured credentials; the dashboard shows failed and unavailable modules explicitly rather than treating them as clean.
 
 | Feature | Details | Free |
 |---|---|---|
-| 🏥 **9-dimension health score** | Weighted 0–100 score, adjustable sliders | ✅ |
-| 🔐 **Security Intelligence Engine** | 13 real scan modules — CVEs, secrets, SAST, NVD, advisories | ✅ |
+| 🏥 **9-dimension health score** | Dashboard score model `dashboard-v2-9d`, bounded 0–100, adjustable sliders | ✅ |
+| 🔐 **Security Intelligence Engine** | 13 network modules plus locally available CLI integrations; every module reports status | ✅ |
 | 📊 **Live GitHub API** | Every score fetched fresh from GitHub, 15-min Redis cache | ✅ |
-| 📈 **Trend history** | Real weekly snapshots stored in Redis, shown as a trend chart | ✅ |
+| 📈 **Trend history** | Weekly snapshots stored in Redis when persistence is configured | ✅ |
 | 🏢 **Org analysis** | Score all public repos in any GitHub org, ranked by health | ✅ |
 | ⚖️ **Side-by-side compare** | Analyze two repos at once at `/compare` | ✅ |
 | 🏆 **Leaderboard** | Top-scoring repos from all DevLens users at `/leaderboard` | ✅ |
@@ -80,6 +68,8 @@ Module                    Source                         Auth Needed
 
 ### Security Score Formula (0–100)
 
+The security score is `security-v2`. It is an evidence score, not a claim that every scanner completed. The API also returns `scanner_statuses`, `scanner_summary`, and `scoring.confidence`; when any scanner is failed, unavailable, rate limited, timed out, unauthorized, or not configured, the UI displays a degraded-scan warning.
+
 | Module | Max Deduction |
 |---|---|
 | Dependabot (critical/high/medium CVEs) | −30 pts |
@@ -112,13 +102,13 @@ Dimension         Default Weight   What it measures
 ────────────────────────────────────────────────────────────────────
 README Quality         20%   Length, keywords, code blocks, images, headings
 Commit Activity        20%   Commits to default branch in last 90 days
-Repo Freshness         15%   Days since last push (≤7 days = 100)
-Documentation          15%   LICENSE, CONTRIBUTING, CHANGELOG, SECURITY, docs/
+Repo Freshness         10%   Days since last push (≤7 days = 100)
+Documentation          10%   LICENSE, CONTRIBUTING, CHANGELOG, SECURITY, docs/
 CI/CD Setup            10%   GitHub Actions workflow count
 Issue Response         10%   Closed-to-total issue ratio
 Community Signal        5%   Logarithmic score from stars + forks
-PR Velocity             3%   Average PR merge time (last 20 merged PRs)
-Security                2%   Now powered by the full 13-module scanner
+PR Velocity            10%   Average PR merge time (last 20 merged PRs)
+Security                5%   Advisory/security evidence summary
 ```
 
 Weights are **fully adjustable** in the UI via sliders — they auto-normalize to 100%.
@@ -148,7 +138,7 @@ Weights are **fully adjustable** in the UI via sliders — they auto-normalize t
 ### Option A — Static badge
 
 ```markdown
-[![DevLens Health](https://devlens-io.vercel.app/api/badge?repo=owner/name)](https://devlens-io.vercel.app/?repo=owner/name)
+[![DevLens Health](https://devlens-io.vercel.app/api/badge/owner/name)](https://devlens-io.vercel.app/?repo=owner/name)
 ```
 
 ### Option B — Auto-updating via GitHub Actions
@@ -206,11 +196,15 @@ GET https://devlens-io.vercel.app/api/history?repo=owner/name
 GET https://devlens-io.vercel.app/api/watchlist
 
 # Badge data
-GET https://devlens-io.vercel.app/api/badge?repo=owner/name
+GET https://devlens-io.vercel.app/api/badge/owner/name
 
 # Live usage stats
 GET https://devlens-io.vercel.app/api/stats
 ```
+
+### Runtime request budgets
+
+The dashboard applies Redis-backed per-minute budgets to bound expensive work: analysis and history allow 30 requests per client identity, advisory 10, compare 10, organization analysis 3, security scans 5, and watchlist operations 30. When a request exceeds its budget, the API returns HTTP `429` with `Retry-After` and rate-limit headers. If Redis is unavailable, the application reports degraded persistence or rate-limit protection rather than claiming a successful write or complete security result.
 
 ---
 
@@ -236,8 +230,7 @@ AUTH_SECRET=
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 
-# Server-side GitHub token (60 → 5000 req/hr)
-# Powers 9 of the 13 security scan modules
+# Optional server-side GitHub token for higher upstream API quota and security modules
 GITHUB_TOKEN=
 
 # NIST NVD API key — free, raises rate limit 10×

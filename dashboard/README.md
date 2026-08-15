@@ -24,7 +24,7 @@
 - 9-dimension weighted scoring (README, Activity, Freshness, Docs, CI/CD, Issues, Community, PR Velocity, Security)
 - Adjustable weight sliders — auto-normalize to 100%, custom-weight runs bypass cache
 - 15-min Redis cache per repo; real weekly history snapshots (up to 12) for trend chart
-- GitHub OAuth sign-in to raise rate limit from 60 → 5,000 req/hr
+- GitHub OAuth sign-in for authenticated GitHub API access; DevLens also enforces Redis-backed endpoint budgets
 - Dark / light mode with system preference + manual toggle
 
 ---
@@ -33,11 +33,21 @@
 
 ```bash
 cd dashboard
-npm install
+npm ci
 cp .env.example .env.local
 # fill in .env.local (see below)
 npm run dev
 # → http://localhost:3000
+```
+
+Before opening a pull request, run the same local quality gates used by CI:
+
+```bash
+npm test
+npm run lint
+npx tsc --noEmit
+npm run build
+npm audit --omit=dev
 ```
 
 ---
@@ -53,17 +63,17 @@ AUTH_GITHUB_SECRET=your_oauth_app_client_secret
 AUTH_SECRET=        # openssl rand -base64 32
 
 # ── Upstash Redis ────────────────────────────────────────────────
-# Required for: watchlist, leaderboard, history, stats, 15-min cache
+# Required for: watchlist, leaderboard, history, stats, caching, and rate limits
 # Free tier at: upstash.com
 UPSTASH_REDIS_REST_URL=https://...
 UPSTASH_REDIS_REST_TOKEN=...
 
 # ── Optional ─────────────────────────────────────────────────────
-# Server-side GitHub token — raises unauthenticated 60 req/hr limit
+# Optional server-side GitHub token for higher upstream API quota and security modules
 GITHUB_TOKEN=ghp_...
 ```
 
-> **Without Redis** the app still analyzes repos, but watchlist, leaderboard, stats, history, and caching are silently skipped.
+> **Without Redis**, repository analysis may still run, but persistence-backed features and Redis-backed rate limiting are unavailable. The API reports degraded persistence/rate-limit behavior rather than treating missing data as a successful write.
 
 ---
 
@@ -86,7 +96,7 @@ vercel --cwd dashboard
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 15 (App Router, TypeScript) |
+| Framework | Next.js 16.3.1 (App Router, TypeScript) |
 | Auth | NextAuth v5 (GitHub OAuth) |
 | Storage | Upstash Redis (REST client) |
 | Hosting | Vercel |
@@ -97,13 +107,19 @@ vercel --cwd dashboard
 
 ## API Quick Reference
 
+Repository parameters accept either `owner/name` or a canonical `https://github.com/owner/name` URL. Other hosts, protocols, extra path segments, query strings, fragments, and control characters are rejected.
+
+The security API returns explicit scanner states: `success`, `failed`, `unavailable`, `not_configured`, `rate_limited`, `timeout`, and `unauthorized`. An empty findings array is clean only when the corresponding scanner status is `success`.
+
+Redis-backed budgets are intentionally endpoint-specific: analysis and history allow 30 requests/minute, advisory 10/minute, compare 10/minute, organization analysis 3/minute, security scans 5/minute, and watchlist operations 30/minute per authenticated identity or anonymous client IP. Exceeding a budget returns HTTP `429` with `Retry-After`; a Redis outage is reported as degraded protection.
+
 ```bash
 GET /api/analyze?repo=owner/name          # Full RepoReport JSON
 GET /api/compare?a=owner/a&b=owner/b      # Two RepoReports
 GET /api/history?repo=owner/name          # Weekly score snapshots
 GET /api/watchlist                        # Recently checked repos
 GET /api/org-watchlist                    # Recently checked orgs
-GET /api/badge?repo=owner/name            # Badge URL + score
+GET /api/badge/owner/name                 # SVG badge + score
 GET /api/stats                            # Usage stats
 GET /api/leaderboard                      # Top scored repos
 ```
