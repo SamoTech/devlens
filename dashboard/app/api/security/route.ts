@@ -930,6 +930,7 @@ function calculateScore(report: Partial<MegaScanReport> & {
     deductions,
     max_score: 100,
     confidence: scannerSummary?.degraded ? 'degraded' : 'complete',
+    model: 'security-v2',
   };
 }
 

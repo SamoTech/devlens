@@ -297,6 +297,7 @@ export interface ScoringResult {
   deductions:  ScoreDeduction[];
   max_score:   number;
   confidence?:  'complete' | 'degraded';
+  model?:       'security-v2';
 }
 
 export interface TotalCounts {

@@ -19,6 +19,7 @@ export interface RepoReport {
   repo: string
   owner: string
   name: string
+  scoreModel: 'dashboard-v2-9d'
   description: string | null
   stars: number
   forks: number
@@ -319,6 +320,7 @@ export async function analyzeRepo(
     language: repoData.language,
     avatar: repoData.owner.avatar_url,
     url: repoData.html_url,
+    scoreModel: 'dashboard-v2-9d',
     healthScore: health,
     scores,
     suggestions,

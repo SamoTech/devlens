@@ -321,7 +321,7 @@ def calculate_score(report: dict) -> dict:
 
     score = max(0, score)
     grade = "A" if score >= 90 else "B" if score >= 75 else "C" if score >= 60 else "D" if score >= 40 else "F"
-    return {"score": score, "grade": grade, "deductions": deductions, "max_score": 100}
+    return {"score": score, "grade": grade, "deductions": deductions, "max_score": 100, "score_model": "mega-security-v2"}
 
 def aggregate_counts(report: dict) -> dict:
     agg = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
