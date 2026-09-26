@@ -17,6 +17,7 @@
 const GH_REST    = 'https://api.github.com'
 const GH_GQL     = 'https://api.github.com/graphql'
 const OSV_BATCH  = 'https://api.osv.dev/v1/querybatch'
+import { correlateVulnerabilities } from './vulnerability-correlation.mjs'
 
 // ── Severity ordering ──────────────────────────────────────────────────────
 export type Severity = 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' | 'UNKNOWN'
@@ -27,7 +28,8 @@ const SEV_RANK: Record<Severity, number> = {
 export interface AdvisoryFinding {
   package:      string
   ecosystem:    string
-  installedVer: string          // version pinned in manifest
+  installedVer: string          // version pinned in manifest when available
+  vulnerableRange?: string | null
   patchedVer:   string | null   // first safe version
   severity:     Severity
   cvss:         number | null   // CVSS 3.x base score
@@ -36,6 +38,7 @@ export interface AdvisoryFinding {
   summary:      string
   url:          string
   source:       'dependabot' | 'advisory_db' | 'osv'
+  sources:      string[]
 }
 
 export interface AdvisoryReport {
@@ -188,8 +191,9 @@ async function fetchDependabotAlerts(
   return data.map((alert: any): AdvisoryFinding => ({
     package:      alert.dependency?.package?.name      ?? 'unknown',
     ecosystem:    alert.dependency?.package?.ecosystem ?? 'unknown',
-    installedVer: alert.dependency?.manifest_path      ?? 'pinned',
-    patchedVer:   alert.security_advisory?.references?.[0] ?? null,
+    installedVer: 'unknown',
+    vulnerableRange: alert.security_vulnerability?.vulnerable_version_range ?? null,
+    patchedVer:   alert.security_vulnerability?.first_patched_version?.identifier ?? null,
     severity:     (alert.security_advisory?.severity?.toUpperCase() ?? 'UNKNOWN') as Severity,
     cvss:         alert.security_advisory?.cvss?.score ?? null,
     ghsaId:       alert.security_advisory?.ghsa_id    ?? '',
@@ -197,6 +201,7 @@ async function fetchDependabotAlerts(
     summary:      alert.security_advisory?.summary     ?? '',
     url:          alert.html_url                        ?? '',
     source:       'dependabot',
+    sources:      ['dependabot'],
   }))
 }
 
@@ -264,6 +269,7 @@ async function fetchAdvisoryDB(
             package:      p.name,
             ecosystem:    p.ecosystem,
             installedVer: p.version,
+            vulnerableRange: node.vulnerableVersionRange ?? null,
             patchedVer:   node.firstPatchedVersion?.identifier ?? null,
             severity:     (node.severity?.toUpperCase() ?? 'UNKNOWN') as Severity,
             cvss:         adv.cvss?.score ?? null,
@@ -272,6 +278,7 @@ async function fetchAdvisoryDB(
             summary:      adv.summary,
             url:          adv.permalink,
             source:       'advisory_db',
+    sources:      ['advisory_db'],
           })
         }
       })
@@ -319,6 +326,7 @@ async function fetchOSV(packages: ParsedPackage[]): Promise<AdvisoryFinding[]> {
         package:      pkg.name,
         ecosystem:    pkg.ecosystem,
         installedVer: pkg.version,
+        vulnerableRange: null,
         patchedVer:   patched,
         severity:     sev,
         cvss:         osvCvss(vuln),
@@ -327,6 +335,7 @@ async function fetchOSV(packages: ParsedPackage[]): Promise<AdvisoryFinding[]> {
         summary:      vuln.summary ?? vuln.details?.slice(0, 120) ?? '',
         url:          `https://osv.dev/vulnerability/${vuln.id}`,
         source:       'osv',
+    sources:      ['osv'],
       })
     }
   })
@@ -404,15 +413,7 @@ function compareVer(a: SemVer, b: SemVer): number {
 
 // ── 4. Deduplication ─────────────────────────────────────────────────────
 function dedupeFindings(findings: AdvisoryFinding[]): AdvisoryFinding[] {
-  const map = new Map<string, AdvisoryFinding>()
-  for (const f of findings) {
-    const key = `${f.package}:${f.ghsaId || f.cveId || f.summary.slice(0, 40)}`
-    const existing = map.get(key)
-    if (!existing || SEV_RANK[f.severity] > SEV_RANK[existing.severity]) {
-      map.set(key, f)
-    }
-  }
-  return [...map.values()].sort((a, b) => SEV_RANK[b.severity] - SEV_RANK[a.severity])
+  return correlateVulnerabilities(findings) as AdvisoryFinding[]
 }
 
 // ── 5. Score derivation ───────────────────────────────────────────────────

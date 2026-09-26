@@ -300,6 +300,24 @@ export interface ScoringResult {
   model?:       'security-v2';
 }
 
+export interface CorrelatedVulnerability {
+  key: string;
+  package: string;
+  ecosystem: string;
+  packages: string[];
+  ecosystems: string[];
+  installedVer: string;
+  vulnerableRange?: string | null;
+  patchedVer: string | null;
+  severity: Severity;
+  cvss: number | null;
+  ghsaId: string | null;
+  cveId: string | null;
+  summary: string;
+  url: string;
+  sources: string[];
+}
+
 export interface TotalCounts {
   CRITICAL: number;
   HIGH:     number;
@@ -337,5 +355,6 @@ export interface MegaScanReport {
   scanner_statuses: Record<string, ScannerStatusResult>;
   scanner_summary:  { complete: boolean; degraded: boolean; failed: number; unavailable: number; eligible: number; successful: number; evidence_coverage: number };
   totals:           TotalCounts;
+  correlated_vulnerabilities?: CorrelatedVulnerability[];
   scoring:          ScoringResult;
 }

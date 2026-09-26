@@ -27,6 +27,7 @@ import { parseRepoSlug } from '@/lib/repo-validation.mjs';
 import { classifyScannerStatus, summarizeScannerStatuses } from '@/lib/scanner-status.mjs';
 import { consumeRateLimit, requestIdentity } from '@/lib/rate-limit.mjs';
 import { getJson, getRedis, setJson } from '@/lib/redis';
+import { correlateVulnerabilities } from '@/lib/vulnerability-correlation.mjs';
 import type {
   MegaScanReport, DependabotModule, SecretsModule, CodeScanModule,
   OsvModule, LicenseModule, TotalCounts, ScoringResult, ScoreDeduction,
@@ -937,14 +938,23 @@ function aggregateTotals(report: Partial<MegaScanReport> & {
   gh_advisory?: GhAdvisoryModule;
   pypi_safety?: PypiSafetyModule;
   retirejs?: RetireJsModule;
-}): TotalCounts {
+}, correlated?: Array<{ severity?: string }>): TotalCounts {
   const agg: TotalCounts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, TOTAL: 0, SECRETS: 0 };
-  const modules = ['dependabot', 'code_scanning', 'osv', 'nvd', 'gh_advisory', 'pypi_safety', 'retirejs'] as const;
-  for (const mod of modules) {
-    const counts = (report[mod as keyof typeof report] as { counts?: SeverityCounts })?.counts ?? {};
-    for (const sev of ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const) agg[sev] += counts[sev] ?? 0;
+  if (correlated) {
+    for (const finding of correlated) {
+      if (finding.severity === 'CRITICAL') agg.CRITICAL++;
+      else if (finding.severity === 'HIGH') agg.HIGH++;
+      else if (finding.severity === 'MEDIUM' || finding.severity === 'MODERATE') agg.MEDIUM++;
+      else if (finding.severity === 'LOW') agg.LOW++;
+    }
+  } else {
+    const modules = ['dependabot', 'code_scanning', 'osv', 'nvd', 'gh_advisory', 'pypi_safety', 'retirejs'] as const;
+    for (const mod of modules) {
+      const counts = (report[mod as keyof typeof report] as { counts?: SeverityCounts })?.counts ?? {};
+      for (const sev of ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const) agg[sev] += counts[sev] ?? 0;
+    }
   }
-  agg.TOTAL   = agg.CRITICAL + agg.HIGH + agg.MEDIUM + agg.LOW;
+  agg.TOTAL = agg.CRITICAL + agg.HIGH + agg.MEDIUM + agg.LOW;
   agg.SECRETS = report.secrets_github?.total ?? 0;
   return agg;
 }
@@ -1058,11 +1068,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     trivy:          { source: 'trivy', status: 'unavailable', error: 'Scanner not configured for this hosted endpoint' },
   };
   const scanner_summary = summarizeScannerStatuses(scanner_statuses);
+  const correlated_vulnerabilities = correlateVulnerabilities([
+    ...(dependabot.findings ?? []).map(f => ({ ...f, source: 'dependabot', ghsaId: f.id, cveId: f.cve, installedVer: 'unknown', patchedVer: f.fixed_in !== 'N/A' ? f.fixed_in : null })),
+    ...(osv.findings ?? []).map(f => ({ ...f, source: 'osv', id: f.id })),
+    ...(nvd.findings ?? []).map(f => ({ ...f, source: 'nvd', id: f.cve_id, cveId: f.cve_id, package: 'unknown', ecosystem: 'unknown', summary: f.description, url: f.url, patchedVer: null })),
+    ...(gh_advisory.findings ?? []).map(f => ({ ...f, source: 'advisory_db', id: f.ghsa_id, ghsaId: f.ghsa_id, cveId: f.cve_id, installedVer: 'unknown', patchedVer: f.patched_versions || null })),
+    ...(pypi_safety.findings ?? []).map(f => ({ ...f, source: 'pypi_safety', id: f.id, ecosystem: 'pip', installedVer: f.version, patchedVer: null })),
+    ...(retirejs.findings ?? []).map(f => ({ ...f, source: 'retirejs', id: f.vuln_id, ecosystem: 'npm', installedVer: f.version, package: f.library, patchedVer: null })),
+  ]);
   const report = {
     ...partial,
     scanner_statuses,
     scanner_summary,
-    totals:  aggregateTotals(partial),
+    correlated_vulnerabilities,
+    totals:  aggregateTotals(partial, correlated_vulnerabilities),
     scoring: calculateScore(partial, scanner_summary),
   };
 

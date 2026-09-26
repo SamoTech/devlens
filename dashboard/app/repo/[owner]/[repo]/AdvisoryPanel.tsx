@@ -213,9 +213,10 @@ export default function AdvisoryPanel({ owner, repo }: Props) {
                     <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text)', margin: 0 }}>{f.summary}</p>
                     <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', fontSize: 'var(--text-xs)' }}>
                       {f.ghsaId && <span style={{ color: 'var(--text-muted)' }}><strong>GHSA:</strong> {f.ghsaId}</span>}
+                      {f.vulnerableRange && <span style={{ color: 'var(--text-muted)' }}><strong>Affected:</strong> {f.vulnerableRange}</span>}
                       {f.cveId  && <span style={{ color: 'var(--text-muted)' }}><strong>CVE:</strong> {f.cveId}</span>}
                       {f.cvss   && <span style={{ color: 'var(--text-muted)' }}><strong>CVSS:</strong> {f.cvss}</span>}
-                      <span style={{ color: 'var(--text-faint)' }}>Source: {f.source}</span>
+                      <span style={{ color: 'var(--text-faint)' }}>Sources: {(f.sources ?? [f.source]).join(', ')}</span>
                     </div>
                     {f.patchedVer && (
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--success)',
