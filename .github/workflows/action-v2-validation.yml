@@ -29,6 +29,6 @@ jobs:
           missing = [item for item in required if item not in text]
           if missing:
               raise SystemExit('Missing action metadata: ' + ', '.join(missing))
-          if 'action-v2-9d' not in text:
+          if 'action-v2-9d' not in text or 'value: ${{ steps.devlens.outputs.health_score }}' not in text:
               raise SystemExit('Action v2 output metadata missing')
           print('action.yml structural validation passed')
