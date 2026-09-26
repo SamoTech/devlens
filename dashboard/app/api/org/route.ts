@@ -39,7 +39,19 @@ export async function GET(req: NextRequest) {
       .map(r => r.value)
       .sort((a: any, b: any) => b.healthScore - a.healthScore)
 
-    return NextResponse.json({ org, repos: reports })
+    const portfolio = {
+      total: reports.length,
+      averageHealth: reports.length ? Math.round(reports.reduce((sum: number, r: any) => sum + r.healthScore, 0) / reports.length) : 0,
+      healthy: reports.filter((r: any) => r.healthScore >= 80).length,
+      needsAttention: reports.filter((r: any) => r.healthScore < 60).length,
+      critical: reports.filter((r: any) => r.healthScore < 40).length,
+      vulnerabilities: reports.reduce((sum: number, r: any) => sum + (r.advisory?.total ?? 0), 0),
+      criticalVulnerabilities: reports.reduce((sum: number, r: any) => sum + (r.advisory?.critical ?? 0), 0),
+      reposWithSecurityFindings: reports.filter((r: any) => (r.advisory?.total ?? 0) > 0).length,
+      reposWithoutCi: reports.filter((r: any) => r.scores?.ci === 0).length,
+    }
+
+    return NextResponse.json({ org, repos: reports, portfolio })
   } catch (e: any) {
     return NextResponse.json({ error: e.message ?? 'Org analysis failed' }, { status: 500 })
   }

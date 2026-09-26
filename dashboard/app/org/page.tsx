@@ -14,6 +14,7 @@ export default function OrgPage() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [repos, setRepos] = useState<RepoReport[]>([])
+  const [portfolio, setPortfolio] = useState<any>(null)
   const [orgName, setOrgName] = useState('')
   const [error, setError] = useState('')
   const [recentOrgs, setRecentOrgs] = useState<OrgEntry[]>([])
@@ -36,6 +37,7 @@ export default function OrgPage() {
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Failed'); return }
       setRepos(data.repos)
+      setPortfolio(data.portfolio ?? null)
       setOrgName(data.org)
 
       if (data.repos?.length > 0) {
@@ -112,6 +114,17 @@ export default function OrgPage() {
           {/* Org results */}
           {repos.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {portfolio && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
+                  <PortfolioCard label="Average health" value={portfolio.averageHealth} />
+                  <PortfolioCard label="Healthy ≥80" value={portfolio.healthy} />
+                  <PortfolioCard label="Needs attention" value={portfolio.needsAttention} />
+                  <PortfolioCard label="Critical <40" value={portfolio.critical} />
+                  <PortfolioCard label="Vulnerabilities" value={portfolio.vulnerabilities} />
+                  <PortfolioCard label="Critical vulns" value={portfolio.criticalVulnerabilities} />
+                  <PortfolioCard label="Without CI" value={portfolio.reposWithoutCi} />
+                </div>
+              )}
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--text-muted)' }}>{repos.length} repos in {orgName}, ranked by health</h2>
               {repos.map((r, i) => (
                 <div key={r.repo} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4) var(--space-5)', display: 'flex', alignItems: 'center', gap: 'var(--space-4)', boxShadow: 'var(--shadow-sm)' }}>
@@ -175,7 +188,11 @@ export default function OrgPage() {
 
         </div>
       </main>
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } } input:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px var(--primary-hl) }`}</style>
+      <style>{`.portfolio-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4)}\n@keyframes spin { to { transform: rotate(360deg) } } input:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px var(--primary-hl) }`}</style>
     </div>
   )
+}
+
+function PortfolioCard({ label, value }: { label: string; value: number }) {
+  return <div className="portfolio-card"><div style={{ fontSize: 'var(--text-xl)', fontWeight: 800 }}>{value}</div><div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-faint)' }}>{label}</div></div>
 }
