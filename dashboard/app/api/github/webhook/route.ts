@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRedis } from '@/lib/redis'
+import { buildMonitorJob, MONITOR_QUEUE_KEY } from '@/lib/monitoring-queue.mjs'
 import { verifyGithubSignature, repositoryFromPayload, installationFromPayload } from '@/lib/github-webhook.mjs'
 
 export const dynamic = 'force-dynamic'
@@ -56,6 +57,8 @@ export async function POST(req: NextRequest) {
   const repo = repositoryFromPayload(payload)
   if (redis && repo && ['push', 'pull_request', 'issues', 'issue_comment', 'release', 'workflow_run', 'repository'].includes(event)) {
     await Promise.all(INVALIDATION_KEYS(repo).map(key => redis.del(key)))
+    const job = buildMonitorJob(repo, event, delivery)
+    if (job) await redis.lpush(MONITOR_QUEUE_KEY, JSON.stringify(job))
   }
 
   return NextResponse.json({

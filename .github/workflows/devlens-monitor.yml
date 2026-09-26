@@ -1,0 +1,22 @@
+name: DevLens Continuous Monitor
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process queued repository monitoring jobs
+        env:
+          MONITOR_URL: ${{ vars.DEVLENS_MONITOR_URL }}
+          MONITOR_SECRET: ${{ secrets.CRON_SECRET }}
+        shell: bash
+        run: |
+          test -n "$MONITOR_URL"
+          test -n "$MONITOR_SECRET"
+          curl --fail-with-body --silent --show-error --max-time 60 \
+            -H "Authorization: Bearer $MONITOR_SECRET" \
+            "$MONITOR_URL/api/internal/monitor"
