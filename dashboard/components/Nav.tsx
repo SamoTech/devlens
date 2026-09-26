@@ -18,6 +18,7 @@ export default function Nav() {
     { href: "/stats", label: "Stats" },
     { href: "/security", label: "Security" },
     { href: "/dependencies", label: "Dependencies" },
+    { href: "/pr", label: "PR Intelligence" },
     { href: "/docs", label: "Docs" },
     { href: "/changelog", label: "Changelog" },
     { href: "/sponsor", label: "Sponsor" },
