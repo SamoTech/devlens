@@ -1,24 +1,10 @@
-export type UpdateType = 'up_to_date' | 'patch' | 'minor' | 'major' | 'unknown'
-
-export interface DependencyRecord {
-  name: string
-  ecosystem: string
-  installedVersion: string
-  latestVersion: string | null
-  updateType: UpdateType
-  vulnerabilityCount: number
-  highestSeverity: string | null
-  patchedVersion: string | null
-  sources: string[]
-}
-
-function versionParts(value: string): [number, number, number] | null {
+function versionParts(value) {
   const match = String(value ?? '').match(/^(?:v|[<>=~^*\s]*)?(\d+)(?:\.(\d+))?(?:\.(\d+))?/)
   if (!match) return null
   return [Number(match[1]), Number(match[2] ?? 0), Number(match[3] ?? 0)]
 }
 
-export function compareVersions(a: string, b: string): number {
+export function compareVersions(a, b) {
   const av = versionParts(a)
   const bv = versionParts(b)
   if (!av || !bv) return 0
@@ -26,7 +12,7 @@ export function compareVersions(a: string, b: string): number {
   return 0
 }
 
-export function classifyUpdate(installed: string, latest: string | null): UpdateType {
+export function classifyUpdate(installed, latest) {
   const a = versionParts(installed)
   const b = versionParts(latest ?? '')
   if (!a || !b) return 'unknown'
@@ -36,14 +22,14 @@ export function classifyUpdate(installed: string, latest: string | null): Update
   return 'patch'
 }
 
-async function npmLatest(name: string): Promise<string | null> {
+async function npmLatest(name) {
   try {
     const response = await fetch(`https://registry.npmjs.org/${encodeURIComponent(name)}/latest`, {
       signal: AbortSignal.timeout(5000),
       headers: { Accept: 'application/json' },
     })
     if (!response.ok) return null
-    const data = await response.json() as { version?: string }
+    const data = await response.json()
     return data.version ?? null
   } catch {
     return null
@@ -52,7 +38,7 @@ async function npmLatest(name: string): Promise<string | null> {
 
 export async function buildDependencyInventory(report) {
   const findings = report.findings ?? []
-  const findingMap = new Map<string, AdvisoryFinding[]>()
+  const findingMap = new Map()
   for (const finding of findings) {
     const key = `${finding.ecosystem}:${finding.package}`
     const list = findingMap.get(key) ?? []
@@ -63,7 +49,7 @@ export async function buildDependencyInventory(report) {
   const packages = report.packages.slice(0, 100)
   const npmPackages = packages.filter(p => p.ecosystem === 'npm').slice(0, 30)
   const latest = new Map<string, string | null>()
-  const results = await Promise.all(npmPackages.map(async p => [p.name, await npmLatest(p.name)] as const))
+  const results = await Promise.all(npmPackages.map(async p => [p.name, await npmLatest(p.name)] ))
   for (const [name, version] of results) latest.set(name, version)
 
   return packages.map(pkg => {
