@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { analyzeRepo } from '@/lib/scorer'
 import { auth } from '@/lib/auth'
 import { consumeRateLimit, requestIdentity } from '@/lib/rate-limit.mjs'
-import { getJson, getRedis, setJson } from '@/lib/redis'
+import { getRedis } from '@/lib/redis'
 
 const ORG_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/
 
