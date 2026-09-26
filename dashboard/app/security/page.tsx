@@ -40,6 +40,27 @@ function ScannerStatusPanel({ report }: { report: MegaScanReport }) {
   );
 }
 
+function EvidenceCoverage({ report }: { report: MegaScanReport }) {
+  const summary = report.scanner_summary
+  const coverage = summary?.evidence_coverage ?? 0
+  const color = coverage >= 90 ? '#4ade80' : coverage >= 70 ? '#f5c518' : '#ff7c2a'
+  return (
+    <div role="status" style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '0.9rem 1.1rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ color, fontSize: 12, fontWeight: 800, letterSpacing: '0.08em' }}>EVIDENCE COVERAGE</span>
+        <span style={{ marginLeft: 'auto', color, fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-mono, monospace)' }}>{coverage}%</span>
+      </div>
+      <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden', margin: '8px 0' }}>
+        <div style={{ width: \`\${coverage}%\`, height: '100%', background: color, transition: 'width 0.5s ease' }} />
+      </div>
+      <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, lineHeight: 1.5 }}>
+        {summary?.successful ?? 0} of {summary?.eligible ?? 0} in-scope scanners completed successfully.
+        {coverage < 100 ? ' A score with incomplete evidence should not be interpreted as a complete security assessment.' : ' All in-scope scanners completed successfully.'}
+      </div>
+    </div>
+  )
+}
+
 function SevBadge({ sev }: { sev: string }) {
   const s = SEV[sev] ?? SEV.UNKNOWN;
   return (
@@ -781,6 +802,7 @@ export default function SecurityPage() {
           <>
             <ThreatBanner score={sc!.score} repo={`${report.meta.owner}/${report.meta.repo}`} />
             <ScannerStatusPanel report={report} />
+            <EvidenceCoverage report={report} />
 
             {/* Score row */}
             <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.5rem', background: '#0d1117',
