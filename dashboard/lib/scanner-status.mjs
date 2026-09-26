@@ -11,6 +11,8 @@ const NOT_CONFIGURED_PATTERNS = [
   'no check runs found',
 ]
 
+const OPTIONAL_SCANNERS = new Set(['trufflehog', 'semgrep', 'nuclei', 'trivy'])
+
 export const SCANNER_STATUS_VALUES = [
   'success',
   'failed',
@@ -55,11 +57,26 @@ export function classifyScannerStatus(source, result) {
 
 export function summarizeScannerStatuses(statuses) {
   const values = Object.values(statuses ?? {})
-  const degraded = values.filter(({ status }) => status !== 'success')
+  const eligible = values.filter(({ source }) => !OPTIONAL_SCANNERS.has(source))
+  const degraded = eligible.filter(({ status }) => status !== 'success')
+  const failed = degraded.filter(({ status }) => ['failed', 'rate_limited', 'timeout', 'unauthorized'].includes(status)).length
+  const unavailable = degraded.filter(({ status }) => ['unavailable', 'not_configured'].includes(status)).length
+  const evidencePoints = eligible.reduce((sum, { status }) => {
+    if (status === 'success') return sum + 1
+    if (status === 'unavailable' || status === 'not_configured') return sum + 0.5
+    return sum + 0.25
+  }, 0)
+  const evidenceCoverage = eligible.length
+    ? Math.round((evidencePoints / eligible.length) * 100)
+    : 0
+
   return {
     complete: degraded.length === 0,
     degraded: degraded.length > 0,
-    failed: degraded.filter(({ status }) => ['failed', 'rate_limited', 'timeout', 'unauthorized'].includes(status)).length,
-    unavailable: degraded.filter(({ status }) => ['unavailable', 'not_configured'].includes(status)).length,
+    failed,
+    unavailable,
+    eligible: eligible.length,
+    successful: eligible.length - degraded.length,
+    evidence_coverage: evidenceCoverage,
   }
 }

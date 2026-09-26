@@ -23,5 +23,15 @@ test('summarizes mixed results as degraded and records failed versus unavailable
     unavailable: { source: 'unavailable', status: 'unavailable' },
     limited: { source: 'limited', status: 'rate_limited' },
   })
-  assert.deepEqual(summary, { complete: false, degraded: true, failed: 2, unavailable: 1 })
+  assert.deepEqual(summary, { complete: false, degraded: true, failed: 2, unavailable: 1, eligible: 4, successful: 1, evidence_coverage: 50 })
+})
+
+test('excludes optional hosted-out-of-scope scanners from evidence coverage', () => {
+  const summary = summarizeScannerStatuses({
+    osv: { source: 'osv', status: 'success' },
+    trivy: { source: 'trivy', status: 'unavailable' },
+  })
+  assert.equal(summary.eligible, 1)
+  assert.equal(summary.successful, 1)
+  assert.equal(summary.evidence_coverage, 100)
 })

@@ -335,7 +335,7 @@ export interface MegaScanReport {
   code_quality?:    CodeQualityModule;   // NEW
   has_security_md:  boolean;
   scanner_statuses: Record<string, ScannerStatusResult>;
-  scanner_summary:  { complete: boolean; degraded: boolean; failed: number; unavailable: number };
+  scanner_summary:  { complete: boolean; degraded: boolean; failed: number; unavailable: number; eligible: number; successful: number; evidence_coverage: number };
   totals:           TotalCounts;
   scoring:          ScoringResult;
 }
