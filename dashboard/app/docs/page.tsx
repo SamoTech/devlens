@@ -48,14 +48,14 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 const DIMS = [
   { key: "readme",      weight: "20%", title: "README Quality",  desc: "Scores length (10 + 5 + 5 pts for 500 / 1500 / 3000 chars), presence of keywords install, usage, license, contributing, feature, example (6 pts each), code blocks (8), images (6), ## headings (4), list items (4), setup / roadmap / sponsor / discord mentions (4 each). Max 100." },
-  { key: "activity",    weight: "20%", title: "Commit Activity",  desc: "Counts commits to the default branch in the last 90 days via the GitHub Commits API. ≥30 = 100 · ≥15 = 75 · ≥5 = 50 · ≥1 = 25 · 0 = 0." },
-  { key: "freshness",   weight: "15%", title: "Repo Freshness",   desc: "Days since last push to the default branch (pushed_at field). ≤7 days = 100 · ≤30 = 80 · ≤90 = 55 · ≤180 = 30 · older = 10." },
-  { key: "docs",        weight: "15%", title: "Documentation",    desc: "Walks the full repo tree (git/trees/HEAD?recursive=1) looking for: LICENSE, CONTRIBUTING.md, CHANGELOG.md, CODE_OF_CONDUCT.md, SECURITY.md, docs/ folder — 16 pts each, max 100." },
-  { key: "ci",          weight: "10%", title: "CI/CD Setup",      desc: "Counts GitHub Actions workflow files via the Actions Workflows API. ≥3 workflows = 100 · ≥1 = 60 · 0 = 0." },
-  { key: "issues",      weight: "10%", title: "Issue Response",   desc: "Fetches up to 50 closed issues and compares against open_issues_count. Score = round(closed / total × 100). No issues at all = 100." },
-  { key: "community",   weight: "5%",  title: "Community Signal", desc: "Math.min(Math.floor(log1p(stars) × 15) + Math.floor(log1p(forks) × 10), 100). Rewards repos with organic momentum." },
-  { key: "pr_velocity", weight: "3%",  title: "PR Velocity",      desc: "Fetches last 20 closed PRs, filters to merged ones, averages (merged_at − created_at). <1 day = 100 · <3 = 85 · <7 = 65 · <14 = 45 · <30 = 25 · else = 10. No merged PRs = 50." },
-  { key: "security",    weight: "2%",  title: "Security",         desc: "Walks the repo tree for SECURITY.md (+30), .github/dependabot.yml (+35), and any workflow containing codeql / trivy / snyk (+35). Max 100." },
+  { key: "activity",    weight: "20%", title: "Commit Activity",   desc: "Uses commit count, active-week cadence, and recent 30-day activity over the last 90 days so bursty commit dumps do not score like sustained maintenance." },
+  { key: "freshness",   weight: "15%", title: "Repo Freshness",    desc: "Days since last push to the default branch. ≤7 days = 100 · ≤30 = 80 · ≤90 = 55 · ≤180 = 30 · older = 10." },
+  { key: "docs",        weight: "15%", title: "Documentation",     desc: "Checks LICENSE, CONTRIBUTING.md, CHANGELOG.md, CODE_OF_CONDUCT.md, SECURITY.md, and docs/." },
+  { key: "ci",          weight: "10%", title: "CI/CD Setup",       desc: "Counts GitHub Actions workflow files." },
+  { key: "issues",      weight: "10%", title: "Issue Maintenance", desc: "Combines stale open-issue ratio with median closed-issue resolution time instead of relying on a closed/open ratio." },
+  { key: "community",   weight: "5%",  title: "Community Signal",  desc: "Logarithmic signal from stars and forks." },
+  { key: "pr_velocity", weight: "3%",  title: "PR Maintenance",    desc: "Uses median and 90th-percentile merge time plus stale open PRs instead of a simple average." },
+  { key: "security",    weight: "2%",  title: "Security",          desc: "Uses the real advisory/security evidence engine. Scanner coverage is reported separately from the security score." },
 ];
 
 export default function DocsPage() {
@@ -98,6 +98,9 @@ export default function DocsPage() {
 
         {/* ── API Reference ── */}
         <Section title="API Reference">
+          <Row label="GET /api/dependencies?repo=owner/name">
+            Returns a dependency inventory with installed versions, npm latest-release checks, vulnerability counts, remediation versions, and source provenance. Results are cached for 30 minutes.
+          </Row>
           <Row label="GET /api/analyze?repo=owner/name">
             Returns a <code style={CODE}>RepoReport</code> JSON object. Cached in Redis for 15 minutes unless{" "}
             <code style={CODE}>weights</code> param is present.
