@@ -51,7 +51,7 @@ function EvidenceCoverage({ report }: { report: MegaScanReport }) {
         <span style={{ marginLeft: 'auto', color, fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-mono, monospace)' }}>{coverage}%</span>
       </div>
       <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden', margin: '8px 0' }}>
-        <div style={{ width: \`\${coverage}%\`, height: '100%', background: color, transition: 'width 0.5s ease' }} />
+        <div style={{ width: `${coverage}%`, height: '100%', background: color, transition: 'width 0.5s ease' }} />
       </div>
       <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, lineHeight: 1.5 }}>
         {summary?.successful ?? 0} of {summary?.eligible ?? 0} in-scope scanners completed successfully.
