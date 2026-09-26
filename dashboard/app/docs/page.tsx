@@ -55,7 +55,7 @@ const DIMS = [
   { key: "issues",      weight: "10%", title: "Issue Maintenance", desc: "Combines stale open-issue ratio with median closed-issue resolution time instead of relying on a closed/open ratio." },
   { key: "community",   weight: "5%",  title: "Community Signal",  desc: "Logarithmic signal from stars and forks." },
   { key: "pr_velocity", weight: "3%",  title: "PR Maintenance",    desc: "Uses median and 90th-percentile merge time plus stale open PRs instead of a simple average." },
-  { key: "security",    weight: "2%",  title: "Security",          desc: "Uses the real advisory/security evidence engine. Scanner coverage is reported separately from the security score." },,    weight: "2%",  title: "Security",         desc: "Walks the repo tree for SECURITY.md (+30), .github/dependabot.yml (+35), and any workflow containing codeql / trivy / snyk (+35). Max 100." },
+  { key: "security",    weight: "2%",  title: "Security",          desc: "Uses the real advisory/security evidence engine. Scanner coverage is reported separately from the security score." },
 ];
 
 export default function DocsPage() {
