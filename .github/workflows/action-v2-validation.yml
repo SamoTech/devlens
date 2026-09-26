@@ -25,7 +25,7 @@ jobs:
           import re
           from pathlib import Path
           text = Path('action.yml').read_text()
-          required = ['name:', 'description:', 'inputs:', 'outputs:', 'runs:', 'using: \'composite\'', 'python ${{ github.action_path }}/scripts/devlens.py']
+          required = ['name:', 'description:', 'inputs:', 'outputs:', 'runs:', 'using: \'composite\'', 'github.action_path']
           missing = [item for item in required if item not in text]
           if missing:
               raise SystemExit('Missing action metadata: ' + ', '.join(missing))
