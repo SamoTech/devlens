@@ -1,70 +1,11 @@
-'use client'
-
-import { useState } from 'react'
-import Link from 'next/link'
-
-const UPDATE_META = {
-  up_to_date: { label: 'Current', color: 'var(--success)' },
-  patch: { label: 'Patch', color: 'var(--warning)' },
-  minor: { label: 'Minor', color: 'var(--warning)' },
-  major: { label: 'Major', color: 'var(--danger)' },
-  unknown: { label: 'Unknown', color: 'var(--text-faint)' },
-}
-
-export default function DependenciesPage() {
-  const [repo, setRepo] = useState('')
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  async function scan() {
-    setLoading(true); setError('')
-    try {
-      const response = await fetch(`/api/dependencies?repo=${encodeURIComponent(repo.trim())}`)
-      const json = await response.json()
-      if (!response.ok) throw new Error(json.message ?? json.error ?? 'Dependency scan failed')
-      setData(json)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Dependency scan failed')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <main style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--space-12) var(--space-6)' }}>
-      <Link href="/" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 'var(--text-sm)' }}>← Home</Link>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-2xl)', fontWeight: 800, margin: 'var(--space-4) 0 var(--space-2)' }}>Dependency Intelligence</h1>
-      <p style={{ color: 'var(--text-muted)', maxWidth: 760, lineHeight: 1.7 }}>
-        Inventory declared dependencies, correlate known vulnerabilities, and check npm packages for available releases.
-        Registry freshness is currently available for npm; other ecosystems remain vulnerability-focused.
-      </p>
-
-      <div style={{ display: 'flex', gap: 8, margin: 'var(--space-6) 0', maxWidth: 760 }}>
-        <input value={repo} onChange={e => setRepo(e.target.value)} onKeyDown={e => e.key === 'Enter' && scan()}
-          placeholder="owner/name" style={{ flex: 1, padding: '12px 14px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }} />
-        <button onClick={scan} disabled={loading || !repo.trim()}
-          style={{ padding: '12px 18px', border: 0, borderRadius: 8, background: 'var(--primary)', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
-          {loading ? 'Scanning…' : 'Scan'}
-        </button>
-      </div>
-
-      {error && <div role="alert" style={{ padding: 14, borderRadius: 8, background: 'rgba(255,59,92,.08)', color: 'var(--danger)', marginBottom: 20 }}>{error}</div>}
-
       {data && (
-        <>          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 10, marginBottom: 20 }}>
-            {[
-              ['Packages', data.summary.total],
-              ['npm', data.summary.npm],
-              ['Vulnerable', data.summary.vulnerable],
-              ['Outdated', data.summary.outdated],
-              ['Major', data.summary.majorUpdates],
-            ].map(item => (
-              <div key={item[0]} style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
-                <div style={{ fontSize: 24, fontWeight: 800 }}>{item[1]}</div>
-                <div style={{ color: 'var(--text-faint)', fontSize: 12 }}>{item[0]}</div>
-              </div>
-            ))}
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 10, marginBottom: 20 }}>
+            <div style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}><div style={{ fontSize: 24, fontWeight: 800 }}>{data.summary.total}</div><div style={{ color: 'var(--text-faint)', fontSize: 12 }}>Packages</div></div>
+            <div style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}><div style={{ fontSize: 24, fontWeight: 800 }}>{data.summary.npm}</div><div style={{ color: 'var(--text-faint)', fontSize: 12 }}>npm</div></div>
+            <div style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}><div style={{ fontSize: 24, fontWeight: 800 }}>{data.summary.vulnerable}</div><div style={{ color: 'var(--text-faint)', fontSize: 12 }}>Vulnerable</div></div>
+            <div style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}><div style={{ fontSize: 24, fontWeight: 800 }}>{data.summary.outdated}</div><div style={{ color: 'var(--text-faint)', fontSize: 12 }}>Outdated</div></div>
+            <div style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}><div style={{ fontSize: 24, fontWeight: 800 }}>{data.summary.majorUpdates}</div><div style={{ color: 'var(--text-faint)', fontSize: 12 }}>Major</div></div>
           </div>
 
           <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 10 }}>
