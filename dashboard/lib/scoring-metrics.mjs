@@ -1,3 +1,4 @@
+// Health model v3: evidence is weighted toward cadence, age, and robust percentiles.
 const DAY_MS = 86_400_000
 
 function clamp(value, min = 0, max = 100) {
