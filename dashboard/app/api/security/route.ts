@@ -31,7 +31,7 @@ import type {
   MegaScanReport, DependabotModule, SecretsModule, CodeScanModule,
   OsvModule, LicenseModule, TotalCounts, ScoringResult, ScoreDeduction,
   SeverityCounts, Severity, CodeQualityModule, CiQualityModule,
-  CiCheckRun, CheckRunConclusion, SonarModule, DeepSourceModule, CodecovModule,
+  CiCheckRun, CheckRunConclusion, SonarModule, DeepSourceModule, CodecovModule, ScannerStatusResult,
 } from '@/lib/security-types';
 
 const GH_TOKEN    = process.env.GITHUB_TOKEN ?? '';
@@ -1037,7 +1037,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     trivy:      { available: false, message: 'CLI tool — run scripts/mega_scanner.py locally', findings: [] },
   };
 
-  const scanner_statuses = {
+  const scanner_statuses: Record<string, ScannerStatusResult> = {
     dependabot:     classifyScannerStatus('dependabot', dependabot),
     secrets:        classifyScannerStatus('secrets', secrets_github),
     code_scanning:  classifyScannerStatus('code_scanning', code_scanning),
