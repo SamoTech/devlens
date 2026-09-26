@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   if (redis && delivery !== 'unknown') {
     const key = `github:webhook:delivery:${delivery}`
     const first = await redis.set(key, '1', { nx: true, ex: 86400 })
-    if (first === null || first === false) {
+    if (first === null) {
       return NextResponse.json({ ok: true, duplicate: true })
     }
   }
