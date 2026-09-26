@@ -3,6 +3,7 @@ import { getRedis } from './redis'
 import { runAdvisoryCheck } from './advisory'
 import { sanitizeWeights } from './weights.mjs'
 import { scoreActivitySignals, scoreIssueMaintenance, scorePRMaintenance } from './scoring-metrics.mjs'
+import { buildHistoryEvents, shouldStartNewSnapshot } from './history-events.mjs'
 
 export interface DimScores {
   readme: number
@@ -349,12 +350,27 @@ export async function analyzeRepo(
       await redis.set(cacheKey, JSON.stringify(report), { ex: 900 })
       const histKey = `history:${owner}:${name}`
       const existing = await redis.get<any>(histKey)
-      const histArr: { week: string; score: number; date: string }[] = existing
+      const histArr: any[] = existing
         ? (typeof existing === 'string' ? JSON.parse(existing) : existing)
         : []
-      histArr.push({ week: `W${new Date().toISOString().slice(5, 10)}`, score: health, date: new Date().toISOString() })
-      await redis.set(histKey, JSON.stringify(histArr.slice(-12)))
-    } catch {}
+      const now = new Date()
+      const snapshot: any = {
+        week: `W${now.toISOString().slice(5, 10)}`,
+        score: health,
+        date: now.toISOString(),
+        scores,
+        advisory: secResult.advisory,
+      }
+      const last = histArr[histArr.length - 1]
+      if (shouldStartNewSnapshot(last?.date, now.getTime())) {
+        snapshot.events = buildHistoryEvents(last, snapshot)
+        histArr.push(snapshot)
+      } else {
+        snapshot.events = buildHistoryEvents(histArr.length > 1 ? histArr[histArr.length - 2] : undefined, snapshot)
+        if (histArr.length > 0) histArr[histArr.length - 1] = snapshot
+        else histArr.push(snapshot)
+      }
+      await redis.set(histKey, JSON.stringify(histArr.slice(-12)))    } catch {}
   }
 
   return report
