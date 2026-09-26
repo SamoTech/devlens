@@ -5,6 +5,7 @@ import { MONITOR_QUEUE_KEY, parseMonitorJob } from '@/lib/monitoring-queue.mjs'
 
 export const dynamic = 'force-dynamic'
 const BATCH_SIZE = 3
+const MAX_ATTEMPTS = 2
 
 function authorized(req: NextRequest) {
   const secret = process.env.MONITOR_CRON_SECRET || process.env.CRON_SECRET
@@ -21,14 +22,16 @@ export async function GET(req: NextRequest) {
   for (let i = 0; i < BATCH_SIZE; i++) {
     const raw = await redis.rpop(MONITOR_QUEUE_KEY)
     if (!raw) break
-    const job = parseMonitorJob(typeof raw === 'string' ? JSON.parse(raw) : raw)
+    let job = null
+    try { job = parseMonitorJob(typeof raw === 'string' ? JSON.parse(raw) : raw) } catch { job = null }
     if (!job) { processed.push({ status: 'discarded' }); continue }
     const [owner, name] = job.repository.split('/')
     try {
       const report = await analyzeRepo(owner, name, process.env.GITHUB_TOKEN)
       processed.push({ repository: job.repository, event: job.event, healthScore: report.healthScore, status: 'analyzed' })
     } catch (error: any) {
-      processed.push({ repository: job.repository, event: job.event, status: 'failed', error: error?.message || 'analysis failed' })
+      if (job.attempts < MAX_ATTEMPTS) await redis.lpush(MONITOR_QUEUE_KEY, JSON.stringify({ ...job, attempts: job.attempts + 1 }))
+      processed.push({ repository: job.repository, event: job.event, status: 'failed', attempts: job.attempts + 1, error: error?.message || 'analysis failed' })
     }
   }
   return NextResponse.json({ ok: true, processed: processed.length, jobs: processed })
