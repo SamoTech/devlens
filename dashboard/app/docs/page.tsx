@@ -325,6 +325,35 @@ jobs:
           </Row>
         </Section>
 
+        {/* ── API v2 ── */}
+        <Section title="API v2">
+          <Row label="Stable response contract">
+            API v2 wraps the existing analysis engines in a consistent envelope:
+            <pre style={PRE}>{`{
+  "data": { "...resource payload..." },
+  "error": null,
+  "meta": {
+    "apiVersion": "v2",
+    "resource": "health",
+    "generatedAt": "..."
+  }
+}`}</pre>
+          </Row>
+          <Row label="Resources">
+            <ul style={{ marginTop: "var(--space-2)", paddingLeft: "var(--space-5)" }}>
+              <li><code style={CODE}>/api/v2/health?repo=owner/name</code> — 9-dimension health analysis</li>
+              <li><code style={CODE}>/api/v2/security?repo=owner/name</code> — correlated security findings</li>
+              <li><code style={CODE}>/api/v2/dependencies?repo=owner/name</code> — dependency intelligence</li>
+              <li><code style={CODE}>/api/v2/pr?repo=owner/name&amp;number=123</code> — PR intelligence</li>
+            </ul>
+          </Row>
+          <Row label="Compatibility">
+            Existing <code style={CODE}>/api/analyze</code>, <code style={CODE}>/api/security</code>,
+            <code style={CODE}>/api/dependencies</code>, and <code style={CODE}>/api/pr</code> endpoints remain available.
+            API v2 is a stable envelope over those same engines, so existing clients do not need to migrate immediately.
+          </Row>
+        </Section>
+
         {/* ── Data &amp; Privacy ── */}
         <Section title="Data &amp; Privacy">
           <Row label="What DevLens stores">
