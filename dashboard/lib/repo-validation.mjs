@@ -19,7 +19,7 @@ export function parseRepoSlug(input) {
     return null
   }
 
-  path = path.replace(/^\\/+|\\/+$/g, '')
+  path = path.replace(/^\/+|\/+$/g, '')
   const parts = path.split('/')
   if (parts.length !== 2) return null
   const [owner, name] = parts
