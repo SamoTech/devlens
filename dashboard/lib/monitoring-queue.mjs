@@ -7,11 +7,11 @@ export function shouldQueueMonitorEvent(event, repository) {
 
 export function buildMonitorJob(repository, event, delivery) {
   if (!shouldQueueMonitorEvent(event, repository)) return null
-  return { repository, event, delivery, queuedAt: new Date().toISOString() }
+  return { repository, event, delivery, attempts: 0, queuedAt: new Date().toISOString() }
 }
 
 export function parseMonitorJob(value) {
   if (!value || typeof value !== 'object') return null
   if (typeof value.repository !== 'string' || !/^[^/]+\/[^/]+$/.test(value.repository)) return null
-  return { repository: value.repository, event: String(value.event || 'unknown'), delivery: String(value.delivery || 'unknown'), queuedAt: String(value.queuedAt || '') }
+  return { repository: value.repository, event: String(value.event || 'unknown'), delivery: String(value.delivery || 'unknown'), attempts: Number.isInteger(value.attempts) ? value.attempts : 0, queuedAt: String(value.queuedAt || '') }
 }
