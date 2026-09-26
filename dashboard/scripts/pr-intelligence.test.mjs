@@ -5,7 +5,7 @@ import { buildPrIntelligence, classifyChangeSize, detectSensitiveFiles, summariz
 test('classifies PR change size', () => {
   assert.equal(classifyChangeSize(10, 10, 2), 'small')
   assert.equal(classifyChangeSize(100, 100, 8), 'medium')
-  assert.equal(classifyChangeSize(400, 400, 20), 'large')
+  assert.equal(classifyChangeSize(350, 350, 20), 'large')
   assert.equal(classifyChangeSize(1000, 1000, 40), 'very_large')
 })
 
