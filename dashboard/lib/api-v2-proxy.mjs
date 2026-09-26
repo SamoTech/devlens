@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { normalizeV2Error } from '@/lib/api-v2.mjs'
 
-export async function proxyV2(request: NextRequest, handler: (request: NextRequest) => Promise<NextResponse>, resource: string) {
+export async function proxyV2(request, handler, resource) {
   const response = await handler(request)
   const raw = await response.text()
-  let body: any = null
+  let body = null
   try { body = raw ? JSON.parse(raw) : null } catch { body = { error: raw } }
 
   const meta = {
