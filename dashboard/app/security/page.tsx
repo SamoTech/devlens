@@ -666,14 +666,15 @@ export default function SecurityPage() {
     ? (report.code_quality.ci.failed) + (report.code_quality.sonar.bugs ?? 0) + (report.code_quality.deepsource.bugs ?? 0)
     : 0;
 
-  const vulnerabilityFindings = [
-    ...(report?.dependabot?.findings ?? []).map(f => ({ sev: f.severity, id: f.cve || f.id, pkg: f.package, summary: f.summary, fix: f.fixed_in, source: 'Dependabot', url: f.url })),
-    ...(report?.osv?.findings ?? []).map(f => ({ sev: f.severity, id: f.id, pkg: f.package, summary: f.summary, fix: 'See OSV.dev', source: 'OSV.dev', url: f.url })),
-    ...(report?.nvd?.findings ?? []).map(f => ({ sev: f.severity, id: f.cve_id, pkg: 'NVD', summary: f.description, fix: 'See NVD', source: 'NVD', url: f.url })),
-    ...(report?.gh_advisory?.findings ?? []).map(f => ({ sev: f.severity, id: f.cve_id ?? f.ghsa_id, pkg: f.package, summary: f.summary, fix: f.patched_versions, source: 'GitHub Advisory', url: f.url })),
-    ...(report?.pypi_safety?.findings ?? []).map(f => ({ sev: f.severity, id: f.id, pkg: f.package, summary: f.summary, fix: 'See OSV.dev', source: 'PyPI / OSV', url: f.url })),
-    ...(report?.retirejs?.findings ?? []).map(f => ({ sev: f.severity, id: f.vuln_id, pkg: `${f.library}@${f.version}`, summary: f.summary, fix: 'Update CDN library', source: 'Retire.js', url: f.url })),
-  ];
+  const vulnerabilityFindings = (report?.correlated_vulnerabilities ?? []).map(f => ({
+    sev: f.severity === 'MODERATE' ? 'MEDIUM' : f.severity,
+    id: f.cveId ?? f.ghsaId ?? f.key,
+    pkg: f.packages?.length > 1 ? `${f.package} +${f.packages.length - 1} affected` : f.package,
+    summary: f.summary,
+    fix: f.patchedVer ?? 'Review advisory',
+    source: f.sources.join(', '),
+    url: f.url,
+  }));
 
   const TABS = [
     { id: 'overview',        label: '🔭 Overview' },
