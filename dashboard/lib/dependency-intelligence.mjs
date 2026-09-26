@@ -50,7 +50,7 @@ async function npmLatest(name: string): Promise<string | null> {
   }
 }
 
-export async function buildDependencyInventory(report: AdvisoryReport): Promise<DependencyRecord[]> {
+export async function buildDependencyInventory(report) {
   const findings = report.findings ?? []
   const findingMap = new Map<string, AdvisoryFinding[]>()
   for (const finding of findings) {
@@ -66,7 +66,7 @@ export async function buildDependencyInventory(report: AdvisoryReport): Promise<
   const results = await Promise.all(npmPackages.map(async p => [p.name, await npmLatest(p.name)] as const))
   for (const [name, version] of results) latest.set(name, version)
 
-  return packages.map((pkg: ParsedPackage): DependencyRecord => {
+  return packages.map(pkg => {
     const vulns = findingMap.get(`${pkg.ecosystem}:${pkg.name}`) ?? []
     const ranked = [...vulns].sort((a, b) => ({ CRITICAL: 5, HIGH: 4, MODERATE: 3, LOW: 2, UNKNOWN: 1 }[b.severity] ?? 0) - ({ CRITICAL: 5, HIGH: 4, MODERATE: 3, LOW: 2, UNKNOWN: 1 }[a.severity] ?? 0))
     const latestVersion = pkg.ecosystem === 'npm' ? latest.get(pkg.name) ?? null : null
