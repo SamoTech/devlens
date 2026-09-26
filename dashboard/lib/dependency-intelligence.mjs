@@ -48,7 +48,7 @@ export async function buildDependencyInventory(report) {
 
   const packages = report.packages.slice(0, 100)
   const npmPackages = packages.filter(p => p.ecosystem === 'npm').slice(0, 30)
-  const latest = new Map<string, string | null>()
+  const latest = new Map()
   const results = await Promise.all(npmPackages.map(async p => [p.name, await npmLatest(p.name)] ))
   for (const [name, version] of results) latest.set(name, version)
 
