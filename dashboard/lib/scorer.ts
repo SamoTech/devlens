@@ -62,7 +62,13 @@ async function ghFetch(url: string, token?: string): Promise<any> {
       err.code = 'rate_limited'
       throw err
     }
-    throw new Error(`GitHub API error ${r.status} ${url}`)
+    const err: any = new Error(
+      r.status === 404
+        ? 'Repository not found or inaccessible.'
+        : 'GitHub request failed.'
+    )
+    if (r.status === 404) err.code = 'not_found'
+    throw err
   }
   return r.json()
 }
@@ -265,7 +271,9 @@ export async function analyzeRepo(
   // private report from ever being served through a public owner/name key.
   const repoData = await ghFetch(`${GH}/repos/${owner}/${name}`, token)
   if (repoData.private === true) {
-    throw new Error('Private repositories are not supported')
+    const err: any = new Error('Private repositories are not supported')
+    err.code = 'private_repository'
+    throw err
   }
 
   if (redis && !customWeights) {
