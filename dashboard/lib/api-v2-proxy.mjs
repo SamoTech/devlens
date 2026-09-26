@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { normalizeV2Error } from '@/lib/api-v2.mjs'
 
-type RouteHandler = (request: NextRequest) => Promise<NextResponse>
-
-export async function proxyV2(request: NextRequest, handler: RouteHandler, resource: string) {
+export async function proxyV2(request: NextRequest, handler: (request: NextRequest) => Promise<NextResponse>, resource: string) {
   const response = await handler(request)
   const raw = await response.text()
   let body: any = null
