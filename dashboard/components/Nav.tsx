@@ -17,6 +17,7 @@ export default function Nav() {
     { href: "/badge", label: "Badge" },
     { href: "/stats", label: "Stats" },
     { href: "/security", label: "Security" },
+    { href: "/dependencies", label: "Dependencies" },
     { href: "/docs", label: "Docs" },
     { href: "/changelog", label: "Changelog" },
     { href: "/sponsor", label: "Sponsor" },
