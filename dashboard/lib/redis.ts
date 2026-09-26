@@ -20,8 +20,7 @@ export async function getJson<T>(key: string): Promise<T | null> {
   const client = getRedis()
   if (!client) return null
   try {
-    const value = await client.get<T>(key)
-    return value ?? null
+    return await client.get<T>(key)
   } catch {
     return null
   }
@@ -32,10 +31,11 @@ export async function setJson(key: string, value: unknown, ttlSeconds?: number):
   const client = getRedis()
   if (!client) return false
   try {
+    const serialized = JSON.stringify(value)
     if (ttlSeconds && ttlSeconds > 0) {
-      await client.set(key, value, { ex: ttlSeconds })
+      await client.set(key, serialized, { ex: ttlSeconds })
     } else {
-      await client.set(key, value)
+      await client.set(key, serialized)
     }
     return true
   } catch {
