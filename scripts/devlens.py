@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DevLens - Core Analysis Engine v1.3"""
+"""DevLens GitHub Action v2 — standalone 9-dimension repository health analysis"""
 import os, json, math, requests
 from datetime import datetime, timezone
 from github import Github, Auth
@@ -97,15 +97,56 @@ def score_issues():
 def score_community():
     return min(int(math.log1p(repo.stargazers_count)*15)+int(math.log1p(repo.forks_count)*10), 100)
 
-weights = {"readme":0.20,"activity":0.20,"freshness":0.15,"docs":0.15,"ci":0.15,"issues":0.10,"community":0.05}
+weights = {"readme":0.20,"activity":0.20,"freshness":0.10,"docs":0.10,"ci":0.10,"issues":0.10,"community":0.05,"pr_velocity":0.10,"security":0.05}
+def score_pr_velocity():
+    try:
+        pulls = list(repo.get_pulls(state="closed", sort="updated", direction="desc"))[:30]
+        merged = [pr for pr in pulls if pr.merged_at][:20]
+        durations = [(pr.merged_at - pr.created_at).total_seconds() / 86400 for pr in merged if pr.created_at and pr.merged_at]
+        if not durations: return 50
+        avg_days = sum(durations) / len(durations)
+        if avg_days <= 1: return 100
+        if avg_days <= 3: return 85
+        if avg_days <= 7: return 70
+        if avg_days <= 14: return 55
+        if avg_days <= 30: return 35
+        return 15
+    except Exception:
+        return 50
+
+def score_security():
+    try:
+        tree = repo.get_git_tree(repo.default_branch, recursive=True).tree
+        security_doc = any(item.path == "SECURITY.md" for item in tree)
+    except Exception:
+        security_doc = False
+    alerts = None
+    try:
+        response = requests.get(
+            f"https://api.github.com/repos/{REPO_NAME}/dependabot/alerts",
+            headers={"Authorization": f"Bearer {GITHUB_TOKEN}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"},
+            params={"state": "open", "per_page": 100}, timeout=15,
+        )
+        if response.status_code == 200: alerts = response.json()
+    except Exception:
+        pass
+    if alerts is None: return 70 if security_doc else 60
+    score = 100 - (0 if security_doc else 3)
+    for alert in alerts:
+        severity = ((alert.get("security_advisory") or {}).get("severity") or "").lower()
+        score -= {"critical": 30, "high": 20, "moderate": 10, "medium": 10, "low": 4}.get(severity, 6)
+    return max(0, min(100, score))
+
 scores  = {
-    "readme":    score_readme(),
-    "activity":  score_activity(),
+    "readme": score_readme(),
+    "activity": score_activity(),
     "freshness": score_freshness(),
-    "docs":      score_docs(),
-    "ci":        score_ci(),
-    "issues":    score_issues(),
+    "docs": score_docs(),
+    "ci": score_ci(),
+    "issues": score_issues(),
     "community": score_community(),
+    "pr_velocity": score_pr_velocity(),
+    "security": score_security(),
 }
 health = int(sum(scores[k]*weights[k] for k in weights))
 
@@ -122,7 +163,7 @@ def dim_bar(score):
 badge_url = (f"https://img.shields.io/badge/DevLens%20Health-{health}%2F100"
              f"-{badge_color(health)}?style={BADGE_STYLE}&logo=github")
 
-report = {"repo":REPO_NAME,"score_model":"action-v1-7d","health_score":health,"scores":scores,
+report = {"repo":REPO_NAME,"score_model":"action-v2-9d","health_score":health,"scores":scores,
           "badge_url":badge_url,"generated_at":now.isoformat()}
 
 print(json.dumps(report, indent=2))
@@ -140,6 +181,8 @@ DIM_META = [
     ("ci",        "\u2699\ufe0f",  "CI/CD Setup",    "15%"),
     ("issues",    "\U0001f3af", "Issue Response",   "10%"),
     ("community", "\u2b50",     "Community Signal",  "5%"),
+    ("pr_velocity", "\U0001f500", "PR Velocity", "10%"),
+    ("security", "\U0001f510", "Security", "5%"),
 ]
 
 def build_table():
@@ -233,3 +276,12 @@ if DISCORD_WH:
         print("Discord digest sent.")
     except Exception as e:
         print(f"Discord failed: {e}")
+
+
+FAIL_ON_SCORE_BELOW = os.environ.get("FAIL_ON_SCORE_BELOW", "").strip()
+if FAIL_ON_SCORE_BELOW:
+    try:
+        threshold = int(FAIL_ON_SCORE_BELOW)
+        if not 0 <= threshold <= 100: raise ValueError
+        if health < threshold: raise SystemExit(f"DevLens health {health}/100 is below required threshold {threshold}/100")
+    except ValueError: raise SystemExit("FAIL_ON_SCORE_BELOW must be an integer from 0 to 100")

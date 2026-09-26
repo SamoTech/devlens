@@ -1,0 +1,34 @@
+name: Action v2 Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'action.yml'
+      - 'scripts/devlens.py'
+      - '.github/workflows/action-v2-validation.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile Action
+        run: python -m py_compile scripts/devlens.py
+      - name: Validate action metadata
+        shell: python
+        run: |
+          import re
+          from pathlib import Path
+          text = Path('action.yml').read_text()
+          required = ['name:', 'description:', 'inputs:', 'outputs:', 'runs:', 'using: \'composite\'', 'github.action_path']
+          missing = [item for item in required if item not in text]
+          if missing:
+              raise SystemExit('Missing action metadata: ' + ', '.join(missing))
+          if 'action-v2-9d' not in text or 'value: ${{ steps.devlens.outputs.health_score }}' not in text:
+              raise SystemExit('Action v2 output metadata missing')
+          print('action.yml structural validation passed')
