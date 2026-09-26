@@ -5,7 +5,7 @@ const REPO_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?$/
 export function parseRepoSlug(input) {
   if (typeof input !== 'string') return null
   const value = input.trim()
-  if (!value || value.length > 200 || /[\\u0000-\\u001f\\u007f]/.test(value)) return null
+  if (!value || value.length > 200 || /[\u0000-\u001f\u007f]/.test(value)) return null
 
   let path = value
   if (/^https?:\/\//i.test(value)) {
