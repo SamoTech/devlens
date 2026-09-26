@@ -354,7 +354,7 @@ export async function analyzeRepo(
         ? (typeof existing === 'string' ? JSON.parse(existing) : existing)
         : []
       const now = new Date()
-      const snapshot = {
+      const snapshot: any = {
         week: `W${now.toISOString().slice(5, 10)}`,
         score: health,
         date: now.toISOString(),
