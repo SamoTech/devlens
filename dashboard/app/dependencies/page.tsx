@@ -52,22 +52,19 @@ export default function DependenciesPage() {
       {error && <div role="alert" style={{ padding: 14, borderRadius: 8, background: 'rgba(255,59,92,.08)', color: 'var(--danger)', marginBottom: 20 }}>{error}</div>}
 
       {data && (
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 10, marginBottom: 20 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 10 }}>
-              {[
-                { label: 'Packages', value: data.summary.total },
-                { label: 'npm', value: data.summary.npm },
-                { label: 'Vulnerable', value: data.summary.vulnerable },
-                { label: 'Outdated', value: data.summary.outdated },
-                { label: 'Major', value: data.summary.majorUpdates },
-              ].map(item => (
-                <div key={item.label} style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
-                  <div style={{ fontSize: 24, fontWeight: 800 }}>{item.value}</div>
-                  <div style={{ color: 'var(--text-faint)', fontSize: 12 }}>{item.label}</div>
-                </div>
-              ))}
-            </div>
+        <>          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 10, marginBottom: 20 }}>
+            {[
+              ['Packages', data.summary.total],
+              ['npm', data.summary.npm],
+              ['Vulnerable', data.summary.vulnerable],
+              ['Outdated', data.summary.outdated],
+              ['Major', data.summary.majorUpdates],
+            ].map(item => (
+              <div key={item[0]} style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
+                <div style={{ fontSize: 24, fontWeight: 800 }}>{item[1]}</div>
+                <div style={{ color: 'var(--text-faint)', fontSize: 12 }}>{item[0]}</div>
+              </div>
+            ))}
           </div>
 
           <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 10 }}>
