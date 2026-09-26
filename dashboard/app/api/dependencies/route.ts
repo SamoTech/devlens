@@ -6,6 +6,18 @@ import { parseRepoSlug } from '@/lib/repo-validation.mjs'
 import { getJson, getRedis, setJson } from '@/lib/redis'
 import { consumeRateLimit, requestIdentity } from '@/lib/rate-limit.mjs'
 
+type DependencyRecord = {
+  name: string
+  ecosystem: string
+  installedVersion: string
+  latestVersion: string | null
+  updateType: 'up_to_date' | 'patch' | 'minor' | 'major' | 'unknown'
+  vulnerabilityCount: number
+  highestSeverity: string | null
+  patchedVersion: string | null
+  sources: string[]
+}
+
 export const dynamic = 'force-dynamic'
 
 const CACHE_TTL = 1800
@@ -33,7 +45,7 @@ export async function GET(req: NextRequest) {
   try {
     const token = (session as any)?.accessToken ?? process.env.GITHUB_TOKEN
     const advisory = await runAdvisoryCheck(owner, name, token)
-    const dependencies = await buildDependencyInventory(advisory)
+    const dependencies = await buildDependencyInventory(advisory) as DependencyRecord[]
     const report = {
       repo: `${owner}/${name}`,
       scannedAt: new Date().toISOString(),
