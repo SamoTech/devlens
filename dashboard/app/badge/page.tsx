@@ -4,6 +4,7 @@ import type { RepoReport } from '@/lib/scorer'
 import ThemeToggle from '@/components/ThemeToggle'
 import { Search, Loader2, ArrowRight, Copy, Check, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { parseRepoSlug } from '@/lib/repo-validation.mjs'
 
 export default function BadgePage() {
   const [input, setInput] = useState('')
@@ -17,7 +18,12 @@ export default function BadgePage() {
     if (!input.trim()) return
     setLoading(true); setError(''); setReport(null)
     try {
-      const slug = input.trim().replace('https://github.com/', '').replace(/\/$/, '')
+      const parsed = parseRepoSlug(input)
+      if (!parsed) {
+        setError('Enter a repository as owner/name or a repository-root GitHub URL.')
+        return
+      }
+      const slug = parsed.slug
       const res = await fetch(`/api/analyze?repo=${encodeURIComponent(slug)}`)
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Analysis failed'); return }

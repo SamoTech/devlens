@@ -16,7 +16,7 @@ test('accepts owner/name and canonical GitHub HTTPS URLs', () => {
 
 test('rejects non-GitHub, ambiguous, and control-character repository inputs', () => {
   for (const value of [
-    '', 'owner', 'owner/name/extra', 'http://github.com/owner/name',
+    '', 'owner', 'owner/name/extra', 'https://github.com/owner/name/blob/main/README.md', 'https://github.com/owner/name/tree/main', 'http://github.com/owner/name',
     'https://example.com/owner/name', 'https://github.com/owner/name?x=1',
     'https://github.com/owner/name#fragment', 'owner/name\u0000', '//github.com/owner/name',
   ]) assert.equal(parseRepoSlug(value), null, value)
