@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyUpdate, compareVersions } from '../lib/dependency-intelligence'
+import { classifyUpdate, compareVersions } from '../lib/dependency-intelligence.mjs'
 
 test('compares semantic versions', () => {
   assert.equal(compareVersions('1.2.3', '1.2.3'), 0)
