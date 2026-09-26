@@ -28,7 +28,8 @@ const SEV_RANK: Record<Severity, number> = {
 export interface AdvisoryFinding {
   package:      string
   ecosystem:    string
-  installedVer: string          // version pinned in manifest
+  installedVer: string          // version pinned in manifest when available
+  vulnerableRange?: string | null
   patchedVer:   string | null   // first safe version
   severity:     Severity
   cvss:         number | null   // CVSS 3.x base score
@@ -190,7 +191,8 @@ async function fetchDependabotAlerts(
   return data.map((alert: any): AdvisoryFinding => ({
     package:      alert.dependency?.package?.name      ?? 'unknown',
     ecosystem:    alert.dependency?.package?.ecosystem ?? 'unknown',
-    installedVer: alert.security_vulnerability?.vulnerable_version_range ?? 'unknown',
+    installedVer: 'unknown',
+    vulnerableRange: alert.security_vulnerability?.vulnerable_version_range ?? null,
     patchedVer:   alert.security_vulnerability?.first_patched_version?.identifier ?? null,
     severity:     (alert.security_advisory?.severity?.toUpperCase() ?? 'UNKNOWN') as Severity,
     cvss:         alert.security_advisory?.cvss?.score ?? null,
@@ -267,6 +269,7 @@ async function fetchAdvisoryDB(
             package:      p.name,
             ecosystem:    p.ecosystem,
             installedVer: p.version,
+            vulnerableRange: node.vulnerableVersionRange ?? null,
             patchedVer:   node.firstPatchedVersion?.identifier ?? null,
             severity:     (node.severity?.toUpperCase() ?? 'UNKNOWN') as Severity,
             cvss:         adv.cvss?.score ?? null,
@@ -323,6 +326,7 @@ async function fetchOSV(packages: ParsedPackage[]): Promise<AdvisoryFinding[]> {
         package:      pkg.name,
         ecosystem:    pkg.ecosystem,
         installedVer: pkg.version,
+        vulnerableRange: null,
         patchedVer:   patched,
         severity:     sev,
         cvss:         osvCvss(vuln),
