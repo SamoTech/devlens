@@ -7,6 +7,7 @@ import SnippetModal from '@/components/SnippetModal'
 import WeightEditor from '@/components/WeightEditor'
 import type { RepoReport } from '@/lib/scorer'
 import { DEFAULT_WEIGHTS, DimKey } from '@/lib/constants'
+import { parseRepoSlug } from '@/lib/repo-validation.mjs'
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import type { WatchEntry } from '@/app/api/watchlist/route'
@@ -39,7 +40,12 @@ export default function Home() {
     if (!input.trim()) return
     setLoading(true); setError(null); setReport(null); setHistory([])
     try {
-      const slug = input.trim().replace('https://github.com/', '').replace(/\/$/, '')
+      const parsed = parseRepoSlug(input)
+      if (!parsed) {
+        setError({ type: 'invalid_repository', message: 'Enter a repository as owner/name or a repository-root GitHub URL.' })
+        return
+      }
+      const slug = parsed.slug
       const weightsSum = Object.values(weights).reduce((a, b) => a + b, 0)
       const sourceWeights = Number.isFinite(weightsSum) && weightsSum > 0 ? weights : DEFAULT_WEIGHTS
       const sourceSum = Object.values(sourceWeights).reduce((a, b) => a + b, 0)
@@ -59,7 +65,6 @@ export default function Home() {
       }
       setReport(data)
 
-      // Save to watchlist so "Recently Checked" and /checked are live
       const entry: WatchEntry = {
         slug,
         score: data.healthScore,
@@ -67,12 +72,7 @@ export default function Home() {
         language: data.language ?? null,
         savedAt: new Date().toISOString(),
       }
-      fetch('/api/watchlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(entry),
-      }).catch(() => {})
-      // Optimistic update — prepend and dedupe
+      // The analyze API is the single writer for recently checked repositories.
       setRecentList(prev => [entry, ...prev.filter(w => w.slug !== slug)].slice(0, 10))
 
       const hData = await histRes.json()
