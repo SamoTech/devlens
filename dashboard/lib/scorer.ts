@@ -2,6 +2,7 @@ import { DEFAULT_WEIGHTS, DimKey, Suggestion } from './constants'
 import { getRedis } from './redis'
 import { runAdvisoryCheck } from './advisory'
 import { sanitizeWeights } from './weights.mjs'
+import { scoreActivitySignals, scoreIssueMaintenance, scorePRMaintenance } from './scoring-metrics.mjs'
 
 export interface DimScores {
   readme: number
@@ -101,12 +102,7 @@ async function scoreActivity(owner: string, name: string, token?: string): Promi
     const since = new Date()
     since.setDate(since.getDate() - 90)
     const data = await ghFetch(`${GH}/repos/${owner}/${name}/commits?since=${since.toISOString()}&per_page=100`, token)
-    const n = data.length
-    if (n >= 30) return 100
-    if (n >= 15) return 75
-    if (n >= 5) return 50
-    if (n >= 1) return 25
-    return 0
+    return scoreActivitySignals(data)
   } catch { return 0 }
 }
 
@@ -146,12 +142,32 @@ async function scoreCI(owner: string, name: string, token?: string): Promise<num
 
 async function scoreIssues(owner: string, name: string, openCount: number, token?: string): Promise<number> {
   try {
-    const closed = await ghFetch(`${GH}/repos/${owner}/${name}/issues?state=closed&per_page=50`, token)
-    const c = closed.length
-    if (!c && openCount === 0) return 100
-    const total = openCount + c
-    if (total === 0) return 100
-    return Math.round((c / total) * 100)
+    const [openIssues, closedIssues] = await Promise.all([
+      ghFetch(`${GH}/repos/${owner}/${name}/issues?state=open&per_page=50`, token),
+      ghFetch(`${GH}/repos/${owner}/${name}/issues?state=closed&per_page=50`, token),
+    ])
+    const now = Date.now()
+    const isIssue = (item: any) => !item.pull_request
+    const open = openIssues.filter(isIssue)
+    const closed = closedIssues.filter(isIssue)
+    const staleOpenCount = open.filter((item: any) => {
+      const created = Date.parse(item.created_at ?? '')
+      return Number.isFinite(created) && now - created > 90 * 86400000
+    }).length
+    const closedAgesDays = closed
+      .map((item: any) => {
+        const created = Date.parse(item.created_at ?? '')
+        const closedAt = Date.parse(item.closed_at ?? '')
+        return Number.isFinite(created) && Number.isFinite(closedAt)
+          ? (closedAt - created) / 86400000
+          : NaN
+      })
+      .filter(Number.isFinite)
+    return scoreIssueMaintenance({
+      openCount: Math.max(openCount, open.length),
+      staleOpenCount,
+      closedAgesDays,
+    })
   } catch { return 50 }
 }
 
@@ -162,19 +178,18 @@ function scoreCommunity(stars: number, forks: number): number {
 
 async function scorePRVelocity(owner: string, name: string, token?: string): Promise<number> {
   try {
-    const prs = await ghFetch(`${GH}/repos/${owner}/${name}/pulls?state=closed&per_page=20`, token)
-    const merged = prs.filter((p: any) => p.merged_at)
-    if (merged.length === 0) return 50
-    const avgMs = merged.reduce((sum: number, p: any) => {
-      return sum + (new Date(p.merged_at).getTime() - new Date(p.created_at).getTime())
-    }, 0) / merged.length
-    const avgDays = avgMs / 86400000
-    if (avgDays < 1) return 100
-    if (avgDays < 3) return 85
-    if (avgDays < 7) return 65
-    if (avgDays < 14) return 45
-    if (avgDays < 30) return 25
-    return 10
+    const [closed, open] = await Promise.all([
+      ghFetch(`${GH}/repos/${owner}/${name}/pulls?state=closed&per_page=50&sort=updated&direction=desc`, token),
+      ghFetch(`${GH}/repos/${owner}/${name}/pulls?state=open&per_page=50&sort=created&direction=desc`, token),
+    ])
+    const mergedAgesDays = closed
+      .filter((p: any) => p.merged_at)
+      .map((p: any) => (Date.parse(p.merged_at) - Date.parse(p.created_at)) / 86400000)
+      .filter(Number.isFinite)
+    const openAgesDays = open
+      .map((p: any) => (Date.now() - Date.parse(p.created_at)) / 86400000)
+      .filter(Number.isFinite)
+    return scorePRMaintenance({ mergedAgesDays, openAgesDays })
   } catch { return 50 }
 }
 
@@ -220,13 +235,13 @@ function buildSuggestions(scores: DimScores, advisoryCounts?: RepoReport['adviso
   const critHigh = (advisoryCounts?.critical ?? 0) + (advisoryCounts?.high ?? 0)
   const MSGS: Record<DimKey, string> = {
     readme:      'Add a usage section, code examples, and at least one screenshot or GIF to your README.',
-    activity:    'Commit more regularly. Aim for at least 15 commits per 90 days.',
+    activity:    'Maintain a steady contribution cadence across the 90-day window rather than relying on short bursts of activity.',
     freshness:   'Push an update to main. Repos inactive for 30+ days score lower on freshness.',
     docs:        'Add missing files: LICENSE, CONTRIBUTING.md, CHANGELOG.md, SECURITY.md.',
     ci:          'Add GitHub Actions workflows. Even a basic lint/test workflow improves this score significantly.',
-    issues:      'Close or triage open issues. A high open:closed ratio signals poor maintenance.',
+    issues:      'Triage stale issues and reduce long-running open work. DevLens now weighs issue age and resolution time.',
     community:   'Promote the repo. Stars and forks improve the community signal dimension.',
-    pr_velocity: 'Merge pull requests faster. Aim for an average PR merge time under 7 days.',
+    pr_velocity: 'Reduce long-running pull requests. DevLens now weighs median and tail merge time plus stale open PRs.',
     security:    critHigh > 0
       ? `${critHigh} critical/high CVE(s) found in installed dependencies. Run the Advisory scan for fix versions.`
       : 'Add SECURITY.md, configure Dependabot in .github/dependabot.yml, and consider CodeQL scanning.',
