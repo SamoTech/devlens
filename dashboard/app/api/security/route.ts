@@ -26,7 +26,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { parseRepoSlug } from '@/lib/repo-validation.mjs';
 import { classifyScannerStatus, summarizeScannerStatuses } from '@/lib/scanner-status.mjs';
 import { consumeRateLimit, requestIdentity } from '@/lib/rate-limit.mjs';
-import { getRedis } from '@/lib/redis';
+import { getJson, getRedis, setJson } from '@/lib/redis';
 import type {
   MegaScanReport, DependabotModule, SecretsModule, CodeScanModule,
   OsvModule, LicenseModule, TotalCounts, ScoringResult, ScoreDeduction,
@@ -36,8 +36,6 @@ import type {
 
 const GH_TOKEN    = process.env.GITHUB_TOKEN ?? '';
 const NVD_API_KEY = process.env.NVD_API_KEY  ?? ''; // optional — raises rate limit from 5/30s → 50/30s
-const REDIS_URL   = process.env.UPSTASH_REDIS_REST_URL   ?? '';
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN ?? '';
 const CACHE_TTL   = 900; // 15 minutes
 
 const GH_HEADERS = {
@@ -954,25 +952,11 @@ function aggregateTotals(report: Partial<MegaScanReport> & {
 // ── Redis Cache ───────────────────────────────────────────────────────────────
 
 async function cacheGet(key: string): Promise<MegaScanReport | null> {
-  if (!REDIS_URL) return null;
-  try {
-    const res = await fetch(`${REDIS_URL}/get/${encodeURIComponent(key)}`, {
-      headers: { Authorization: `Bearer ${REDIS_TOKEN}` },
-    });
-    const data = await res.json() as { result?: string };
-    return data.result ? JSON.parse(data.result) as MegaScanReport : null;
-  } catch { return null; }
+  return getJson<MegaScanReport>(key);
 }
 
-async function cacheSet(key: string, value: unknown): Promise<void> {
-  if (!REDIS_URL) return;
-  try {
-    await fetch(`${REDIS_URL}/set/${encodeURIComponent(key)}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: JSON.stringify(value), ex: CACHE_TTL }),
-    });
-  } catch { /* non-fatal */ }
+async function cacheSet(key: string, value: MegaScanReport): Promise<void> {
+  await setJson(key, value, CACHE_TTL);
 }
 
 // ── Route Handler ─────────────────────────────────────────────────────────────
