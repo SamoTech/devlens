@@ -52,20 +52,6 @@ export async function GET(req: NextRequest) {
       redis.hset('stats:repo_scores', { [slug]: report.healthScore }),
       redis.hset('stats:repo_last_seen', { [slug]: new Date().toISOString() }),
       redis.sadd('stats:unique_ips', ip),
-      // Watchlist (recently checked) — dedupe then prepend
-      redis.lrange('devlens:watchlist', 0, 99).then(async (existing: any[]) => {
-        for (const item of existing ?? []) {
-          if (item?.slug === slug) await redis.lrem('devlens:watchlist', 0, item)
-        }
-        await redis.lpush('devlens:watchlist', {
-          slug,
-          score: report.healthScore,
-          description: report.description ?? null,
-          language: report.language ?? null,
-          savedAt: new Date().toISOString(),
-        })
-        await redis.ltrim('devlens:watchlist', 0, 99)
-      }),
     ]).catch(() => {})
     // ─────────────────────────────────────
 
@@ -74,6 +60,13 @@ export async function GET(req: NextRequest) {
     if (e.code === 'rate_limited') {
       return NextResponse.json({ error: 'rate_limited', message: e.message }, { status: 429 })
     }
-    return NextResponse.json({ error: e.message ?? 'Analysis failed' }, { status: 500 })
+    if (e.code === 'not_found') {
+      return NextResponse.json({ error: 'repository_not_found', message: 'Repository not found or inaccessible. Check the owner/name and make sure the repository is public.' }, { status: 404 })
+    }
+    if (e.code === 'private_repository') {
+      return NextResponse.json({ error: 'private_repository', message: 'Private repositories are not supported.' }, { status: 403 })
+    }
+    console.error('analysis error', e)
+    return NextResponse.json({ error: 'analysis_failed', message: 'Unable to analyze this repository right now. Please verify the repository and try again.' }, { status: 500 })
   }
 }
