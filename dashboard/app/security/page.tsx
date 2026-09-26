@@ -667,7 +667,7 @@ export default function SecurityPage() {
     : 0;
 
   const vulnerabilityFindings = (report?.correlated_vulnerabilities ?? []).map(f => ({
-    sev: f.severity === 'MODERATE' ? 'MEDIUM' : f.severity,
+    sev: f.severity,
     id: f.cveId ?? f.ghsaId ?? f.key,
     pkg: f.packages?.length > 1 ? `${f.package} +${f.packages.length - 1} affected` : f.package,
     summary: f.summary,
