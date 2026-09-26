@@ -11,9 +11,26 @@ const UPDATE_META = {
   unknown: { label: 'Unknown', color: 'var(--text-faint)' },
 }
 
+type DependencyRecord = {
+  name: string
+  ecosystem: string
+  installedVersion: string
+  latestVersion: string | null
+  updateType: keyof typeof UPDATE_META
+  vulnerabilityCount: number
+  patchedVersion: string | null
+  sources: string[]
+}
+type DependencyResponse = {
+  repo: string
+  scannedAt: string
+  packages: DependencyRecord[]
+  summary: { total: number; npm: number; vulnerable: number; outdated: number; majorUpdates: number }
+}
+
 export default function DependenciesPage() {
   const [repo, setRepo] = useState('')
-  const [data, setData] = useState(null)
+  const [data, setData] = useState<DependencyResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -99,7 +116,7 @@ export default function DependenciesPage() {
   )
 }
 
-function SummaryCard({ label, value }) {
+function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
     <div style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
       <div style={{ fontSize: 24, fontWeight: 800 }}>{value}</div>
