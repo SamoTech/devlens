@@ -60,10 +60,10 @@ export default function DependenciesPage() {
               ['Vulnerable', data.summary.vulnerable],
               ['Outdated', data.summary.outdated],
               ['Major', data.summary.majorUpdates],
-            ].map(([label, value]) => (
-              <div key={String(label)} style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
-                <div style={{ fontSize: 24, fontWeight: 800 }}>{value}</div>
-                <div style={{ color: 'var(--text-faint)', fontSize: 12 }}>{label}</div>
+            ].map(item => (
+              <div key={String(item[0])} style={{ padding: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
+                <div style={{ fontSize: 24, fontWeight: 800 }}>{item[1]}</div>
+                <div style={{ color: 'var(--text-faint)', fontSize: 12 }}>{item[0]}</div>
               </div>
             ))}
           </div>
