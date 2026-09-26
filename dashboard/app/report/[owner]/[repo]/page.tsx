@@ -16,7 +16,7 @@ export default function ReportPage() {
   const owner = params.owner as string
   const repo = params.repo as string
   const [report, setReport] = useState<RepoReport | null>(null)
-  const [history, setHistory] = useState<{ week: string; score: number }[]>([])
+  const [history, setHistory] = useState<{ week: string; score: number; events?: string[] }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
@@ -99,6 +99,19 @@ export default function ReportPage() {
               {history.length > 1 && (
                 <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 'var(--space-6)', boxShadow: 'var(--shadow-sm)' }}>
                   <TrendChart data={history} />
+                </div>
+              )}
+              {history.some(h => h.events?.length) && (
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: 'var(--space-6)', boxShadow: 'var(--shadow-sm)' }}>
+                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-base)', fontWeight: 700, marginBottom: 'var(--space-4)' }}>Change Intelligence</h2>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                    {history.slice().reverse().flatMap(h => (h.events ?? []).map(event => (
+                      <div key={h.week + event} style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'flex-start', fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>
+                        <span style={{ color: 'var(--primary)', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', minWidth: 52 }}>{h.week}</span>
+                        <span>{event}</span>
+                      </div>
+                    )))}
+                  </div>
                 </div>
               )}
               {report.suggestions.length > 0 && (
