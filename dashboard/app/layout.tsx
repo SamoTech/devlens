@@ -10,11 +10,11 @@ const BASE = "https://devlens-io.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(BASE),
   title: {
-    default: "DevLens — GitHub Repo Health Scorer",
+    default: "DevLens — GitHub Repository Intelligence",
     template: "%s | DevLens",
   },
   description:
-    "Free GitHub repo health scorer. Analyse any public repository across 7 dimensions — README quality, commit activity, CI/CD, documentation, issue response, and community signal. Get a score out of 100 instantly.",
+    "Free GitHub repository intelligence for health, security, code quality, activity, documentation, and community signals. Analyze public repositories with transparent evidence and confidence.",
   keywords: [
     "GitHub repo health",
     "repository score",
@@ -44,23 +44,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: BASE,
     siteName: "DevLens",
-    title: "DevLens — GitHub Repo Health Scorer",
+    title: "DevLens — GitHub Repository Intelligence",
     description:
-      "Free tool to analyse any public GitHub repo across 7 health dimensions. Get an instant score out of 100 — no login, no data stored.",
+      "Analyze any public GitHub repository across 9 health dimensions, plus security and code-quality intelligence. Free and evidence-driven.",
     images: [
       {
         url: `${BASE}/og.png`,
         width: 1200,
         height: 630,
-        alt: "DevLens — GitHub Repo Health Scorer",
+        alt: "DevLens — GitHub Repository Intelligence",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "DevLens — GitHub Repo Health Scorer",
+    title: "DevLens — GitHub Repository Intelligence",
     description:
-      "Analyse any public GitHub repo across 7 health dimensions. Free, instant, no login.",
+      "Analyze any public GitHub repository across 9 health dimensions, plus security and code-quality intelligence. Free and instant.",
     images: [`${BASE}/og.png`],
     creator: "@SamoTech",
   },
@@ -80,7 +80,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     name: "DevLens",
     url: BASE,
     description:
-      "Free GitHub repo health scorer. Analyse any public repository across 7 weighted dimensions and get an instant score out of 100.",
+      "Free GitHub repository intelligence across 9 weighted health dimensions, with security and code-quality analysis.",
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Any",
     offers: {
@@ -98,9 +98,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "Commit activity analysis",
       "CI/CD setup detection",
       "Documentation completeness check",
-      "Issue response rate",
-      "Community signal scoring",
+      "Issue response and maintenance analysis",
+      "Community signal analysis",
       "Repo freshness rating",
+      "PR velocity analysis",
+      "Security and code-quality intelligence",
     ],
   };
 

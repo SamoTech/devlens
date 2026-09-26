@@ -26,18 +26,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { parseRepoSlug } from '@/lib/repo-validation.mjs';
 import { classifyScannerStatus, summarizeScannerStatuses } from '@/lib/scanner-status.mjs';
 import { consumeRateLimit, requestIdentity } from '@/lib/rate-limit.mjs';
-import { getRedis } from '@/lib/redis';
+import { getJson, getRedis, setJson } from '@/lib/redis';
 import type {
   MegaScanReport, DependabotModule, SecretsModule, CodeScanModule,
   OsvModule, LicenseModule, TotalCounts, ScoringResult, ScoreDeduction,
   SeverityCounts, Severity, CodeQualityModule, CiQualityModule,
-  CiCheckRun, CheckRunConclusion, SonarModule, DeepSourceModule, CodecovModule,
+  CiCheckRun, CheckRunConclusion, SonarModule, DeepSourceModule, CodecovModule, ScannerStatusResult,
 } from '@/lib/security-types';
 
 const GH_TOKEN    = process.env.GITHUB_TOKEN ?? '';
 const NVD_API_KEY = process.env.NVD_API_KEY  ?? ''; // optional — raises rate limit from 5/30s → 50/30s
-const REDIS_URL   = process.env.UPSTASH_REDIS_REST_URL   ?? '';
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN ?? '';
 const CACHE_TTL   = 900; // 15 minutes
 
 const GH_HEADERS = {
@@ -954,25 +952,11 @@ function aggregateTotals(report: Partial<MegaScanReport> & {
 // ── Redis Cache ───────────────────────────────────────────────────────────────
 
 async function cacheGet(key: string): Promise<MegaScanReport | null> {
-  if (!REDIS_URL) return null;
-  try {
-    const res = await fetch(`${REDIS_URL}/get/${encodeURIComponent(key)}`, {
-      headers: { Authorization: `Bearer ${REDIS_TOKEN}` },
-    });
-    const data = await res.json() as { result?: string };
-    return data.result ? JSON.parse(data.result) as MegaScanReport : null;
-  } catch { return null; }
+  return getJson<MegaScanReport>(key);
 }
 
-async function cacheSet(key: string, value: unknown): Promise<void> {
-  if (!REDIS_URL) return;
-  try {
-    await fetch(`${REDIS_URL}/set/${encodeURIComponent(key)}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: JSON.stringify(value), ex: CACHE_TTL }),
-    });
-  } catch { /* non-fatal */ }
+async function cacheSet(key: string, value: MegaScanReport): Promise<void> {
+  await setJson(key, value, CACHE_TTL);
 }
 
 // ── Route Handler ─────────────────────────────────────────────────────────────
@@ -1053,21 +1037,22 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     trivy:      { available: false, message: 'CLI tool — run scripts/mega_scanner.py locally', findings: [] },
   };
 
-  const scanner_statuses = {
-    dependabot:     classifyScannerStatus('dependabot', dependabot),
-    secrets:        classifyScannerStatus('secrets', secrets_github),
-    code_scanning:  classifyScannerStatus('code_scanning', code_scanning),
-    osv:            classifyScannerStatus('osv', osv),
-    nvd:            classifyScannerStatus('nvd', nvd),
-    gh_advisory:    classifyScannerStatus('gh_advisory', gh_advisory),
-    pypi_safety:    classifyScannerStatus('pypi_safety', pypi_safety),
-    retirejs:       classifyScannerStatus('retirejs', retirejs),
-    license:        classifyScannerStatus('license', license),
-    ci_checks:      classifyScannerStatus('ci_checks', code_quality.ci),
-    sonarcloud:     classifyScannerStatus('sonarcloud', code_quality.sonar),
-    deepsource:     classifyScannerStatus('deepsource', code_quality.deepsource),
-    codecov:        classifyScannerStatus('codecov', code_quality.codecov),
-    trufflehog:     { source: 'trufflehog', status: 'unavailable', error: 'Scanner not configured for this hosted endpoint' },
+  const unavailable = (source: string, error: string): ScannerStatusResult => ({ source, status: 'unavailable', error });
+  const scanner_statuses: Record<string, ScannerStatusResult> = {
+    dependabot:     classifyScannerStatus('dependabot', dependabot) as ScannerStatusResult,
+    secrets:        classifyScannerStatus('secrets', secrets_github) as ScannerStatusResult,
+    code_scanning:  classifyScannerStatus('code_scanning', code_scanning) as ScannerStatusResult,
+    osv:            classifyScannerStatus('osv', osv) as ScannerStatusResult,
+    nvd:            classifyScannerStatus('nvd', nvd) as ScannerStatusResult,
+    gh_advisory:    classifyScannerStatus('gh_advisory', gh_advisory) as ScannerStatusResult,
+    pypi_safety:    classifyScannerStatus('pypi_safety', pypi_safety) as ScannerStatusResult,
+    retirejs:       classifyScannerStatus('retirejs', retirejs) as ScannerStatusResult,
+    license:        classifyScannerStatus('license', license) as ScannerStatusResult,
+    ci_checks:      classifyScannerStatus('ci_checks', code_quality.ci) as ScannerStatusResult,
+    sonarcloud:     classifyScannerStatus('sonarcloud', code_quality.sonar) as ScannerStatusResult,
+    deepsource:     classifyScannerStatus('deepsource', code_quality.deepsource) as ScannerStatusResult,
+    codecov:        classifyScannerStatus('codecov', code_quality.codecov) as ScannerStatusResult,
+    trufflehog:     unavailable('trufflehog', 'Scanner not configured for this hosted endpoint'),
     semgrep:        { source: 'semgrep', status: 'unavailable', error: 'Scanner not configured for this hosted endpoint' },
     nuclei:         { source: 'nuclei', status: 'unavailable', error: 'Scanner not configured for this hosted endpoint' },
     trivy:          { source: 'trivy', status: 'unavailable', error: 'Scanner not configured for this hosted endpoint' },
