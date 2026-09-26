@@ -50,6 +50,7 @@ export function rateLimitPolicy(endpoint) {
     history: { limit: 30, windowSeconds: 60 },
     org: { limit: 3, windowSeconds: 60 },
     watchlist: { limit: 30, windowSeconds: 60 },
+    pr: { limit: 10, windowSeconds: 60 },
   }
   return policies[endpoint] ?? { limit: 10, windowSeconds: 60 }
 }
