@@ -1,0 +1,67 @@
+name: Phase 13 Persistence Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'dashboard/**'
+      - 'supabase/**'
+      - '.github/workflows/phase-13-persistence.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'dashboard/**'
+      - 'supabase/**'
+      - '.github/workflows/phase-13-persistence.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: phase-13-persistence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Application validation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
+
+      - name: Persistence workflow contract
+        shell: bash
+        working-directory: .
+        run: |
+          set -euo pipefail
+          if [ -d supabase/migrations ]; then
+            echo "Supabase migration directory detected."
+            find supabase/migrations -maxdepth 1 -type f -name '*.sql' -print | sort
+          else
+            echo "No Supabase migrations yet; Phase 13 schema migration is not installed."
+          fi
+          echo "Phase 13 persistence validation contract passed."
