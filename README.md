@@ -21,11 +21,11 @@
 ---
 
 <!-- DEVLENS:START -->
-![DevLens Health](https://img.shields.io/badge/DevLens%20Health-91%2F100-brightgreen?style=flat-square&logo=github) **Overall health: 91/100** — *Last updated: 2026-09-30*
+![DevLens Health](https://img.shields.io/badge/DevLens%20Health-87%2F100-brightgreen?style=flat-square&logo=github) **Overall health: 87/100** — *Last updated: 2026-09-30*
 
 | Dimension | Progress | Score | Weight |
 |---|---|---|---|
-| 📝 **README Quality** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
+| 📝 **README Quality** | `████████░░` | ![76](https://img.shields.io/badge/76-green?style=flat-square) | 20% |
 | 🔥 **Commit Activity** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
 | 🌿 **Repo Freshness** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
 | 📚 **Documentation** | `██████████` | ![96](https://img.shields.io/badge/96-brightgreen?style=flat-square) | 15% |
