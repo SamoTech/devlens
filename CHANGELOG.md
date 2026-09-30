@@ -7,7 +7,7 @@ All notable changes to DevLens, newest first.
 ### Release workflow correction
 - Fixed the manual release path so `workflow_dispatch` completes tag creation/validation, preflight, floating `v2` update, and GitHub Release publication in one workflow run.
 - Removed the dependency on a `GITHUB_TOKEN`-generated tag push triggering a second workflow run.
-- Existing requested release tags are now accepted only when they already point to the current release HEAD.
+- Existing requested release tags are now safely reusable without overwriting the immutable tag target.
 
 ### Governance and verification
 - Adopted the repository AI governance model with explicit Human Owner → AI CEO/CIO → AI COO → specialist-agent hierarchy.
