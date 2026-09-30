@@ -11,6 +11,8 @@ All notable changes to DevLens, newest first.
 - Added a first-run checklist and common first-run failure/remediation guidance, including permissions and README persistence checks.
 - Added concrete onboarding examples for application/service, library/package, monorepo, and restricted/read-only repository patterns.
 - Verified the real DevLens Action through PR-triggered live integration run `36700821668`; the run completed successfully.
+- Verified onboarding failure paths in run `36701199169`: invalid score threshold and read-only README persistence both failed with the expected actionable errors.
+- Closed Phase 2 onboarding validation; no runtime defect was identified.
 
 ## 2.0.8 — 2026-09-30
 
