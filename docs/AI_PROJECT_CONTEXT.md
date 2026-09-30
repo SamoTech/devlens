@@ -293,10 +293,10 @@ Manual release:
 
 1. Run **Create Release** via `workflow_dispatch`.
 2. Supply a strict `v2.x.x` version tag.
-3. The release job validates the tag, creates it when absent, or safely reuses an existing requested tag, and continues in the same workflow run.
-4. The release job checks out the release tag and runs static validation plus the real Action preflight.
-5. The release job updates the floating `v2` tag to that version.
-6. The GitHub Release is published in the same workflow run.
+3. The release job validates the requested or derived `v2.x.x` tag.
+4. The release job runs static validation and the real Action preflight against the current release candidate before creating a new versioned tag.
+5. The release job verifies that an existing versioned tag, if present, already points to the same release candidate; versioned tags are never moved.
+6. The release job creates the versioned tag when absent, updates the floating `v2` tag, and publishes the GitHub Release in the same workflow run.
 
 Future version-tag pushes matching `v2.*.*` are also supported and execute the same release job. The manual path does not depend on a second workflow triggered by a tag push.
 
@@ -310,14 +310,14 @@ As of 2026-09-30:
 
 - `v2.0.0` exists as the original Marketplace release tag.
 - `v2.0.1` was previously published successfully.
-- `v2.0.7` is the latest verified release and was created and published by the automatic critical-change release workflow.
+- `v2.0.8` is the latest verified release and was created and published by the automatic critical-change release workflow.
 - The release preflight executed the real Action successfully and validated the reported Action version against the release version.
-- The floating `v2` tag was updated successfully to `v2.0.7`.
+- The floating `v2` tag was updated successfully to `v2.0.8`.
 - The automatic release workflow detects critical production paths on pushes to `main`, derives the release version from `scripts/devlens.py`, runs static validation and live Action preflight, updates `v2`, and publishes the GitHub Release.
 - The release workflow uses concurrency control to prevent overlapping release runs on `main`.
 - Historical orphaned version tags from failed release attempts remain immutable and are not reused or force-moved.
-- The live Marketplace listing currently displays **v2.0.7** as Latest. Marketplace publication is a separate external distribution surface, and its rendered documentation may lag repository changes.
-- Consumer verification on `SamoTech/skills-tree` previously succeeded with **87/100** and README persistence, exposing the version-reporting defect. The subsequent released correction is now verified by the v2.0.7 release preflight.
+- The live Marketplace listing currently displays **v2.0.8** as Latest. Marketplace publication is a separate external distribution surface, and its rendered documentation may lag repository changes.
+- Consumer verification on `SamoTech/skills-tree` previously succeeded with **87/100** and README persistence, exposing the version-reporting defect. The subsequent released correction is now verified by the v2.0.8 release preflight.
 - Production usage is `SamoTech/devlens@v2`.
 
 Marketplace publication status must be verified separately from GitHub Release status. A GitHub Release is not automatically treated as Marketplace publication unless GitHub shows the Marketplace association.
@@ -334,8 +334,8 @@ As of 2026-09-30:
 - README, contributor, security, documentation, and changelog materials are aligned with v2, subject to the current release-state documentation updates.
 - Live GitHub integration has executed the actual Action successfully.
 - README persistence has been tested on a disposable branch and verified through GitHub API.
-- Current release line is v2; `v2.0.7` is the latest verified version.
-- Floating `v2` points to the latest verified v2 release (`v2.0.7`).
+- Current release line is v2; `v2.0.8` is the latest verified version.
+- Floating `v2` points to the latest verified v2 release (`v2.0.8`).
 - Repository release automation has been hardened so manual releases complete in one workflow run and do not depend on a token-generated tag push triggering a second workflow.
 - Repository metadata may still contain stale external/homepage information and should be verified before treating metadata cleanup as complete.
 - Any external Vercel project state must be verified separately; removing repository configuration does not prove external project deletion.
@@ -371,7 +371,7 @@ Roadmap entries are **PLAN**, not facts.
 Remaining Phase 1 operational check:
 
 - **IMPLEMENTED:** Marketplace publication/update for v2.0.1 has been completed and verified from the live Marketplace listing.
-- **COMPLETED:** Released the version-reporting correction as `v2.0.7`; release preflight verified the corrected reported version.
+- **COMPLETED:** Released the version-reporting correction as `v2.0.8`; release preflight verified the corrected reported version.
 - Clean any stale repository metadata.
 
 ### Phase 2 — Adoption and onboarding — NEXT
@@ -493,13 +493,17 @@ The repository adopts the AI CEO/CIO → COO execution model and treats document
 
 ### D-012 — Action report version must match implementation
 **Status:** DECISION / ACTIVE.  
-The machine-readable report action version must identify the actual DevLens implementation version. Commit 4780c10d7324b590f9d630485045e0d3079e409c changes the report from 2.0.0 to 2.0.1; it remains unverified in a released @v2 consumer run until v2.0.2 is published and tested.
+The machine-readable report action version must identify the actual DevLens implementation version. This is enforced by release preflight and live integration validation. The current verified implementation reports `2.0.8`.
 
 ### D-010 — Automated semantic v2 release flow
 **Status:** DECISION / ACTIVE.  
-Manual release dispatch performs the complete release operation in one workflow run: validate the requested `v2.x.x` tag, create or validate the versioned tag, run release preflight, move floating `v2`, and publish the GitHub Release.
+Manual release dispatch and automatic critical-change releases perform the complete release operation in one workflow run: determine the `v2.x.x` version, run static/live preflight against the current candidate, validate immutable tag state, create the versioned tag if absent, move floating `v2`, and publish the GitHub Release.
 
-**Consequence:** The manual release path does not rely on a token-generated tag push triggering a second workflow. Future direct `v2.x.x` tag pushes remain supported. Versioned release tags are not overwritten; the `v2` major tag is intentionally mutable.
+**Consequence:** A failed static or live preflight cannot create a new versioned release tag. Existing versioned tags are never moved to a different commit; a release candidate using an already-existing tag must match that tag's commit exactly. The `v2` major tag is intentionally mutable.
+
+### D-013 — Release tag creation is gated by preflight
+**Status:** DECISION / ACTIVE.  
+Release automation must validate the actual Action before creating a new versioned release tag. This prevents failed validation from leaving a newly created version tag behind. Release workflow run `36698433347` verified this ordering for `v2.0.8`.
 
 ## 18. Agent handoff template
 
@@ -545,24 +549,34 @@ When uncertain, inspect current repository files and current GitHub Actions/rele
 ## 19A. Current COO execution record
 
 **Objective**
-- Apply the repository AI governance model and synchronize release documentation after consumer verification exposed a version-reporting defect.
+- Complete the full DevLens production audit, harden automatic release behavior, verify the next production release, and synchronize project documentation.
 
 **Implemented**
-- Added the governance hierarchy and mandatory documentation gate.
-- Recorded Marketplace v2.0.1 publication as verified.
-- Corrected the machine-readable Action report version to 2.0.1 in commit 4780c10d7324b590f9d630485045e0d3079e409c.
+- Hardened `.github/workflows/release.yml` so static and live preflight run before creation of a new versioned release tag.
+- Added immutable versioned-tag validation.
+- Bumped the machine-readable Action version to `2.0.8`.
+- Updated live integration validation to require `2.0.8`.
+- Merged PR #24 and triggered the automatic critical-change release.
 
 **Verification**
-- Consumer run 36691520201 succeeded and produced 87/100 with README persistence, but reported Action version 2.0.0.
-- Source inspection confirms the correction is present on main.
-- The correction has not yet been verified through a released @v2 consumer run.
+- PR #24 merged as `99ddfd26d9fb6084bd71949f4be926d4daef5e3b`.
+- Release workflow run `36698433347` succeeded.
+- Static validation, real Action preflight, release-candidate validation, tag validation, versioned tag creation, floating `v2` update, and GitHub Release publication all succeeded.
+- GitHub Release `v2.0.8` is published.
+- Live integration run `36698433209` succeeded.
+- README persistence was verified through a disposable branch and cleaned up successfully.
+- Floating `v2` resolves to the `v2.0.8` versioned tag.
+- External Marketplace verification remains the only unresolved distribution-surface item: the web page retrieved during this session still rendered the legacy `v1.0.3` snapshot, so manual Marketplace verification/update is required if that rendering is current rather than cached.
+
+**Documentation**
+- README, CHANGELOG, and this master project context are synchronized to `v2.0.8` and the new release-gate behavior.
 
 **Remaining**
-- Re-run v2.0.2 after the release-workflow fix.
-- Verify release preflight, floating v2, GitHub Release publication, and a consumer run using @v2.
+- Confirm the GitHub Marketplace listing displays the intended v2 Action-only content and current release version.
+- After Marketplace synchronization is confirmed, proceed to Phase 2 adoption/onboarding work.
 
 **Next action**
-- Run and verify v2.0.2 using the repaired single-run release workflow.
+- Verify and, if necessary, manually update the GitHub Marketplace listing for DevLens Repo Health.
 
 ## 20. Current working objective
 
