@@ -12,6 +12,8 @@
 
 No dashboard. No hosted database. No account required. The repository being scored is the user's own GitHub repository, identified automatically by `github.repository`.
 
+[GitHub Marketplace](https://github.com/marketplace/actions/devlens-repo-health) · [Latest v2.0.1 release](https://github.com/SamoTech/devlens/releases/tag/v2.0.1)
+
 </div>
 
 ---
@@ -78,7 +80,9 @@ jobs:
 
 Commit the workflow, open the **Actions** tab, and run **DevLens**. The Action automatically scores the repository where the workflow runs; you do not register the repository anywhere.
 
-For the default installation, `contents: write` is required because README persistence is enabled by default. `security-events: read` enables security-related API checks; DevLens remains conservative when those APIs are unavailable. ### Read-only installation
+For the default installation, `contents: write` is required because README persistence is enabled by default. `security-events: read` enables security-related API checks; DevLens remains conservative when those APIs are unavailable.
+
+### Read-only installation
 
 If you do not want DevLens to modify your README, use `update_readme: 'false'` and `contents: read`:
 
