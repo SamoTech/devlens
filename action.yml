@@ -17,6 +17,14 @@ inputs:
     description: 'Deprecated compatibility input'
     required: false
     default: ''
+  badge_style:
+    description: 'Shields.io badge style'
+    required: false
+    default: 'flat'
+  update_readme:
+    description: 'Update the README health block'
+    required: false
+    default: 'true'
   notify_discord:
     description: 'Discord webhook for the health report'
     required: false
