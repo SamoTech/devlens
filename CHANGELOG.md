@@ -2,25 +2,45 @@
 
 All notable changes to DevLens, newest first.
 
-## Unreleased
+## 2.0.1 — 2026-09-30
 
-> Target release: v2.0.0
+### Release and distribution
+- Established the automated v2 release flow.
+- Published the `v2.0.1` GitHub Release.
+- Updated the floating `v2` consumer tag to `v2.0.1`.
+- Hardened release triggering so a manual release creates only the versioned tag; the tag push owns the release operation.
+- Added strict `v2.x.x` release-tag validation.
+- Removed the hard-coded `2.0.0` Action-version assertion from release preflight.
+- Updated release workflow dependencies for the current GitHub Actions runtime.
 
-## 2.0.0 (planned)
+### Documentation and agent continuity
+- Updated the authoritative AI project context with verified v2.0.1 release state.
+- Documented the automated release architecture and floating `v2` policy.
+- Aligned README Marketplace and production-version information with the latest verified release.
+- Reinforced the repository rule that AI agents must read the README and master project context before project-level changes.
+
+### Verification
+- Release preflight executed the actual DevLens Action successfully.
+- Verified score: **85/100**.
+- Verified model: `action-v2-9d`.
+- Verified all nine scoring dimensions.
+- Verified `v2` was moved to the released version.
+
+## 2.0.0 — 2026-09-30
 
 ### Marketplace and release distribution
 - Prepared the v2 release for GitHub Marketplace distribution using the existing `DevLens Repo Health` listing.
-- The intended distribution path is the semantic GitHub release `v2.0.0` plus floating `v2` tag; no PyPI package is required.
+- The intended distribution path is the semantic GitHub release plus floating `v2` tag; no PyPI package is required.
 
 ### Security and release hardening
 - Pinned direct Python runtime dependencies in `requirements.txt` for reproducible Action startup.
 - Added live release preflight validation before tag creation.
-- Release workflow now refuses to overwrite an existing versioned release tag.
+- Release workflow refuses to overwrite an existing versioned release tag.
 
 ### Changed
 - DevLens is now a GitHub Action-only product with no dashboard, database, or Vercel runtime.
 - Removed the hosted dashboard, Next.js application, Redis persistence, and Vercel deployment configuration.
-- Repository selection is now implicit: the Action scores the GitHub repository in which the workflow runs.
+- Repository selection is implicit: the Action scores the GitHub repository in which the workflow runs.
 - README scoring is the primary persistent result surface.
 - Added a live GitHub API integration test that executes the real Action and validates its outputs.
 - Added safe `readme_branch` targeting for end-to-end README persistence tests.
