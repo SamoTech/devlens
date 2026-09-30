@@ -140,3 +140,25 @@ README persistence is also testable without mutating the production branch by se
 ## Marketplace
 
 DevLens is packaged as a single public GitHub Action repository with `action.yml` at the root. A Marketplace release is created from a semantic versioned GitHub release.
+
+
+## AI agent project instructions
+
+AI agents working on this repository must start by reading this `README.md`, then read the authoritative master project document:
+
+`docs/AI_PROJECT_CONTEXT.md`
+
+That document is the project's master source of truth for product direction, architecture, decisions, roadmap, current state, testing rules, and AI-agent operating rules.
+
+AI agents must:
+
+1. Read `README.md` first.
+2. Read `docs/AI_PROJECT_CONTEXT.md` before making project-level decisions or implementation changes.
+3. Inspect the current repository state and relevant source/workflows.
+4. Build their working task prompt from the documented objective, constraints, and acceptance criteria.
+5. Follow the documented product boundary and do not reintroduce removed architecture.
+6. Verify their work with appropriate tests and real workflow evidence where applicable.
+7. Update the project documentation whenever their work changes behavior, architecture, decisions, roadmap, testing, security, or project state.
+8. Leave the documentation accurate for the next AI agent.
+
+**Documentation is part of the implementation. If the code and project documentation disagree, investigate and restore consistency rather than silently choosing one.**
