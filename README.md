@@ -8,7 +8,7 @@
 
 # 🔭 DevLens
 
-**A GitHub Action that scores a repository in 9 dimensions and writes the result directly into its README.**
+**A GitHub Action that scores the repository where it runs across 9 transparent health dimensions.**
 
 No dashboard. No hosted database. No account required. The repository being scored is the user's own GitHub repository, identified automatically by `github.repository`.
 
@@ -47,11 +47,9 @@ The Action scores **the repository where it is installed**. There is no separate
 
 The weighted result is bounded to 0–100. DevLens does not artificially force a repository to 100.
 
-## Install
+## Install in 60 seconds
 
-Create:
-
-`.github/workflows/devlens.yml`
+Create `.github/workflows/devlens.yml` in the repository you want to score:
 
 ```yaml
 name: DevLens
@@ -78,9 +76,29 @@ jobs:
           badge_style: flat-square
 ```
 
-Commit the workflow and GitHub Actions will run DevLens against that repository.
+Commit the workflow, open the **Actions** tab, and run **DevLens**. The Action automatically scores the repository where the workflow runs; you do not register the repository anywhere.
 
-For public repositories, the standard `GITHUB_TOKEN` is sufficient for normal scoring. The workflow should grant only the permissions it needs; `contents: write` is required when `update_readme: true`, while `security-events: read` enables security-related API checks.
+For the default installation, `contents: write` is required because README persistence is enabled by default. `security-events: read` enables security-related API checks; DevLens remains conservative when those APIs are unavailable. ### Read-only installation
+
+If you do not want DevLens to modify your README, use `update_readme: 'false'` and `contents: read`:
+
+```yaml
+permissions:
+  contents: read
+  security-events: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Score repository
+        uses: SamoTech/devlens@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_readme: 'false'
+```
+
+This is the least-privilege option for scoring and reviewing the Actions summary without README writes.
 
 ## README result
 
@@ -112,6 +130,16 @@ Only the content between the markers is replaced. If the markers do not exist, D
 | `health_score` | Overall score from 0 to 100 |
 | `badge_url` | Shields.io badge URL for the current score |
 | `report_json` | Machine-readable report containing all nine dimensions |
+
+## Common installation problems
+
+**Permissions error:** The default installation writes `README.md`, so the workflow needs `contents: write`. For a read-only run, set `update_readme: 'false'` and use `contents: read`.
+
+**README was not updated:** Confirm `update_readme: 'true'` and `contents: write`. If `readme_branch` is set, that branch must be writable by the supplied token.
+
+**Security score is conservative:** GitHub security APIs can be unavailable or permission-restricted. DevLens deliberately does not convert unavailable security evidence into a high score.
+
+**Testing without changing the default branch:** Set `readme_branch` to a disposable branch. README persistence is designed to be testable without mutating the production branch.
 
 ## CI quality gate
 
