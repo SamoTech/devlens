@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """DevLens GitHub Action v2 — standalone 9-dimension repository health analysis"""
 import os, json, math, requests
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from github import Github, Auth
 
 GITHUB_TOKEN  = os.environ["GITHUB_TOKEN"]
-GROQ_API_KEY  = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL    = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
 BADGE_STYLE   = os.environ.get("BADGE_STYLE", "flat")
 UPDATE_README = os.environ.get("UPDATE_README", "true").lower() == "true"
 DISCORD_WH    = os.environ.get("DISCORD_WEBHOOK", "")
+README_BRANCH = os.environ.get("README_BRANCH", "").strip()
 REPO_NAME     = os.environ.get("REPO", "")
+GITHUB_API_URL = os.environ.get("GITHUB_API_URL", "https://api.github.com").rstrip("/")
 
-g    = Github(auth=Auth.Token(GITHUB_TOKEN))
+g    = Github(auth=Auth.Token(GITHUB_TOKEN), base_url=GITHUB_API_URL)
 repo = g.get_repo(REPO_NAME)
 now  = datetime.now(timezone.utc)
 
@@ -45,10 +45,7 @@ def score_readme():
 
 def score_activity():
     try:
-        month = now.month - 3
-        year  = now.year if month > 0 else now.year - 1
-        month = month if month > 0 else month + 12
-        since = datetime(year, month, now.day, tzinfo=timezone.utc)
+        since = now - timedelta(days=90)
         commits = list(repo.get_commits(since=since))
         n = len(commits)
         if n >= 30: return 100
@@ -123,14 +120,16 @@ def score_security():
     alerts = None
     try:
         response = requests.get(
-            f"https://api.github.com/repos/{REPO_NAME}/dependabot/alerts",
+            f"{GITHUB_API_URL}/repos/{REPO_NAME}/dependabot/alerts",
             headers={"Authorization": f"Bearer {GITHUB_TOKEN}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"},
             params={"state": "open", "per_page": 100}, timeout=15,
         )
         if response.status_code == 200: alerts = response.json()
     except Exception:
         pass
-    if alerts is None: return 70 if security_doc else 60
+    if alerts is None:
+        # The API may be unavailable or permission-restricted. Do not invent a high score.
+        return 30 if security_doc else 0
     score = 100 - (0 if security_doc else 3)
     for alert in alerts:
         severity = ((alert.get("security_advisory") or {}).get("severity") or "").lower()
@@ -163,7 +162,7 @@ def dim_bar(score):
 badge_url = (f"https://img.shields.io/badge/DevLens%20Health-{health}%2F100"
              f"-{badge_color(health)}?style={BADGE_STYLE}&logo=github")
 
-report = {"repo":REPO_NAME,"score_model":"action-v2-9d","health_score":health,"scores":scores,
+report = {"repo":REPO_NAME,"score_model":"action-v2-9d","action_version":"2.0.0","health_score":health,"scores":scores,
           "badge_url":badge_url,"generated_at":now.isoformat()}
 
 print(json.dumps(report, indent=2))
@@ -213,33 +212,6 @@ def build_table():
         rows += f"| {emoji} **{label}** | `{bar}` | ![{s}]({score_badge}) | {weight} |\n"
     return header + rows.rstrip()
 
-def get_ai_insight():
-    """Ask Groq for ONE sentence of insight. Returns empty string on any failure."""
-    if not GROQ_API_KEY:
-        return ""
-    prompt = (
-        f"The DevLens repo health score is {health}/100. "
-        f"Scores: {json.dumps(scores)}. "
-        "Write exactly ONE short sentence of actionable insight (no markdown, no heading). "
-        "Output ONLY that sentence."
-    )
-    try:
-        resp = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
-            json={"model": GROQ_MODEL, "messages": [{"role": "user", "content": prompt}], "max_tokens": 80},
-            timeout=15,
-        )
-        if resp.status_code == 200:
-            sentence = resp.json()["choices"][0]["message"]["content"].strip()
-            # Safety: reject anything that contains markdown table syntax
-            if "|" in sentence or "```" in sentence or "#" in sentence:
-                return ""
-            return sentence
-    except Exception as e:
-        print(f"Groq insight skipped: {e}")
-    return ""
-
 if UPDATE_README:
     try:
         rf      = repo.get_readme()
@@ -249,8 +221,7 @@ if UPDATE_README:
 
         # Build table first — guaranteed complete
         table   = build_table()
-        insight = get_ai_insight()
-        body    = table + ("\n\n" + insight if insight else "")
+        body    = table
         block   = f"{S_TAG}\n{body}\n{E_TAG}"
 
         if S_TAG in content and E_TAG in content:
@@ -261,16 +232,20 @@ if UPDATE_README:
             new = content + "\n\n" + block + "\n"
 
         if new != content:
-            repo.update_file(
-                rf.path,
-                f"docs: update DevLens health score {health}/100",
-                new, rf.sha
-            )
+            update_kwargs = {
+                "path": rf.path,
+                "message": f"docs: update DevLens health score {health}/100",
+                "content": new,
+                "sha": rf.sha,
+            }
+            if README_BRANCH:
+                update_kwargs["branch"] = README_BRANCH
+            repo.update_file(**update_kwargs)
             print(f"README updated. Score: {health}/100")
         else:
             print("README unchanged.")
     except Exception as e:
-        print(f"README update failed: {e}")
+        raise SystemExit(f"README update failed: {e}")
 
 if DISCORD_WH:
     try:
