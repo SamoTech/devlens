@@ -4,6 +4,10 @@ All notable changes to DevLens, newest first.
 
 ## Unreleased — 2026-09-30
 
+- Corrected Issue Response scoring to exclude pull requests from issue counts.
+- Added deterministic regression fixtures for issue-response scoring.
+- Updated live integration expectations for the `2.0.9` candidate.
+
 ### Documentation and distribution status
 - Verified by the Human Owner that the live GitHub Marketplace listing displays **DevLens Repo Health** as **Latest v2.0.8** with the current Action-only product content.
 - Closed the Marketplace publication/verification blocker and advanced the project to Phase 2 — Adoption and onboarding.

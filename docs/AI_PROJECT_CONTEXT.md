@@ -310,7 +310,7 @@ As of 2026-09-30:
 
 - `v2.0.0` exists as the original Marketplace release tag.
 - `v2.0.1` was previously published successfully.
-- `v2.0.8` is the latest verified release and was created and published by the automatic critical-change release workflow.
+- `v2.0.8` is the latest currently published release; `v2.0.9` is the pending candidate for the issue-response scoring correction.
 - The release preflight executed the real Action successfully and validated the reported Action version against the release version.
 - The floating `v2` tag was updated successfully to `v2.0.8`.
 - The automatic release workflow detects critical production paths on pushes to `main`, derives the release version from `scripts/devlens.py`, runs static validation and live Action preflight, updates `v2`, and publishes the GitHub Release.
@@ -331,10 +331,10 @@ As of 2026-09-30:
 - Vercel configuration is removed from the repository.
 - Legacy scanner code is removed.
 - Legacy Groq scoring dependencies/inputs are removed.
-- README, contributor, security, documentation, and changelog materials are aligned with v2.0.8.
+- README, contributor, security, documentation, and changelog materials are aligned with the current v2.0.9 candidate where applicable.
 - Live GitHub integration has executed the actual Action successfully.
 - README persistence has been tested on a disposable branch and verified through GitHub API.
-- Current release line is v2; `v2.0.8` is the latest verified version.
+- Current release line is v2; `v2.0.8` is the latest verified published version, with `v2.0.9` pending validation.
 - Floating `v2` points to the latest verified v2 release (`v2.0.8`).
 - Repository release automation has been hardened so manual releases complete in one workflow run and do not depend on a token-generated tag push triggering a second workflow.
 - Repository metadata may still contain stale external/homepage information and should be verified before treating metadata cleanup as complete.
@@ -389,7 +389,7 @@ Remaining Phase 1 operational check:
 
 ### Phase 3 — Scoring quality and observability — NEXT
 
-- Expand automated edge-case tests.
+- **IN PROGRESS:** Expand automated edge-case tests, beginning with Issue Response.
 - Improve evidence shown for individual dimension scores.
 - Reduce unnecessary API calls and startup cost.
 - Improve sparse-history behavior.
@@ -498,7 +498,7 @@ The repository adopts the AI CEO/CIO → COO execution model and treats document
 
 ### D-012 — Action report version must match implementation
 **Status:** DECISION / ACTIVE.  
-The machine-readable report action version must identify the actual DevLens implementation version. This is enforced by release preflight and live integration validation. The current verified implementation reports `2.0.8`.
+The machine-readable report action version must identify the actual DevLens implementation version. This is enforced by release preflight and live integration validation. The current verified implementation candidate reports `2.0.9`; the production release remains `v2.0.8` until release preflight completes.
 
 ### D-010 — Automated semantic v2 release flow
 **Status:** DECISION / ACTIVE.  
