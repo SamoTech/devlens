@@ -382,7 +382,8 @@ Remaining Phase 1 operational check:
 - **COMPLETED:** Added common first-run failure/remediation guidance while preserving the existing Action contract.
 - **COMPLETED:** Clarified permissions/security implications for README-enabled versus read-only installations.
 - **COMPLETED:** Added concrete onboarding examples for application/service repositories, open-source libraries/packages, monorepos/high-change repositories, and restricted/read-only repositories.
-- **NEXT:** Use real Action failures to refine troubleshooting guidance and identify any remaining onboarding friction.
+- **VERIFIED:** Real PR-triggered onboarding validation run `36700821668` completed successfully using the repository's live integration workflow. The actual composite Action executed successfully and the existing integration harness passed.
+- **NEXT:** Use real Action failures from future runs to refine troubleshooting guidance and identify any remaining onboarding friction.
 
 ### Phase 3 — Scoring quality and observability
 
