@@ -17,7 +17,19 @@ No dashboard. No hosted database. No account required. The repository being scor
 ---
 
 <!-- DEVLENS:START -->
-> Add the workflow below to score this repository and let DevLens maintain this block automatically.
+![DevLens Health](https://img.shields.io/badge/DevLens%20Health-85%2F100-brightgreen?style=flat-square&logo=github) **Overall health: 85/100** — *Last updated: 2026-09-30*
+
+| Dimension | Progress | Score | Weight |
+|---|---|---|---|
+| 📝 **README Quality** | `███████░░░` | ![66](https://img.shields.io/badge/66-green?style=flat-square) | 20% |
+| 🔥 **Commit Activity** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
+| 🌿 **Repo Freshness** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
+| 📚 **Documentation** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
+| ⚙️ **CI/CD Setup** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
+| 🎯 **Issue Response** | `█████████░` | ![94](https://img.shields.io/badge/94-brightgreen?style=flat-square) | 10% |
+| ⭐ **Community Signal** | `██░░░░░░░░` | ![16](https://img.shields.io/badge/16-red?style=flat-square) | 5% |
+| 🔀 **PR Velocity** | `████████░░` | ![85](https://img.shields.io/badge/85-brightgreen?style=flat-square) | 10% |
+| 🔐 **Security** | `███████░░░` | ![70](https://img.shields.io/badge/70-green?style=flat-square) | 5% |
 <!-- DEVLENS:END -->
 
 ## What DevLens does
@@ -92,101 +104,3 @@ DevLens maintains this block automatically:
 ```markdown
 <!-- DEVLENS:START -->
 ...current score and dimension report...
-<!-- DEVLENS:END -->
-```
-
-A typical result looks like:
-
-```text
-DevLens Health: 87/100
-
-README Quality    76
-Commit Activity   100
-Repo Freshness    100
-Documentation     96
-CI/CD Setup       100
-Issue Response    94
-Community Signal  16
-PR Velocity       85
-Security          70
-```
-
-The README is the persistent result. No DevLens account or hosted storage is required.
-
-## CI gating
-
-Use `fail_on_score_below` when the score should be a real quality gate:
-
-```yaml
-- name: Score repository
-  uses: SamoTech/devlens@main
-  with:
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-    update_readme: 'true'
-    fail_on_score_below: '80'
-```
-
-This lets teams enforce their own minimum repository-health threshold.
-
-## Action outputs
-
-The Action exposes:
-
-- `health_score` — integer from 0 to 100.
-- `badge_url` — Shields.io badge URL.
-- `report_json` — complete machine-readable 9-dimension report.
-
-Example:
-
-```yaml
-- name: Score repository
-  id: devlens
-  uses: SamoTech/devlens@main
-  with:
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-
-- name: Use DevLens score
-  run: |
-    echo "Repository health: ${{ steps.devlens.outputs.health_score }}/100"
-```
-
-## Real integration testing
-
-DevLens itself tests the actual Action against GitHub's live API in CI. The integration workflow executes the same composite Action a user installs, validates the outputs, and verifies that the score is a real 0–100 result.
-
-This is deliberately different from unit-only tests: the Action must successfully authenticate to GitHub, inspect a real repository, calculate all nine dimensions, and produce its outputs.
-
-## Design principles
-
-DevLens is intentionally GitHub-native:
-
-- GitHub Actions is the execution platform.
-- GitHub API is the data source.
-- README is the persistent score surface.
-- GitHub Actions job summaries provide the execution report.
-- Action outputs provide machine-readable integration points.
-- There is no hosted dashboard.
-- There is no required DevLens account.
-- There is no required Redis/database.
-- There is no Vercel dependency.
-
-## Development
-
-The core implementation is:
-
-```text
-action.yml
-scripts/devlens.py
-```
-
-Validate the Python Action locally:
-
-```bash
-python -m py_compile scripts/devlens.py
-```
-
-The production behavior is exercised by the GitHub Actions integration workflow.
-
-## License
-
-MIT
