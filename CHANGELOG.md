@@ -7,6 +7,8 @@ All notable changes to DevLens, newest first.
 ### Documentation and distribution status
 - Verified by the Human Owner that the live GitHub Marketplace listing displays **DevLens Repo Health** as **Latest v2.0.8** with the current Action-only product content.
 - Closed the Marketplace publication/verification blocker and advanced the project to Phase 2 — Adoption and onboarding.
+- Improved the README onboarding funnel with explicit recommended, read-only, and CI-gate installation paths.
+- Added a first-run checklist and common first-run failure/remediation guidance, including permissions and README persistence checks.
 
 ## 2.0.8 — 2026-09-30
 
