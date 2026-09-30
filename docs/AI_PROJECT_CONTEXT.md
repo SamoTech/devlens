@@ -18,148 +18,132 @@ Every important project statement should be classified using one of these labels
 
 Agents must never convert a **PLAN**, **BLOCKER**, or **EXPERIMENT** into a **FACT** merely because it appears in documentation. When status changes, update the classification and supporting evidence.
 
-## 1. Purpose of this document
+## 1. Purpose and authority
 
 This file is the persistent operating context for DevLens.
 
-It exists so that a new AI agent can enter the repository, understand the product without relying on previous chat history, form its work prompt from the documented project state, execute work within the product boundaries, and leave the repository in a state that the next agent can continue from.
+It exists so a new AI agent can enter the repository, understand the product without relying on previous chat history, form its work prompt from documented project state, execute work within product boundaries, and leave a state the next agent can continue from.
 
-This document is the **master source of truth for project direction, architecture, decisions, roadmap, operating rules, and current-state handoff**.
-
-The repository itself is the source of truth for implementation. GitHub Actions runs, commit history, and verified repository files are the source of truth for implementation status.
+This is the **master source of truth for product direction, architecture, decisions, roadmap, operating rules, and current-state handoff**. The repository itself is authoritative for implementation; GitHub Actions runs, commit history, releases, tags, and verified repository files are authoritative for implementation and release status.
 
 ### Authority hierarchy
 
-When sources conflict, use this order:
+When sources conflict:
 
 1. Current implementation in the repository.
 2. This master project document for product direction, decisions, roadmap, and agent rules.
-3. `README.md` for public product behavior and user-facing usage.
+3. `README.md` for public product behavior and usage.
 4. Other repository documentation.
 5. Historical commits, old issues, old PRs, cached search results, or previous AI conversations.
 
-If a conflict reveals that the implementation violates an explicit product decision, do not silently reinterpret the decision. Document the discrepancy and fix the implementation or escalate the decision.
+If implementation violates an explicit product decision, do not silently reinterpret the decision. Document the discrepancy and fix the implementation or escalate the decision.
 
 ## 2. AI agent startup protocol
 
-Every AI agent entering this repository must follow this sequence:
+Every AI agent entering this repository must:
 
 1. Read `README.md`.
 2. Read `docs/AI_PROJECT_CONTEXT.md`.
-3. Inspect the current Git status and relevant current files.
-4. Read the specific implementation and workflow files related to the requested task.
-5. Determine whether the requested work is consistent with the product boundary and roadmap.
-6. Form the agent's working prompt from the current documented objective, constraints, and acceptance criteria.
+3. Inspect current Git status/current branch and relevant current files.
+4. Inspect the implementation and workflow files related to the requested task.
+5. Determine whether the requested work fits the product boundary and roadmap.
+6. Form a task prompt from the current objective, constraints, acceptance criteria, and relevant decision/roadmap item.
 7. Make the smallest correct change that advances the objective.
-8. Run the appropriate validation, preferably the real GitHub Actions integration workflow for Action behavior.
-9. Update documentation whenever the work changes product behavior, architecture, decisions, roadmap, operational rules, or project state.
-10. Leave a clear handoff: what changed, what was verified, what remains, and what the next agent should do.
+8. Run appropriate validation, preferably the real GitHub Actions integration workflow for Action behavior.
+9. Verify claims against actual workflow/release/tag evidence when applicable.
+10. Update affected documentation in the same work session.
+11. Leave a clear handoff: objective, implementation, verification, documentation changes, remaining work, and next action.
 
-An agent must not begin implementation from an isolated user prompt while ignoring the repository's documented context.
+Do not implement an isolated user request while ignoring this context.
 
 ## 3. Product definition
 
 **DevLens is a GitHub Action that scores a repository's engineering health across nine transparent dimensions and publishes the result inside the repository's GitHub context.**
 
-The primary user experience is:
+Primary UX:
 
 **Install Action → run analysis → inspect score/report → optionally persist report in README → optionally gate CI.**
 
-DevLens operates on the repository where the Action is installed.
+DevLens operates on the repository where the Action is installed. No DevLens account, hosted database, or DevLens-hosted application is required.
 
-The product is intentionally GitHub-native and repository-local. It does not require users to create a DevLens account or send their repository to a DevLens-hosted application.
-
-### Current product outputs
-
-DevLens can provide:
+### Current outputs
 
 - Overall health score: 0–100.
 - Nine dimension scores.
 - GitHub Actions job summary.
-- `health_score` Action output.
-- `badge_url` Action output.
-- `report_json` Action output.
+- `health_score` output.
+- `badge_url` output.
+- `report_json` output.
 - Optional README persistence between managed markers.
-- Optional CI failure threshold through `fail_on_score_below`.
+- Optional CI threshold through `fail_on_score_below`.
 - Optional Discord notification.
 
-## 4. Problem DevLens solves
+## 4. Hard product boundary
 
-Repositories accumulate signals about maintainability, activity, documentation, automation, collaboration, and security, but those signals are distributed across GitHub.
+DevLens must remain:
 
-DevLens turns those existing repository signals into a compact, reproducible health model that is visible where developers already work: GitHub.
-
-The core value proposition is not a hosted analytics dashboard. The core value proposition is **a reusable GitHub-native Action that creates an understandable health signal inside the repository and CI workflow itself**.
-
-## 5. Hard product boundary
-
-These are product constraints, not temporary implementation details.
-
-### DevLens must remain
-
-- A GitHub Action-first product.
-- Usable by adding a workflow to the user's repository.
-- Repository-local in its execution and output model.
-- Transparent enough that users can understand why a score changed.
-- Compatible with GitHub Actions and GitHub API semantics.
+- GitHub Action-first.
+- Repository-local in execution and output.
+- Transparent and evidence-based.
 - Useful without a DevLens account.
-- Useful without a DevLens-hosted database.
+- Useful without DevLens-hosted state.
 - Useful without a DevLens web dashboard.
 
-### Do not reintroduce
+Do not reintroduce:
 
-- A hosted DevLens dashboard.
-- A DevLens SaaS account/login requirement.
-- Supabase or another hosted database as a core dependency.
-- A Vercel-hosted DevLens application as the product runtime.
-- A fleet/cloud administration panel.
-- A mandatory phone, desktop, browser, or SSH controller.
-- A mandatory external LLM or AI provider for scoring.
-- An opaque AI-generated health score.
-- A separate scanner product that duplicates the Action.
-- Architecture that requires users to register repositories with DevLens before the Action can run.
+- Hosted DevLens dashboard.
+- DevLens SaaS account/login requirement.
+- Supabase or another hosted database as core dependency.
+- Vercel-hosted DevLens application as product runtime.
+- Fleet/cloud administration panel.
+- Mandatory phone, desktop, browser, or SSH controller.
+- Mandatory external LLM/AI provider for scoring.
+- Opaque AI-generated health score.
+- Separate scanner product duplicating the Action.
+- Repository registration with DevLens before the Action can run.
 
-A future enhancement may add capabilities around the Action, but it must preserve the Action-only product boundary unless the product owner explicitly changes that decision.
+A future enhancement may add capabilities around the Action only if it preserves this boundary unless the product owner explicitly changes it.
 
-## 6. Product principles
+## 5. Product principles
 
-1. **GitHub-native:** The repository and GitHub Actions are the primary product surface.
-2. **Zero hosted service:** Core functionality must work without DevLens infrastructure.
-3. **Transparent scoring:** Scores must come from documented signals and deterministic rules.
-4. **Evidence over claims:** Do not manufacture a score when evidence is unavailable.
-5. **Safe persistence:** README writes must be bounded to the DevLens-managed block.
-6. **CI-friendly:** Outputs and failure thresholds must work naturally in workflows.
-7. **Least privilege:** Workflows should request only the permissions required for their behavior.
-8. **Versioned usage:** Production users should consume a released major version such as `@v2`, not `@main`.
-9. **Backward compatibility:** Changes to Action inputs/outputs and scoring behavior require deliberate versioning.
-10. **Verifiable delivery:** Never declare a feature complete based only on source inspection when an end-to-end test can verify it.
+1. **GitHub-native:** GitHub Actions and the repository are the primary product surface.
+2. **Zero hosted service:** Core functionality works without DevLens infrastructure.
+3. **Transparent scoring:** Scores come from documented signals and deterministic rules.
+4. **Evidence over claims:** Missing evidence must not be converted into an unjustifiably high score.
+5. **Safe persistence:** README writes are bounded to the managed block.
+6. **CI-friendly:** Outputs and thresholds work naturally in workflows.
+7. **Least privilege:** Workflows request only required permissions.
+8. **Versioned usage:** Production users consume released major versions such as `@v2`, not `@main`.
+9. **Backward compatibility:** Input/output/scoring changes require deliberate versioning.
+10. **Verifiable delivery:** Do not declare Action behavior complete from source inspection when end-to-end evidence is available.
 11. **Documentation continuity:** Project knowledge must survive across agents and conversations.
-12. **Small, purposeful changes:** Avoid refactors that do not advance the product objective.
+12. **Small, purposeful changes:** Avoid unrelated refactors.
 
-## 7. Current architecture
+## 6. Current architecture
 
-The core implementation is intentionally small:
+Core implementation:
 
-- `action.yml` — public GitHub Action definition, inputs, outputs, permissions expectations, and execution entry point.
-- `scripts/devlens.py` — repository health analysis, scoring, reporting, README persistence, optional notification, and CI gate behavior.
+- `action.yml` — public Action definition, inputs, outputs, and execution entry point.
+- `scripts/devlens.py` — analysis, scoring, reporting, README persistence, optional notification, and CI gate.
 - `.github/workflows/` — validation, live integration, and release automation.
-- `README.md` — public product documentation and installation guide.
-- `docs/` — project and technical documentation.
+- `README.md` — public product documentation and installation.
+- `docs/` — project/technical documentation.
 - `CONTRIBUTING.md` — contributor workflow.
 - `SECURITY.md` — security policy.
-- `CHANGELOG.md` — release history and planned release notes.
+- `CHANGELOG.md` — release history.
 
-The current implementation uses Python with `requests` and `PyGithub`.
+Runtime is Python with pinned direct dependencies in `requirements.txt`:
 
-The Action supports GitHub Enterprise API configuration through `GITHUB_API_URL`.
+- `requests==2.34.2`
+- `PyGithub==2.10.0`
 
-## 8. Scoring specification
+The Action supports GitHub Enterprise through `GITHUB_API_URL`.
+
+## 7. Scoring specification
 
 Current model identifier:
 
 `action-v2-9d`
-
-Current dimensions and weights:
 
 | Dimension | Weight |
 |---|---:|
@@ -173,45 +157,43 @@ Current dimensions and weights:
 | PR Velocity | 10% |
 | Security | 5% |
 
-The weighted health score is bounded to 0–100.
+The weighted health score is bounded to 0–100 and is not artificially forced to 100.
 
-The implementation must not artificially force a repository to 100.
-
-### Important scoring rules
+Important rules:
 
 - Commit activity uses a 90-day window.
-- Community signal is derived from repository activity signals and must not be inflated simply to produce a perfect score.
-- Documentation scoring reflects the presence and quality of expected project documentation.
-- Security scoring must remain conservative when the relevant GitHub security API is unavailable.
+- Community signal is derived from repository activity signals.
+- Documentation scoring reflects expected project documentation.
+- Security scoring remains conservative when relevant GitHub security APIs are unavailable.
 - API unavailability must not be converted into an unjustifiably high security score.
-- Any scoring-model change must update the implementation, tests, public documentation, and this document.
+- Scoring-model changes require implementation, tests, public docs, changelog, and this document to be updated.
 
-The exact scoring implementation in `scripts/devlens.py` is authoritative for current behavior. This section describes the product contract and must be updated when that contract changes.
+The exact implementation in `scripts/devlens.py` is authoritative for current behavior.
 
-## 9. Action contract
+## 8. Action contract
 
-Current inputs:
+Inputs:
 
 - `github_token` — required.
 - `badge_style` — default `flat`.
 - `update_readme` — default `true`.
-- `readme_branch` — empty means the repository default branch.
+- `readme_branch` — empty means repository default branch.
 - `notify_discord` — optional.
 - `fail_on_score_below` — optional.
 
-Current outputs:
+Outputs:
 
 - `health_score`
 - `badge_url`
 - `report_json`
 
-Production consumers should use:
+Production reference:
 
 `SamoTech/devlens@v2`
 
-Do not change the documented production reference to `@main`.
+Do not replace the documented production reference with `@main`.
 
-## 10. README persistence contract
+## 9. README persistence contract
 
 When `update_readme: true`, DevLens maintains:
 
@@ -221,35 +203,29 @@ When `update_readme: true`, DevLens maintains:
 <!-- DEVLENS:END -->
 ```
 
-Only the managed block is replaced.
+Only that managed block is replaced. If markers do not exist, the implementation creates/appends the block.
 
-If the markers do not exist, the implementation creates/appends the block.
+Target branch:
 
-The target branch is:
+- `readme_branch` when supplied.
+- Otherwise repository default branch.
 
-- `readme_branch` when explicitly supplied.
-- Otherwise the repository default branch.
+Explicit README persistence failure must fail the Action. With `update_readme: false`, the Action must not intentionally mutate README.
 
-If README persistence is explicitly requested and the write fails, the Action must fail rather than silently reporting a successful persistence operation.
+## 10. CI and security contract
 
-When `update_readme: false`, the Action must not intentionally mutate the README.
-
-## 11. CI and security contract
-
-The recommended workflow grants:
+Recommended permissions:
 
 - `contents: write` when README persistence is enabled.
 - `security-events: read` when security API checks are desired.
 
-The Action must honor the supplied GitHub token and GitHub API base URL.
+The Action honors the supplied GitHub token and GitHub API base URL.
 
-The `fail_on_score_below` input is a CI policy mechanism. It must not change the calculated score; it only determines whether the Action exits successfully after scoring.
+`fail_on_score_below` is a CI policy mechanism only; it does not alter the calculated score.
 
-No secrets, tokens, or webhook credentials may be committed to the repository.
+No secrets, tokens, or webhook credentials may be committed.
 
-## 12. Testing contract
-
-DevLens must be validated at multiple levels.
+## 11. Testing contract
 
 ### Static validation
 
@@ -257,220 +233,187 @@ At minimum:
 
 - Python compilation succeeds.
 - Action metadata is valid.
-- Documentation remains consistent with current inputs/outputs.
+- Pinned runtime dependencies are present.
+- Documentation remains consistent with inputs/outputs.
 
 ### Live Action validation
 
-The live integration workflow must execute the actual Action and verify:
+The release preflight and integration workflows execute the actual composite Action and verify:
 
-- score is within 0–100;
+- score is 0–100;
 - report JSON is valid;
 - expected report keys exist;
 - model identifier is `action-v2-9d`;
-- action version is correct;
-- all nine dimensions are present;
+- action version is valid `2.x.x`;
+- all nine dimensions exist;
 - badge output is produced.
 
 ### README persistence validation
 
-Persistence must be tested against a disposable branch, not the production branch.
+Persistence must be tested against a disposable branch, not production. The integration workflow must create the branch, execute the real Action, verify managed markers through GitHub API, and clean up the branch.
 
-The integration workflow should:
+Claims of successful persistence require actual integration evidence or equivalent direct verification.
 
-1. Create a temporary branch.
-2. Run the actual Action with `update_readme: true`.
-3. Verify the managed README markers through the GitHub API.
-4. Delete the temporary branch even when the test fails.
+## 12. Release and distribution policy
 
-A claim that README persistence works must be backed by an actual successful integration run or equivalent direct verification.
+The v2 release line uses:
 
-## 13. Release and versioning policy
-
-The current target is the v2 release line.
-
-The intended release model is:
-
-- semantic versioned release such as `v2.0.0`;
+- semantic versioned releases such as `v2.0.1`;
 - floating major tag `v2`;
-- production workflows consume `@v2`;
-- release notes describe user-visible changes;
-- release status is not considered complete until the release/tag has been verified.
+- production consumption through `@v2`;
+- GitHub Releases;
+- GitHub Marketplace distribution.
 
-Do not call a release "shipped" merely because `CHANGELOG.md` says it is planned.
+### Automated release flow
 
-The repository's release workflow is the intended mechanism for creating the versioned tag, updating the floating major tag, and publishing the GitHub release.
+`.github/workflows/release.yml` is authoritative for release automation.
 
-Marketplace publication is a release/distribution step, not proof that the implementation itself is complete.
+Manual release:
 
-## 14. Current verified state
+1. Run **Create Release** via `workflow_dispatch`.
+2. Supply a strict `v2.x.x` version tag.
+3. The dispatch job creates only the versioned tag.
+4. The resulting tag push triggers the release job exactly once.
+5. Release preflight runs static validation and the real Action.
+6. The release job updates the floating `v2` tag to that version.
+7. GitHub Release is published.
+
+Future version-tag pushes matching `v2.*.*` also trigger the release job.
+
+The workflow must not hard-code a specific patch/minor Action version. Preflight validates that the Action reports a valid `2.x.x` version.
+
+The floating `v2` tag is intentionally mutable; versioned release tags are not overwritten.
+
+### Current verified release state
+
+As of 2026-09-30:
+
+- `v2.0.0` exists as the original Marketplace release tag.
+- `v2.0.1` was created by the automated release workflow.
+- `v2` exists and was successfully moved to `v2.0.1`.
+- `v2.0.1` GitHub Release was published successfully.
+- Release preflight executed the real Action and produced **85/100** using `action-v2-9d`.
+- The release run verified all nine score keys and a valid 2.x.x Action version.
+- Release workflow hardening was committed in `7f7df1aae8e1ddd8be3c4d19265a8810eb66c9c7`.
+- The release workflow run triggered by that commit was observed running successfully through the bootstrap job.
+- Production usage is `SamoTech/devlens@v2`.
+
+Marketplace publication status must be verified separately from GitHub Release status. A GitHub Release is not automatically treated as Marketplace publication unless GitHub shows the Marketplace association.
+
+## 13. Current verified project state
 
 As of 2026-09-30:
 
 - Product architecture is Action-only.
-- Dashboard code has been removed from the main product.
-- Vercel configuration has been removed from the repository.
-- Legacy scanner code has been removed.
-- Legacy Groq scoring dependencies/inputs have been removed.
-- README, contributor, security, documentation, and changelog materials have been aligned with v2.
-- Live GitHub integration has successfully executed the actual Action.
-- README persistence has successfully been tested on a disposable branch and verified through the GitHub API.
-- Current repository state has no open PRs and no open issues.
-- v2.0.0 is planned but must not be represented as already released until the release/tag is actually verified.
-- GitHub repository metadata still has legacy Vercel homepage information and requires cleanup.
-- The old Vercel project may still exist externally; repository-side removal of Vercel configuration does not mean the Vercel project has been deleted.
+- Dashboard code is removed from the main product.
+- Vercel configuration is removed from the repository.
+- Legacy scanner code is removed.
+- Legacy Groq scoring dependencies/inputs are removed.
+- README, contributor, security, documentation, and changelog materials are aligned with v2, subject to the current release-state documentation updates.
+- Live GitHub integration has executed the actual Action successfully.
+- README persistence has been tested on a disposable branch and verified through GitHub API.
+- Current release line is v2; `v2.0.1` is the latest verified version.
+- Floating `v2` points to the latest verified v2 release.
+- Repository release automation has been hardened to avoid duplicate manual/tag-triggered releases.
+- Repository metadata may still contain stale external/homepage information and should be verified before treating metadata cleanup as complete.
+- Any external Vercel project state must be verified separately; removing repository configuration does not prove external project deletion.
 
-When updating this section, include concrete verification evidence such as commit SHA, workflow run ID, or direct repository state.
+## 14. Roadmap
 
-## 15. Roadmap
-
-Roadmap entries are plans, not facts. An agent must not represent a PLAN as implemented.
+Roadmap entries are **PLAN**, not facts.
 
 ### Phase 0 — Foundation — COMPLETE
 
-- Establish Action-only architecture.
-- Remove hosted dashboard architecture.
+- Action-only architecture.
+- Remove hosted dashboard.
 - Remove legacy scanner.
 - Remove mandatory external AI scoring.
-- Stabilize the 9-dimension v2 scoring model.
-- Add README persistence.
-- Add configurable README branch.
-- Add CI threshold support.
-- Add live integration testing.
-- Add disposable-branch README persistence testing.
-- Align project documentation.
+- Stabilize 9-dimension v2 scoring.
+- README persistence.
+- Configurable README branch.
+- CI threshold.
+- Live integration testing.
+- Disposable-branch README persistence testing.
+- Documentation alignment.
 
-### Phase 1 — Release and distribution — NEXT
+### Phase 1 — Release and distribution — COMPLETE
 
-**Goal:** make the Action easy to install and safely consume.
+- Establish v2 release line.
+- Establish floating `v2` tag.
+- Automated versioned release workflow.
+- Release preflight.
+- Pinned runtime dependencies.
+- GitHub Marketplace distribution path.
+- End-to-end release verification.
 
-Planned work:
+Remaining Phase 1 operational check:
 
-- Verify and publish v2.0.0.
-- Maintain the `v2` major tag.
-- Complete GitHub Marketplace publication.
-- Clean stale repository metadata.
-- Verify the public installation path end-to-end.
-- Ensure release documentation matches the shipped artifact.
+- Verify the Marketplace listing reflects the latest intended release state.
+- Clean any stale repository metadata.
 
-### Phase 2 — Adoption and onboarding
-
-**Goal:** reduce friction between discovering DevLens and successfully installing it.
-
-Candidate work:
+### Phase 2 — Adoption and onboarding — NEXT
 
 - Improve README installation flow.
 - Add clearer examples for common repository types.
-- Improve failure messages and remediation guidance.
-- Document permissions and security implications precisely.
+- Improve failure messages/remediation guidance.
+- Document permissions/security implications precisely.
 - Provide troubleshooting based on real Action failures.
-
-These are planned candidates, not committed features.
 
 ### Phase 3 — Scoring quality and observability
 
-**Goal:** improve signal quality without sacrificing transparency.
-
-Candidate work:
-
-- Expand automated edge-case tests for every scoring dimension.
+- Expand automated edge-case tests.
 - Improve evidence shown for individual dimension scores.
-- Reduce unnecessary API calls and Action startup cost.
-- Improve behavior for repositories with sparse history.
+- Reduce unnecessary API calls and startup cost.
+- Improve sparse-history behavior.
 - Improve GitHub Enterprise compatibility.
-- Establish regression fixtures for scoring changes.
+- Establish regression fixtures.
 
 ### Phase 4 — Ecosystem integrations
 
-Only pursue integrations that preserve the Action-first boundary.
-
-Potential examples include richer GitHub-native reporting, workflow annotations, or other repository-local outputs.
-
-Do not introduce a hosted database or dashboard merely to support an integration.
+Only pursue integrations that preserve the Action-first boundary, such as richer GitHub-native reporting or workflow annotations.
 
 ### Phase 5 — Advanced repository-local capabilities
 
-Potential future capabilities may include richer PR/CI feedback, historical artifacts stored in the user's own repository/workflow infrastructure, or additional machine-readable outputs.
+Candidates may include richer PR/CI feedback, repository-owned historical artifacts, and additional machine-readable outputs. Each candidate must preserve GitHub-native execution, no DevLens account, no DevLens-hosted state, transparent scoring, and end-to-end testability.
 
-Every candidate must be evaluated against:
-
-- Does it remain GitHub-native?
-- Does it avoid requiring a DevLens account?
-- Does it avoid requiring DevLens-hosted state?
-- Is the value clear enough to justify added complexity?
-- Can it be tested end-to-end?
-- Does it preserve transparent scoring?
-
-## 16. Enhancement backlog
-
-Potential improvements should be evaluated and explicitly classified before implementation:
-
-- Action dependency/startup optimization.
-- More comprehensive scoring edge-case tests.
-- Better score evidence and explainability.
-- API-call efficiency/caching where safe.
-- GitHub Enterprise compatibility coverage.
-- Permission minimization.
-- Stronger security evidence when GitHub exposes it.
-- Improved CI annotations.
-- Optional richer GitHub-native reporting.
-- Better release automation and immutable release verification.
-
-Backlog ideas are not commitments. Agents must not silently convert them into product requirements.
-
-## 17. AI agent development rules
+## 15. AI agent development rules
 
 Every AI agent must:
 
 - Read `README.md` first.
 - Read this master document before project-level implementation.
-- Use the documented product boundary to interpret ambiguous requests.
-- Build its task prompt from the current objective, constraints, acceptance criteria, and relevant roadmap item.
-- Inspect current implementation before proposing or applying architectural changes.
-- Prefer the smallest change that solves the requested problem.
-- Preserve existing working behavior unless the task explicitly changes it.
-- Run appropriate tests after implementation.
-- Use actual workflow/run evidence when claiming GitHub Action behavior is verified.
-- Update documentation when implementation changes behavior.
-- Update this master document when product direction, architecture, roadmap, decisions, operating rules, or verified state changes.
-- Keep `README.md` aligned with public behavior.
-- Keep `CHANGELOG.md` aligned with release-impacting changes.
-- Record important architectural/product decisions in the decision log below.
-- Leave a clear handoff for the next agent.
+- Treat the current repository and current GitHub state as authoritative for implementation status.
+- Use documented product boundaries to resolve ambiguity.
+- Build its task prompt from objective, constraints, acceptance criteria, and relevant roadmap/decision.
+- Inspect current implementation before architectural changes.
+- Prefer the smallest correct change.
+- Preserve working behavior unless the task explicitly changes it.
+- Run appropriate tests.
+- Use real workflow/release evidence for claims about Action behavior.
+- Update affected documentation in the same work session.
+- Record important product/architecture decisions in the decision log.
+- Leave a clear handoff.
 
 An AI agent must not:
 
 - Reintroduce the dashboard without an explicit product decision.
 - Reintroduce Vercel/Supabase as core architecture.
-- Add an external AI dependency simply because it is convenient.
-- Claim tests passed without running or inspecting evidence.
-- Claim a release is shipped when it is only planned.
-- Treat stale search results or historical code as current architecture.
-- Delete working behavior without understanding its product role.
-- Add undocumented product behavior and leave the master documentation stale.
-- Change scoring weights or semantics without updating the scoring specification and changelog.
+- Add external AI scoring for convenience.
+- Claim tests passed without evidence.
+- Claim a release is shipped when only planned.
+- Treat historical code/search results as current architecture.
+- Delete working behavior without understanding its role.
+- Add undocumented product behavior.
+- Change scoring weights/semantics without updating specification and changelog.
+- Replace `@v2` production usage with `@main`.
+- Treat a floating major tag as immutable.
+- Assume Marketplace publication from a GitHub Release alone.
 
-## 18. Documentation maintenance rule
+## 16. Documentation maintenance rule
 
 **Documentation is part of the implementation.**
 
-If an agent changes any of the following, it must review and update the relevant documentation in the same work session:
-
-- Product scope.
-- Product boundary.
-- Action inputs or outputs.
-- Scoring dimensions or weights.
-- Scoring behavior.
-- README persistence.
-- Permissions/security behavior.
-- Workflows.
-- Release process.
-- Architecture.
-- Roadmap.
-- Testing contract.
-- Known blockers.
-- Important decisions.
-
-At minimum, the agent must check:
+Whenever an agent changes product scope, architecture, Action inputs/outputs, scoring, README persistence, permissions, workflows, release process, roadmap, testing contract, security behavior, blockers, or important decisions, it must review:
 
 - `README.md`
 - `docs/AI_PROJECT_CONTEXT.md`
@@ -479,81 +422,58 @@ At minimum, the agent must check:
 - `SECURITY.md`
 - `CHANGELOG.md`
 
-Not every change requires editing every file, but every affected document must remain accurate.
+Not every file must be edited every time. Every affected file must remain accurate.
 
-## 19. Decision log
+If code and documentation disagree, investigate the repository and GitHub evidence and restore consistency.
+
+## 17. Decision log
 
 ### D-001 — Action-only product
-
-**Decision:** DevLens is a GitHub Action product rather than a hosted dashboard/SaaS.
-
-**Status:** DECISION / ACTIVE.
-
-**Consequence:** The repository where DevLens is installed is the primary product context. No hosted account or database is required.
+**Status:** DECISION / ACTIVE.  
+DevLens is a GitHub Action product rather than hosted dashboard/SaaS.
 
 ### D-002 — Dashboard removed
-
-**Decision:** The dashboard is not part of the current product.
-
-**Status:** DECISION / ACTIVE.
-
-**Consequence:** Agents must not rebuild dashboard routes, Vercel runtime code, or dashboard persistence as part of ordinary feature work.
+**Status:** DECISION / ACTIVE.  
+Agents must not rebuild dashboard routes, Vercel runtime code, or dashboard persistence.
 
 ### D-003 — No mandatory external AI scoring
-
-**Decision:** Core health scoring is deterministic and repository-signal based.
-
-**Status:** DECISION / ACTIVE.
+**Status:** DECISION / ACTIVE.  
+Core health scoring is deterministic and repository-signal based.
 
 ### D-004 — Nine-dimension v2 model
-
-**Decision:** The current public scoring contract uses nine weighted dimensions.
-
-**Status:** DECISION / ACTIVE.
+**Status:** DECISION / ACTIVE.  
+The public scoring contract uses nine weighted dimensions.
 
 ### D-005 — README as repository-local output
-
-**Decision:** DevLens may persist its report directly in the user's README using managed markers.
-
-**Status:** DECISION / ACTIVE.
+**Status:** DECISION / ACTIVE.  
+DevLens may persist its report in the user's README using managed markers.
 
 ### D-006 — Disposable-branch integration testing
-
-**Decision:** README persistence must be verified against a disposable branch rather than production.
-
-**Status:** DECISION / ACTIVE.
+**Status:** DECISION / ACTIVE.  
+README persistence is verified against a disposable branch.
 
 ### D-007 — Documentation as persistent agent memory
-
-**Decision:** The master project documentation is the durable project context for future AI agents.
-
-**Status:** DECISION / ACTIVE.
-
-**Consequence:** Agents must read it before implementation and update it when project knowledge changes.
+**Status:** DECISION / ACTIVE.  
+This master document is durable project context for future AI agents.
 
 ### D-008 — Release preflight and pinned runtime dependencies
+**Status:** DECISION / ACTIVE.  
+The release path validates the real Action and uses pinned direct Python dependencies.
 
-**Decision:** The v2 release path must validate the real Action before creating a versioned tag, and direct Python runtime dependencies must be pinned in `requirements.txt`.
+### D-009 — GitHub Marketplace distribution
+**Status:** DECISION / ACTIVE.  
+DevLens v2 is distributed as a GitHub Marketplace Action. PyPI is not a product distribution target.
 
-**Status:** DECISION / ACTIVE.
+### D-010 — Automated semantic v2 release flow
+**Status:** DECISION / ACTIVE.  
+Manual release dispatch creates only a versioned `v2.x.x` tag; the tag push owns the release operation. The release workflow then validates, moves floating `v2`, and publishes the GitHub Release.
 
-**Consequence:** A release cannot be tagged if the live Action preflight fails or the requested versioned tag already exists. Runtime dependency resolution must use the repository's pinned direct dependencies.
+**Consequence:** A manual release does not independently publish a second release after pushing the tag. Versioned release tags are immutable; the `v2` major tag is intentionally mutable.
 
-
-### D-009 — GitHub Marketplace is the distribution target
-
-**Decision:** DevLens v2 is distributed as a GitHub Marketplace Action. PyPI is not a distribution target.
-
-**Status:** DECISION / ACTIVE.
-
-**Consequence:** Release work must prioritize the root `action.yml`, semantic GitHub releases, the floating `v2` tag, Marketplace publication, and end-to-end installation verification. Python packages remain implementation dependencies of the Action and are not published as a separate product.
-
-## 20. Agent handoff template
-
-When an agent finishes meaningful work, the final handoff should contain:
+## 18. Agent handoff template
 
 **Objective**
-- What the agent was asked to accomplish.
+- What was requested.
 
 **Implemented**
 - Files changed.
@@ -561,13 +481,13 @@ When an agent finishes meaningful work, the final handoff should contain:
 - Product/architecture impact.
 
 **Verification**
-- Tests run.
-- Workflow run IDs or commit SHAs when applicable.
-- Any known limitations.
+- Tests.
+- Workflow run IDs / release tags / commit SHAs.
+- Limitations.
 
 **Documentation**
-- Which project documents were updated.
-- Any new decision or roadmap change.
+- Documents updated.
+- Decisions or roadmap changes.
 
 **Remaining**
 - Blockers.
@@ -575,24 +495,24 @@ When an agent finishes meaningful work, the final handoff should contain:
 - Unverified assumptions.
 
 **Next agent**
-- The single most useful next action.
+- Single most useful next action.
 
-## 21. Source-of-truth warnings
+## 19. Source-of-truth warnings
 
 Do not trust these as current truth without verification:
 
 - Old AI conversation summaries.
 - Cached GitHub search results.
-- Historical dashboard code from old commits.
-- Closed pull requests describing the former architecture.
-- Planned release entries in `CHANGELOG.md`.
-- README score snapshots that are not generated from the current Action.
-- Old Vercel deployment state.
+- Historical dashboard code.
+- Closed PR descriptions of former architecture.
+- Planned changelog entries.
+- Old README score snapshots.
+- Old Vercel state.
 
-When uncertain, inspect the current repository and current GitHub Actions state.
+When uncertain, inspect current repository files and current GitHub Actions/release/tag state.
 
-## 22. Current working objective
+## 20. Current working objective
 
-**Primary objective:** Release and establish DevLens v2 as a reliable, GitHub-native repository health Action while preserving the Action-only product boundary.
+**Primary objective:** Establish DevLens v2 as a reliable, GitHub-native repository health Action and increase adoption without violating the Action-only product boundary.
 
-The next agent should first verify the actual release/distribution state, then work on the highest-priority unresolved item from Phase 1 rather than inventing a new product direction.
+The next agent should first verify the current public distribution/Marketplace state, then work on the highest-priority unresolved adoption or metadata item rather than inventing a new product direction.
