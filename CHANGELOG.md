@@ -8,6 +8,11 @@ All notable changes to DevLens, newest first.
 
 ## 2.0.0 (planned)
 
+### Security and release hardening
+- Pinned direct Python runtime dependencies in `requirements.txt` for reproducible Action startup.
+- Added live release preflight validation before tag creation.
+- Release workflow now refuses to overwrite an existing versioned release tag.
+
 ### Changed
 - DevLens is now a GitHub Action-only product with no dashboard, database, or Vercel runtime.
 - Removed the hosted dashboard, Next.js application, Redis persistence, and Vercel deployment configuration.
