@@ -6,6 +6,8 @@ There is no hosted dashboard, database, or required DevLens account.
 
 ## Quick Start
 
+For the fastest installation path, use the workflow in `README.md`. It enables README persistence by default; use `update_readme: 'false'` with `contents: read` when you want a read-only installation.
+
 Create `.github/workflows/devlens.yml`:
 
 ```yaml
@@ -110,7 +112,7 @@ Release automation lives in `.github/workflows/release.yml`:
 4. The floating `v2` tag is moved to the released version.
 5. The GitHub Release is published.
 
-Marketplace publication is tracked separately from GitHub Release status.
+Marketplace publication is tracked separately from GitHub Release status. The repository is on `v2.0.1`, but the public Marketplace listing must be explicitly updated/published for that release; do not infer Marketplace freshness from the GitHub Release alone.
 
 ## AI Agent Instructions
 
