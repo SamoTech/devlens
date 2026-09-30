@@ -1,29 +1,55 @@
 name: Create Release
 
 on:
+  push:
+    tags:
+      - 'v2.*.*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to create (e.g. v2.0.0)'
+        description: 'Tag to create (e.g. v2.0.1)'
         required: true
-        default: 'v2.0.0'
-      floating_tag:
-        description: 'Floating major tag (e.g. v2)'
-        required: true
-        default: 'v2'
+        default: 'v2.0.1'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${RELEASE_TAG}" in
+            v2.[0-9]*.[0-9]*) ;;
+            *) echo "Release tag must be v2.x.x: ${RELEASE_TAG}"; exit 1 ;;
+          esac
+
+      - name: Prepare versioned tag for manual release
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git rev-parse --verify --quiet "refs/tags/${RELEASE_TAG}" >/dev/null; then
+            echo "Release tag already exists: ${RELEASE_TAG}"
+            exit 1
+          fi
+
+          git tag -a "${RELEASE_TAG}" -m "Release ${RELEASE_TAG}"
+          git push origin "${RELEASE_TAG}"
 
       - name: Pre-release static validation
         shell: bash
@@ -60,47 +86,26 @@ jobs:
           }
           print(f"Release preflight passed: {score}/100")
 
-      - name: Refuse to overwrite versioned release tag
+      - name: Update floating v2 tag
         shell: bash
         run: |
           set -euo pipefail
-          if git rev-parse --verify --quiet "refs/tags/${{ github.event.inputs.tag }}" >/dev/null; then
-            echo "Release tag already exists: ${{ github.event.inputs.tag }}"
-            exit 1
-          fi
-
-      - name: Create and push tags
-        shell: bash
-        run: |
-          git config user.name  "github-actions[bot]"
+          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          case "${{ github.event.inputs.tag }}" in
-            v2.*) ;;
-            *) echo "Release tag must be v2.x.x for the current product line"; exit 1 ;;
-          esac
-          if [ "${{ github.event.inputs.floating_tag }}" != "v2" ]; then
-            echo "Floating tag must be v2 for the current product line"
-            exit 1
-          fi
+          git fetch --tags --force origin
+          git checkout --detach "${RELEASE_TAG}"
 
-          # Create versioned tag
-          git tag -a "${{ github.event.inputs.tag }}" \
-            -m "Release ${{ github.event.inputs.tag }}"
-          git push origin "${{ github.event.inputs.tag }}"
-
-          # Create / force-update floating major tag
-          git tag -fa "${{ github.event.inputs.floating_tag }}" \
-            -m "Floating tag ${{ github.event.inputs.floating_tag }} -> ${{ github.event.inputs.tag }}"
-          git push origin "${{ github.event.inputs.floating_tag }}" --force
+          git tag -fa v2 -m "Floating tag v2 -> ${RELEASE_TAG}"
+          git push origin v2 --force
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2.2.2
         with:
-          tag_name: ${{ github.event.inputs.tag }}
-          name: "DevLens ${{ github.event.inputs.tag }}"
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "DevLens ${{ env.RELEASE_TAG }}"
           body: |
-            ## 🚀 DevLens ${{ github.event.inputs.tag }}
+            ## DevLens ${{ env.RELEASE_TAG }}
 
             ### What's included
             - Repository health scoring across 9 dimensions
