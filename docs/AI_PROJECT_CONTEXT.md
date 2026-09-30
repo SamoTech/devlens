@@ -313,7 +313,11 @@ As of 2026-09-30:
 - `v2.0.1` was created by the automated release workflow.
 - `v2` exists and was successfully moved to `v2.0.1`.
 - `v2.0.1` GitHub Release was published successfully.
+- The live Marketplace listing was manually published/updated to expose **v2.0.1** as the current listing version.
 - Release preflight executed the real Action and produced **85/100** using `action-v2-9d`.
+- Consumer verification run `36691520201` on `SamoTech/skills-tree` succeeded with **87/100** and README persistence, but exposed a version-reporting defect because the report identified the Action as `2.0.0`.
+- Commit `4780c10d7324b590f9d630485045e0d3079e409c` corrected the report to `2.0.1`.
+- This correction is **IMPLEMENTED — NOT VERIFIED** in a released `@v2` consumer run; the next release must verify it.
 - The release run verified all nine score keys and a valid 2.x.x Action version.
 - Release workflow hardening was committed in `7f7df1aae8e1ddd8be3c4d19265a8810eb66c9c7`.
 - The release workflow run triggered by that commit was observed running successfully through the bootstrap job.
@@ -369,7 +373,8 @@ Roadmap entries are **PLAN**, not facts.
 
 Remaining Phase 1 operational check:
 
-- **BLOCKER:** Publish/update the Marketplace listing to the current v2 release. The live Marketplace page currently exposes the legacy `v1.0.3` listing snapshot and obsolete hosted-dashboard documentation; repository changes alone do not update that published release snapshot.
+- **IMPLEMENTED:** Marketplace publication/update for v2.0.1 has been completed and verified from the live Marketplace listing.
+- **REMAINING:** Release the version-reporting correction as v2.0.2 and rerun consumer verification.
 - Clean any stale repository metadata.
 
 ### Phase 2 — Adoption and onboarding — NEXT
@@ -485,6 +490,14 @@ The release path validates the real Action and uses pinned direct Python depende
 **Status:** DECISION / ACTIVE.  
 DevLens v2 is distributed as a GitHub Marketplace Action. PyPI is not a product distribution target.
 
+### D-011 — AI repository governance and documentation gate
+**Status:** DECISION / ACTIVE.  
+The repository adopts the AI CEO/CIO → COO execution model and treats documentation, verification, status, risks, and handoff as mandatory parts of meaningful work. The existing AI_PROJECT_CONTEXT.md remains the single authoritative project-operating document.
+
+### D-012 — Action report version must match implementation
+**Status:** DECISION / ACTIVE.  
+The machine-readable report action version must identify the actual DevLens implementation version. Commit 4780c10d7324b590f9d630485045e0d3079e409c changes the report from 2.0.0 to 2.0.1; it remains unverified in a released @v2 consumer run until v2.0.2 is published and tested.
+
 ### D-010 — Automated semantic v2 release flow
 **Status:** DECISION / ACTIVE.  
 Manual release dispatch creates only a versioned `v2.x.x` tag; the tag push owns the release operation. The release workflow then validates, moves floating `v2`, and publishes the GitHub Release.
@@ -531,6 +544,28 @@ Do not trust these as current truth without verification:
 - Old Vercel state.
 
 When uncertain, inspect current repository files and current GitHub Actions/release/tag state.
+
+## 19A. Current COO execution record
+
+**Objective**
+- Apply the repository AI governance model and synchronize release documentation after consumer verification exposed a version-reporting defect.
+
+**Implemented**
+- Added the governance hierarchy and mandatory documentation gate.
+- Recorded Marketplace v2.0.1 publication as verified.
+- Corrected the machine-readable Action report version to 2.0.1 in commit 4780c10d7324b590f9d630485045e0d3079e409c.
+
+**Verification**
+- Consumer run 36691520201 succeeded and produced 87/100 with README persistence, but reported Action version 2.0.0.
+- Source inspection confirms the correction is present on main.
+- The correction has not yet been verified through a released @v2 consumer run.
+
+**Remaining**
+- Publish v2.0.2 through the existing release workflow.
+- Verify release preflight, floating v2, and a consumer run using @v2.
+
+**Next action**
+- Create and verify v2.0.2.
 
 ## 20. Current working objective
 
