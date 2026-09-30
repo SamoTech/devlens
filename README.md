@@ -12,7 +12,7 @@
 
 No dashboard. No hosted database. No account required. The repository being scored is the user's own GitHub repository, identified automatically by `github.repository`.
 
-[GitHub Marketplace](https://github.com/marketplace/actions/devlens-repo-health) · [Latest v2.0.7 release](https://github.com/SamoTech/devlens/releases/tag/v2.0.7)
+[GitHub Marketplace](https://github.com/marketplace/actions/devlens-repo-health) · [Latest v2.0.8 release](https://github.com/SamoTech/devlens/releases/tag/v2.0.8)
 
 </div>
 
@@ -159,7 +159,7 @@ Only the content between the markers is replaced. If the markers do not exist, D
 
 Production workflows should use `@v2`, not `@main`. Pin to a specific release tag or full commit SHA when you require immutable supply-chain control.
 
-The current latest verified v2 release is `v2.0.7`. The release preflight verified the Action version and the nine-dimension report before publication. The floating `v2` tag tracks the latest verified v2 release.
+The current latest verified v2 release is `v2.0.8`. The release preflight verified the Action version and the nine-dimension report before publication. The floating `v2` tag tracks the latest verified v2 release.
 
 ## Runtime dependencies
 
@@ -182,9 +182,9 @@ DevLens is a single public GitHub Action repository with `action.yml` at the roo
 
 The v2 distribution target is:
 
-- Latest verified release: `v2.0.7`
+- Latest verified release: `v2.0.8`
 - Consumer tag: `v2`
-- Version-reporting correction: released and verified in `v2.0.7`
+- Version-reporting correction: released and verified in `v2.0.8`
 - Marketplace action: **DevLens Repo Health**
 - Distribution: GitHub Marketplace
 - PyPI: not a distribution target
