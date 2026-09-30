@@ -4,72 +4,88 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v2.*.*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Version tag to create (e.g. v2.0.2)'
+        description: 'Version tag to create (e.g. v2.0.3)'
         required: true
-        default: 'v2.0.2'
+        default: 'v2.0.3'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  bootstrap-floating-tag:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      security-events: read
+
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Create v2 for the existing V2.0.0 release
+      - name: Determine whether this change requires a release
+        id: release
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           git fetch --tags --force origin
-          if git ls-remote --exit-code --tags origin refs/tags/v2 >/dev/null 2>&1; then
-            echo "Floating tag v2 already exists."
-            exit 0
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            TAG="$INPUT_TAG"
+            SHOULD_RELEASE=true
+          else
+            mapfile -t CHANGED_FILES < <(git diff --name-only "$BEFORE_SHA" "$HEAD_SHA")
+
+            CRITICAL=false
+            for file in "${CHANGED_FILES[@]}"; do
+              case "$file" in
+                action.yml|scripts/devlens.py|requirements.txt|.github/workflows/release.yml|.github/workflows/action-v2-validation.yml|.github/workflows/devlens-live-integration.yml)
+                  CRITICAL=true
+                  echo "Critical release path changed: $file"
+                  ;;
+              esac
+            done
+
+            if [[ "$CRITICAL" != "true" ]]; then
+              echo "No critical production change detected. No release required."
+              SHOULD_RELEASE=false
+              TAG=""
+            else
+              SHOULD_RELEASE=true
+              LATEST="$(git tag -l 'v2.[0-9]*.[0-9]*' | sort -V | tail -n 1)"
+              if [[ -z "$LATEST" ]]; then
+                TAG="v2.0.0"
+              else
+                IFS='.' read -r MAJOR MINOR PATCH <<< "${LATEST#v}"
+                PATCH=$((PATCH + 1))
+                TAG="v${MAJOR}.${MINOR}.${PATCH}"
+              fi
+              echo "Automatic critical-change release: $TAG"
+            fi
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          TARGET="$(git rev-parse 'V2.0.0^{}')"
-          git tag -a v2 "$TARGET" -m "Floating tag v2 -> V2.0.0"
-          git push origin v2
-
-  release:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type == 'tag')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
-
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Validate requested release tag
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ ! "$RELEASE_TAG" =~ ^v2\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag must match v2.x.x: $RELEASE_TAG"
+          if [[ "$SHOULD_RELEASE" == "true" && ! "$TAG" =~ ^v2\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tag must match v2.x.x: $TAG"
             exit 1
           fi
 
-      - name: Create or validate versioned release tag
-        if: github.event_name == 'workflow_dispatch'
+          echo "should_release=$SHOULD_RELEASE" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Create or reuse versioned release tag
+        if: steps.release.outputs.should_release == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
@@ -78,9 +94,7 @@ jobs:
 
           git fetch --tags --force origin
           if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null; then
-            TAG_TARGET="$(git rev-list -n 1 "$RELEASE_TAG^{}")"
             echo "Release tag already exists and will be reused: $RELEASE_TAG"
-            echo "Tag target: $TAG_TARGET"
           else
             git tag -a "$RELEASE_TAG" HEAD -m "Release $RELEASE_TAG"
             git push origin "$RELEASE_TAG"
@@ -88,6 +102,9 @@ jobs:
           fi
 
       - name: Checkout release tag
+        if: steps.release.outputs.should_release == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
@@ -95,6 +112,7 @@ jobs:
           git checkout --detach "$RELEASE_TAG"
 
       - name: Pre-release static validation
+        if: steps.release.outputs.should_release == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -105,6 +123,7 @@ jobs:
           grep -Fx 'PyGithub==2.10.0' requirements.txt
 
       - name: Pre-release live Action validation
+        if: steps.release.outputs.should_release == 'true'
         id: preflight
         uses: ./
         with:
@@ -112,9 +131,11 @@ jobs:
           update_readme: 'false'
 
       - name: Validate live release candidate
+        if: steps.release.outputs.should_release == 'true'
         env:
           SCORE: ${{ steps.preflight.outputs.health_score }}
           REPORT: ${{ steps.preflight.outputs.report_json }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         shell: python
         run: |
           import json
@@ -130,6 +151,11 @@ jobs:
           action_version = str(report["action_version"])
           assert re.fullmatch(r"2\.[0-9]+\.[0-9]+", action_version), action_version
 
+          release_version = os.environ["RELEASE_TAG"][1:]
+          assert action_version == release_version, (
+              f"Action version {action_version} does not match release {release_version}"
+          )
+
           assert set(report["scores"]) == {
               "readme", "activity", "freshness", "docs", "ci",
               "issues", "community", "pr_velocity", "security",
@@ -138,6 +164,9 @@ jobs:
           print(f"Release preflight passed: {score}/100; action version {action_version}")
 
       - name: Update floating v2 tag
+        if: steps.release.outputs.should_release == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
@@ -146,17 +175,17 @@ jobs:
 
           git fetch --tags --force origin
           git checkout --detach "$RELEASE_TAG"
-
           git tag -fa v2 -m "Floating tag v2 -> $RELEASE_TAG"
           git push origin v2 --force
 
       - name: Publish GitHub Release
+        if: steps.release.outputs.should_release == 'true'
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          name: "DevLens ${{ env.RELEASE_TAG }}"
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: "DevLens ${{ steps.release.outputs.tag }}"
           body: |
-            ## DevLens ${{ env.RELEASE_TAG }}
+            ## DevLens ${{ steps.release.outputs.tag }}
 
             ### What's included
             - Repository health scoring across 9 dimensions
