@@ -38,6 +38,27 @@ When sources conflict:
 
 If implementation violates an explicit product decision, do not silently reinterpret the decision. Document the discrepancy and fix the implementation or escalate the decision.
 
+## 1A. AI repository governance model
+
+The repository follows a mandatory AI management hierarchy:
+
+**Human Owner → AI CEO/CIO → AI COO → AI Specialists / AI Engineers / AI Reviewers → Repository / Product.**
+
+- **Human Owner:** final authority over the repository and product.
+- **AI CEO/CIO:** strategic decision maker for product direction, major architecture, major trade-offs, business objectives, and high-impact approvals.
+- **AI COO:** execution owner for translating CEO/CIO decisions into work, inspecting repository state, coordinating agents, executing appropriate work, verifying results, maintaining repository health/documentation, and reporting blockers and risks.
+- **Specialized agents:** execute bounded implementation/review tasks under COO coordination.
+
+The COO must not silently override a CEO/CIO decision. Product direction, major feature scope, fundamental architecture, breaking API changes, destructive operations, significant security implications, business-model changes, or conflicting strategic requirements must be escalated.
+
+### Mandatory documentation gate
+
+Documentation is part of implementation, not a follow-up task. Before meaningful repository work is declared complete, the COO must verify implementation, tests, results, security implications, affected documentation, project status, roadmap/decision updates when applicable, known risks, and a single next action. Missing required documentation or verification means the work remains **IN PROGRESS**, **BLOCKED**, **PARTIALLY COMPLETE**, **IMPLEMENTED — NOT VERIFIED**, or **VERIFIED — DOCUMENTATION PENDING**, as appropriate.
+
+### Persistent handoff rule
+
+A new AI agent must be able to determine from repository documentation what happened, why, what changed, what was verified, what failed, what remains, and which decision governs the next step. Conversation history is not an acceptable substitute for repository state.
+
 ## 2. AI agent startup protocol
 
 Every AI agent entering this repository must:
