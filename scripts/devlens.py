@@ -81,15 +81,24 @@ def score_ci():
         return 0
     except: return 0
 
+def score_issue_response(open_count, closed_count):
+    """Score actual GitHub issues only; pull requests are excluded from both counts."""
+    if open_count < 0 or closed_count < 0:
+        raise ValueError("Issue counts cannot be negative")
+    total = open_count + closed_count
+    if total == 0:
+        return 100
+    return int(closed_count / total * 100)
+
 def score_issues():
     try:
-        open_i   = repo.open_issues_count
-        closed_i = list(repo.get_issues(state="closed"))[:50]
-        if not closed_i and open_i == 0: return 100
-        total = open_i + len(closed_i)
-        if total == 0: return 100
-        return int(len(closed_i) / total * 100)
-    except: return 50
+        # GitHub's /issues collection includes pull requests. Search with is:issue
+        # so the dimension measures issue response rather than PR closure activity.
+        open_i = g.search_issues(query=f"repo:{REPO_NAME} is:issue is:open").totalCount
+        closed_i = g.search_issues(query=f"repo:{REPO_NAME} is:issue is:closed").totalCount
+        return score_issue_response(open_i, closed_i)
+    except Exception:
+        return 50
 
 def score_community():
     return min(int(math.log1p(repo.stargazers_count)*15)+int(math.log1p(repo.forks_count)*10), 100)
@@ -162,7 +171,7 @@ def dim_bar(score):
 badge_url = (f"https://img.shields.io/badge/DevLens%20Health-{health}%2F100"
              f"-{badge_color(health)}?style={BADGE_STYLE}&logo=github")
 
-report = {"repo":REPO_NAME,"score_model":"action-v2-9d","action_version":"2.0.8","health_score":health,"scores":scores,
+report = {"repo":REPO_NAME,"score_model":"action-v2-9d","action_version":"2.0.9","health_score":health,"scores":scores,
           "badge_url":badge_url,"generated_at":now.isoformat()}
 
 print(json.dumps(report, indent=2))
