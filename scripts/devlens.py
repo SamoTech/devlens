@@ -168,6 +168,16 @@ report = {"repo":REPO_NAME,"score_model":"action-v2-9d","health_score":health,"s
 
 print(json.dumps(report, indent=2))
 
+summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+if summary_path:
+    with open(summary_path, "a", encoding="utf-8") as summary:
+        summary.write("## DevLens Repository Health\\n\\n")
+        summary.write(f"**Overall health: {health}/100**\\n\\n")
+        summary.write("| Dimension | Score |\\n|---|---:|\\n")
+        for key, _icon, label, _weight in DIM_META:
+            summary.write(f"| {label} | {scores[key]}/100 |\\n")
+        summary.write("\\nModel: action-v2-9d\\n")
+
 with open(os.environ.get("GITHUB_OUTPUT","/dev/null"),"a") as f:
     f.write(f"health_score={health}\n")
     f.write(f"badge_url={badge_url}\n")
