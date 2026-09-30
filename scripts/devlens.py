@@ -82,6 +82,7 @@ def score_ci():
     except: return 0
 
 def score_issue_response(open_count, closed_count):
+    # Keep issue response deterministic and independent of pull-request closure activity.
     """Score actual GitHub issues only; pull requests are excluded from both counts."""
     if open_count < 0 or closed_count < 0:
         raise ValueError("Issue counts cannot be negative")
