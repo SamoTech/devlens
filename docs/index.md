@@ -88,7 +88,7 @@ Set `DISCORD_WEBHOOK` as a repository secret, then pass it to the action:
 notify_discord: ${{ secrets.DISCORD_WEBHOOK }}
 ```
 
-The weekly digest includes all 7 dimension scores as a rich embed sent every Monday at 8am UTC.
+The weekly digest includes all 9 dimension scores as a rich embed sent every Monday at 8am UTC.
 
 ---
 
