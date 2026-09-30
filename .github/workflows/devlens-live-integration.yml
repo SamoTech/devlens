@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   security-events: read
 
 jobs:
@@ -66,5 +66,46 @@ jobs:
           assert set(report["scores"]) == dimensions
           assert all(0 <= int(v) <= 100 for v in report["scores"].values())
           assert os.environ["BADGE"].startswith("https://img.shields.io/badge/")
+          assert report["action_version"] == "2.0.0"
 
           print(f"Live DevLens integration passed: {score}/100")
+
+  readme-persistence:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout DevLens
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Create disposable test branch
+        id: test_branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch="devlens-integration-${GITHUB_RUN_ID}"
+          git switch -c "$branch"
+          git push origin "HEAD:$branch"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
+      - name: Run real Action with README persistence enabled
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_readme: 'true'
+          readme_branch: ${{ steps.test_branch.outputs.branch }}
+
+      - name: Verify README was written through GitHub API
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "${{ steps.test_branch.outputs.branch }}"
+          git show "origin/${{ steps.test_branch.outputs.branch }}:README.md" | grep -F '<!-- DEVLENS:START -->'
+          git show "origin/${{ steps.test_branch.outputs.branch }}:README.md" | grep -F '<!-- DEVLENS:END -->'
+          echo 'README persistence integration passed.'
+
+      - name: Delete disposable test branch
+        if: always()
+        shell: bash
+        run: git push origin --delete "${{ steps.test_branch.outputs.branch }}" || true
