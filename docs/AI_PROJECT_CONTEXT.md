@@ -316,7 +316,7 @@ As of 2026-09-30:
 - The automatic release workflow detects critical production paths on pushes to `main`, derives the release version from `scripts/devlens.py`, runs static validation and live Action preflight, updates `v2`, and publishes the GitHub Release.
 - The release workflow uses concurrency control to prevent overlapping release runs on `main`.
 - Historical orphaned version tags from failed release attempts remain immutable and are not reused or force-moved.
-- The live Marketplace listing currently displays **v2.0.8** as Latest. Marketplace publication is a separate external distribution surface, and its rendered documentation may lag repository changes.
+- External Marketplace verification is unresolved: the Marketplace page retrieved during this session still renders the legacy `v1.0.3` listing snapshot with dashboard/Vercel content. Because that page may be cached, this is a manual verification/update blocker rather than proof that the repository release failed.
 - Consumer verification on `SamoTech/skills-tree` previously succeeded with **87/100** and README persistence, exposing the version-reporting defect. The subsequent released correction is now verified by the v2.0.8 release preflight.
 - Production usage is `SamoTech/devlens@v2`.
 
@@ -371,7 +371,8 @@ Roadmap entries are **PLAN**, not facts.
 Remaining Phase 1 operational check:
 
 - **IMPLEMENTED:** Marketplace publication/update for v2.0.1 has been completed and verified from the live Marketplace listing.
-- **COMPLETED:** Released the version-reporting correction as `v2.0.8`; release preflight verified the corrected reported version.
+- **COMPLETED:** Released the version-reporting correction and release-workflow hardening as `v2.0.8`; release preflight and live integration verified the implementation.
+- **BLOCKER:** Confirm the GitHub Marketplace listing displays the intended v2 Action-only content and current release version. If the legacy rendering persists in the live Marketplace UI, update/publish the Marketplace listing there.
 - Clean any stale repository metadata.
 
 ### Phase 2 — Adoption and onboarding — NEXT
