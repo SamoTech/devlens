@@ -72,7 +72,7 @@ def score_docs():
     try:
         paths = [c.path for c in repo.get_git_tree("HEAD", recursive=True).tree]
         for f in key_files:
-            if any(c.startswith(f.rstrip("/")) for c in paths): s += 16
+            if any(c.startswith(f.rstrip("/")) for c in paths): s += 17
         return min(s, 100)
     except: return 0
 
@@ -176,9 +176,9 @@ with open(os.environ.get("GITHUB_OUTPUT","/dev/null"),"a") as f:
 DIM_META = [
     ("readme",    "\U0001f4dd", "README Quality",   "20%"),
     ("activity",  "\U0001f525", "Commit Activity",  "20%"),
-    ("freshness", "\U0001f33f", "Repo Freshness",   "15%"),
-    ("docs",      "\U0001f4da", "Documentation",    "15%"),
-    ("ci",        "\u2699\ufe0f",  "CI/CD Setup",    "15%"),
+    ("freshness", "\U0001f33f", "Repo Freshness",   "10%"),
+    ("docs",      "\U0001f4da", "Documentation",    "10%"),
+    ("ci",        "\u2699\ufe0f",  "CI/CD Setup",    "10%"),
     ("issues",    "\U0001f3af", "Issue Response",   "10%"),
     ("community", "\u2b50",     "Community Signal",  "5%"),
     ("pr_velocity", "\U0001f500", "PR Velocity", "10%"),
