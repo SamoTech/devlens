@@ -1,0 +1,70 @@
+name: DevLens Live Integration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'action.yml'
+      - 'scripts/**'
+      - '.github/workflows/devlens-live-integration.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'action.yml'
+      - 'scripts/**'
+      - '.github/workflows/devlens-live-integration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: read
+
+jobs:
+  live-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout DevLens
+        uses: actions/checkout@v4.2.2
+
+      - name: Run the real Action against a real GitHub repository
+        id: devlens
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_readme: 'false'
+
+      - name: Validate live Action outputs
+        env:
+          SCORE: ${{ steps.devlens.outputs.health_score }}
+          REPORT: ${{ steps.devlens.outputs.report_json }}
+          BADGE: ${{ steps.devlens.outputs.badge_url }}
+        shell: python
+        run: |
+          import json
+          import os
+
+          score = int(os.environ["SCORE"])
+          assert 0 <= score <= 100, score
+
+          report = json.loads(os.environ["REPORT"])
+          expected = {
+              "repo",
+              "score_model",
+              "health_score",
+              "scores",
+              "badge_url",
+              "generated_at",
+          }
+          assert expected <= report.keys(), report.keys()
+          assert report["score_model"] == "action-v2-9d"
+          assert report["health_score"] == score
+
+          dimensions = {
+              "readme", "activity", "freshness", "docs", "ci",
+              "issues", "community", "pr_velocity", "security",
+          }
+          assert set(report["scores"]) == dimensions
+          assert all(0 <= int(v) <= 100 for v in report["scores"].values())
+          assert os.environ["BADGE"].startswith("https://img.shields.io/badge/")
+
+          print(f"Live DevLens integration passed: {score}/100")
