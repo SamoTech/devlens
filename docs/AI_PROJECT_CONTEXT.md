@@ -310,9 +310,9 @@ As of 2026-09-30:
 
 - `v2.0.0` exists as the original Marketplace release tag.
 - `v2.0.1` was previously published successfully.
-- `v2.0.8` is the latest currently published release; `v2.0.9` is the pending candidate for the issue-response scoring correction.
+- `v2.0.9` is the latest verified release and was created and published by the automatic critical-change release workflow.
 - The release preflight executed the real Action successfully and validated the reported Action version against the release version.
-- The floating `v2` tag was updated successfully to `v2.0.8`.
+- The floating `v2` tag was updated successfully to `v2.0.9`.
 - The automatic release workflow detects critical production paths on pushes to `main`, derives the release version from `scripts/devlens.py`, runs static validation and live Action preflight, updates `v2`, and publishes the GitHub Release.
 - The release workflow uses concurrency control to prevent overlapping release runs on `main`.
 - Historical orphaned version tags from failed release attempts remain immutable and are not reused or force-moved.
@@ -331,11 +331,11 @@ As of 2026-09-30:
 - Vercel configuration is removed from the repository.
 - Legacy scanner code is removed.
 - Legacy Groq scoring dependencies/inputs are removed.
-- README, contributor, security, documentation, and changelog materials are aligned with the current v2.0.9 candidate where applicable.
+- README, contributor, security, documentation, and changelog materials are aligned with v2.0.9.
 - Live GitHub integration has executed the actual Action successfully.
 - README persistence has been tested on a disposable branch and verified through GitHub API.
-- Current release line is v2; `v2.0.8` is the latest verified published version, with `v2.0.9` pending validation.
-- Floating `v2` points to the latest verified v2 release (`v2.0.8`).
+- Current release line is v2; `v2.0.9` is the latest verified version.
+- Floating `v2` points to the latest verified v2 release (`v2.0.9`).
 - Repository release automation has been hardened so manual releases complete in one workflow run and do not depend on a token-generated tag push triggering a second workflow.
 - Repository metadata may still contain stale external/homepage information and should be verified before treating metadata cleanup as complete.
 - Any external Vercel project state must be verified separately; removing repository configuration does not prove external project deletion.
@@ -387,9 +387,9 @@ Remaining Phase 1 operational check:
 - **COMPLETED:** Phase 2 onboarding validation is closed. No runtime defect was exposed by the real success or failure-path tests.
 - **NEXT:** Begin Phase 3 scoring quality and observability.
 
-### Phase 3 — Scoring quality and observability — NEXT
+### Phase 3 — Scoring quality and observability — IN PROGRESS
 
-- **IN PROGRESS:** Expand automated edge-case tests, beginning with Issue Response.
+- **COMPLETED:** Added deterministic Issue Response regression fixtures and corrected issue counting to exclude pull requests; live Action validation verified the corrected score.
 - Improve evidence shown for individual dimension scores.
 - Reduce unnecessary API calls and startup cost.
 - Improve sparse-history behavior.
@@ -498,7 +498,7 @@ The repository adopts the AI CEO/CIO → COO execution model and treats document
 
 ### D-012 — Action report version must match implementation
 **Status:** DECISION / ACTIVE.  
-The machine-readable report action version must identify the actual DevLens implementation version. This is enforced by release preflight and live integration validation. The current verified implementation candidate reports `2.0.9`; the production release remains `v2.0.8` until release preflight completes.
+The machine-readable report action version must identify the actual DevLens implementation version. This is enforced by release preflight and live integration validation. The current verified implementation reports `2.0.9`.
 
 ### D-010 — Automated semantic v2 release flow
 **Status:** DECISION / ACTIVE.  
@@ -559,7 +559,7 @@ When uncertain, inspect current repository files and current GitHub Actions/rele
 **Implemented**
 - Hardened `.github/workflows/release.yml` so static and live preflight run before creation of a new versioned release tag.
 - Added immutable versioned-tag validation.
-- Bumped the machine-readable Action version to `2.0.8`.
+- Bumped the machine-readable Action version to `2.0.9` for the Issue Response scoring correction.
 - Updated live integration validation to require `2.0.8`.
 - Merged PR #24 and triggered the automatic critical-change release.
 
@@ -567,14 +567,14 @@ When uncertain, inspect current repository files and current GitHub Actions/rele
 - PR #24 merged as `99ddfd26d9fb6084bd71949f4be926d4daef5e3b`.
 - Release workflow run `36698433347` succeeded.
 - Static validation, real Action preflight, release-candidate validation, tag validation, versioned tag creation, floating `v2` update, and GitHub Release publication all succeeded.
-- GitHub Release `v2.0.8` is published.
+- GitHub Release `v2.0.9` is published.
 - Live integration run `36698433209` succeeded.
 - README persistence was verified through a disposable branch and cleaned up successfully.
 - Floating `v2` resolves to the `v2.0.8` versioned tag.
 - Marketplace distribution is **VERIFIED** by the Human Owner on 2026-09-30: the live listing displays DevLens Repo Health as **Latest v2.0.8** with current Action-only content.
 
 **Documentation**
-- README, CHANGELOG, and this master project context are synchronized to `v2.0.8` and the new release-gate behavior.
+- README, CHANGELOG, and this master project context are synchronized to `v2.0.9` and the release-gate behavior.
 
 **Remaining**
 - No Phase 1 blocker remains.
@@ -587,4 +587,4 @@ When uncertain, inspect current repository files and current GitHub Actions/rele
 
 **Primary objective:** Improve DevLens scoring quality and observability without violating the Action-only product boundary.
 
-Phase 1 release/distribution is complete and Marketplace v2.0.8 is verified. Phase 2 adoption/onboarding is verified and closed: the README provides explicit installation choices, repository-pattern examples, first-run guidance, and permission/failure remediation; the real Action success path and disposable failure paths were executed successfully. The next agent should begin Phase 3 with scoring edge cases, evidence quality, API efficiency, sparse-history behavior, Enterprise compatibility, and regression fixtures.
+Phase 1 release/distribution is complete and Marketplace v2.0.8 is verified. Phase 2 adoption/onboarding is verified and closed: the README provides explicit installation choices, repository-pattern examples, first-run guidance, and permission/failure remediation; the real Action success path and disposable failure paths were executed successfully. The next agent should continue Phase 3 with the remaining scoring dimensions, evidence quality, API efficiency, sparse-history behavior, Enterprise compatibility, and broader regression fixtures.
