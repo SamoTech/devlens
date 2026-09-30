@@ -316,7 +316,7 @@ As of 2026-09-30:
 - The automatic release workflow detects critical production paths on pushes to `main`, derives the release version from `scripts/devlens.py`, runs static validation and live Action preflight, updates `v2`, and publishes the GitHub Release.
 - The release workflow uses concurrency control to prevent overlapping release runs on `main`.
 - Historical orphaned version tags from failed release attempts remain immutable and are not reused or force-moved.
-- External Marketplace verification is unresolved: the Marketplace page retrieved during this session still renders the legacy `v1.0.3` listing snapshot with dashboard/Vercel content. Because that page may be cached, this is a manual verification/update blocker rather than proof that the repository release failed.
+- The Human Owner verified the live GitHub Marketplace listing on 2026-09-30. It displays **DevLens Repo Health** as **Latest v2.0.8** and renders the current Action-only product documentation. Marketplace distribution is therefore **VERIFIED** for v2.0.8.
 - Consumer verification on `SamoTech/skills-tree` previously succeeded with **87/100** and README persistence, exposing the version-reporting defect. The subsequent released correction is now verified by the v2.0.8 release preflight.
 - Production usage is `SamoTech/devlens@v2`.
 
@@ -331,7 +331,7 @@ As of 2026-09-30:
 - Vercel configuration is removed from the repository.
 - Legacy scanner code is removed.
 - Legacy Groq scoring dependencies/inputs are removed.
-- README, contributor, security, documentation, and changelog materials are aligned with v2, subject to the current release-state documentation updates.
+- README, contributor, security, documentation, and changelog materials are aligned with v2.0.8.
 - Live GitHub integration has executed the actual Action successfully.
 - README persistence has been tested on a disposable branch and verified through GitHub API.
 - Current release line is v2; `v2.0.8` is the latest verified version.
@@ -370,10 +370,10 @@ Roadmap entries are **PLAN**, not facts.
 
 Remaining Phase 1 operational check:
 
-- **IMPLEMENTED:** Marketplace publication/update for v2.0.1 has been completed and verified from the live Marketplace listing.
+- **COMPLETED:** Marketplace publication/update for `v2.0.8` was verified by the Human Owner on 2026-09-30. The live listing displays the current Action-only content and `v2.0.8` as Latest.
 - **COMPLETED:** Released the version-reporting correction and release-workflow hardening as `v2.0.8`; release preflight and live integration verified the implementation.
-- **BLOCKER:** Confirm the GitHub Marketplace listing displays the intended v2 Action-only content and current release version. If the legacy rendering persists in the live Marketplace UI, update/publish the Marketplace listing there.
-- Clean any stale repository metadata.
+- **COMPLETED:** Phase 1 release/distribution verification is closed. No Marketplace blocker remains.
+- Clean any stale repository metadata as a non-blocking follow-up before or during Phase 2.
 
 ### Phase 2 — Adoption and onboarding — NEXT
 
@@ -567,20 +567,20 @@ When uncertain, inspect current repository files and current GitHub Actions/rele
 - Live integration run `36698433209` succeeded.
 - README persistence was verified through a disposable branch and cleaned up successfully.
 - Floating `v2` resolves to the `v2.0.8` versioned tag.
-- External Marketplace verification remains the only unresolved distribution-surface item: the web page retrieved during this session still rendered the legacy `v1.0.3` snapshot, so manual Marketplace verification/update is required if that rendering is current rather than cached.
+- Marketplace distribution is **VERIFIED** by the Human Owner on 2026-09-30: the live listing displays DevLens Repo Health as **Latest v2.0.8** with current Action-only content.
 
 **Documentation**
 - README, CHANGELOG, and this master project context are synchronized to `v2.0.8` and the new release-gate behavior.
 
 **Remaining**
-- Confirm the GitHub Marketplace listing displays the intended v2 Action-only content and current release version.
-- After Marketplace synchronization is confirmed, proceed to Phase 2 adoption/onboarding work.
+- No Phase 1 blocker remains.
+- Phase 2 adoption/onboarding is the next planned workstream.
 
 **Next action**
-- Verify and, if necessary, manually update the GitHub Marketplace listing for DevLens Repo Health.
+- Begin Phase 2 with the README installation/onboarding flow, while preserving the Action-only boundary and current production behavior.
 
 ## 20. Current working objective
 
-**Primary objective:** Establish DevLens v2 as a reliable, GitHub-native repository health Action and increase adoption without violating the Action-only product boundary.
+**Primary objective:** Increase DevLens adoption and onboarding without violating the Action-only product boundary.
 
-The next agent should first verify the current public distribution/Marketplace state, then work on the highest-priority unresolved adoption or metadata item rather than inventing a new product direction.
+Phase 1 release/distribution is complete and Marketplace v2.0.8 is verified. The next agent should work on the highest-priority Phase 2 onboarding item, beginning with the README installation flow and concrete repository examples, while preserving current production behavior.
