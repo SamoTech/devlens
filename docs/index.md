@@ -27,6 +27,8 @@ DevLens evaluates your repo across 9 weighted dimensions:
 | CI/CD Setup | 15% | GitHub Actions workflows present |
 | Issue Response | 10% | Closed vs open issue ratio |
 | Community Signal | 5% | Stars, forks, watchers |
+| PR Velocity | 10% | Pull request merge time and stale open PRs |
+| Security | 5% | Advisory and vulnerability evidence |
 
 ---
 
