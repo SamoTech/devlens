@@ -348,7 +348,7 @@ Roadmap entries are **PLAN**, not facts.
 
 Remaining Phase 1 operational check:
 
-- Verify the Marketplace listing reflects the latest intended release state.
+- **BLOCKER:** Publish/update the Marketplace listing to the current v2 release. The live Marketplace page currently exposes the legacy `v1.0.3` listing snapshot and obsolete hosted-dashboard documentation; repository changes alone do not update that published release snapshot.
 - Clean any stale repository metadata.
 
 ### Phase 2 — Adoption and onboarding — NEXT
