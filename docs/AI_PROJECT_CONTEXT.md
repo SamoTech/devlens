@@ -293,7 +293,7 @@ Manual release:
 
 1. Run **Create Release** via `workflow_dispatch`.
 2. Supply a strict `v2.x.x` version tag.
-3. The release job validates the tag, creates it when absent (or verifies an existing tag points to the current HEAD), and continues in the same workflow run.
+3. The release job validates the tag, creates it when absent, or safely reuses an existing requested tag, and continues in the same workflow run.
 4. The release job checks out the release tag and runs static validation plus the real Action preflight.
 5. The release job updates the floating `v2` tag to that version.
 6. The GitHub Release is published in the same workflow run.
