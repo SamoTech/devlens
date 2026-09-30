@@ -2,6 +2,14 @@
 
 All notable changes to DevLens, newest first.
 
+## Unreleased — 2026-09-30
+
+### Governance and verification
+- Adopted the repository AI governance model with explicit Human Owner → AI CEO/CIO → AI COO → specialist-agent hierarchy.
+- Made documentation synchronization, verification evidence, risk recording, and handoff mandatory completion gates.
+- Corrected the machine-readable Action report version from 2.0.0 to 2.0.1 in preparation for the next release.
+- The correction is implemented on main but remains unverified in a released @v2 consumer run; target release is v2.0.2.
+
 ## 2.0.1 — 2026-09-30
 
 ### Release and distribution
@@ -16,7 +24,7 @@ All notable changes to DevLens, newest first.
 ### Marketplace and onboarding audit
 - Audited the live GitHub Marketplace listing and found it still serving the legacy `v1.0.3` snapshot with obsolete dashboard/Vercel content.
 - Improved the repository Action metadata and README installation funnel for the v2 Action-only product.
-- Marketplace publication/update remains an explicit operational step because a GitHub Release alone does not replace the Marketplace release snapshot.
+- Manually published/updated the Marketplace listing to expose `v2.0.1` as the current Marketplace version.
 
 ### Documentation and agent continuity
 - Updated the authoritative AI project context with verified v2.0.1 release state.
