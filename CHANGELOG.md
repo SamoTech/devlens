@@ -5,6 +5,9 @@ All notable changes to DevLens, newest first.
 ## v2.0.9 — 2026-09-30
 
 - Corrected Issue Response scoring to exclude pull requests from issue counts.
+- Changed Commit Activity to count commits through GitHub search without materializing the full commit history.
+- Changed Documentation detection to avoid recursive-tree truncation.
+- Redefined PR Velocity as merged-PR throughput over the same 90-day window as Commit Activity.
 - Added deterministic regression fixtures for issue-response scoring.
 - Updated live integration expectations for `v2.0.9`.
 
