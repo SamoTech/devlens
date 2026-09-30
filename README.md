@@ -21,7 +21,19 @@
 ---
 
 <!-- DEVLENS:START -->
-> The README health snapshot is maintained by the GitHub Action (`action-v1-7d`). It is a historical CI result, not a live `dashboard-v2-9d` dashboard score. Run the dashboard or the Action to generate a current result.
+![DevLens Health](https://img.shields.io/badge/DevLens%20Health-91%2F100-brightgreen?style=flat-square&logo=github) **Overall health: 91/100** — *Last updated: 2026-09-30*
+
+| Dimension | Progress | Score | Weight |
+|---|---|---|---|
+| 📝 **README Quality** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
+| 🔥 **Commit Activity** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
+| 🌿 **Repo Freshness** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
+| 📚 **Documentation** | `██████████` | ![96](https://img.shields.io/badge/96-brightgreen?style=flat-square) | 15% |
+| ⚙️ **CI/CD Setup** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
+| 🎯 **Issue Response** | `█████████░` | ![94](https://img.shields.io/badge/94-brightgreen?style=flat-square) | 10% |
+| ⭐ **Community Signal** | `██░░░░░░░░` | ![16](https://img.shields.io/badge/16-red?style=flat-square) | 5% |
+| 🔀 **PR Velocity** | `████████░░` | ![85](https://img.shields.io/badge/85-brightgreen?style=flat-square) | 10% |
+| 🔐 **Security** | `███████░░░` | ![70](https://img.shields.io/badge/70-green?style=flat-square) | 5% |
 <!-- DEVLENS:END -->
 
 ---
@@ -149,152 +161,3 @@ Weights are **fully adjustable** in the UI via sliders — they auto-normalize t
 
 ```markdown
 <!-- DEVLENS:START -->
-<!-- DEVLENS:END -->
-```
-
-2. Create `.github/workflows/devlens.yml`:
-
-```yaml
-name: DevLens Health Check
-on:
-  push:
-    branches: [main]
-  schedule:
-    - cron: '0 9 * * 1'   # every Monday 09:00 UTC
-permissions:
-  contents: write
-jobs:
-  devlens:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Fetch DevLens score
-        run: |
-          curl -s "https://devlens-io.vercel.app/api/analyze?repo=${{ github.repository }}" \
-            | jq '.healthScore'
-```
-
-> `GITHUB_TOKEN` is automatic — no setup needed.
-
----
-
-## 🔌 API Reference
-
-```bash
-# Analyze a repo
-GET https://devlens-io.vercel.app/api/analyze?repo=owner/name
-
-# Full security + vulnerability scan
-GET https://devlens-io.vercel.app/api/security?repo=owner/name
-GET https://devlens-io.vercel.app/api/security?repo=owner/name&force=1  # bypass cache
-
-# Compare two repos
-GET https://devlens-io.vercel.app/api/compare?a=owner/a&b=owner/b
-
-# Score history (last 12 weekly snapshots)
-GET https://devlens-io.vercel.app/api/history?repo=owner/name
-
-# Recently checked repos
-GET https://devlens-io.vercel.app/api/watchlist
-
-# Badge data
-GET https://devlens-io.vercel.app/api/badge/owner/name
-
-# Live usage stats
-GET https://devlens-io.vercel.app/api/stats
-```
-
-### Runtime request budgets
-
-The dashboard applies Redis-backed per-minute budgets to bound expensive work: analysis and history allow 30 requests per client identity, advisory 10, compare 10, organization analysis 3, security scans 5, and watchlist operations 30. When a request exceeds its budget, the API returns HTTP `429` with `Retry-After` and rate-limit headers. If Redis is unavailable, the application reports degraded persistence or rate-limit protection rather than claiming a successful write or complete security result.
-
----
-
-## 🛠️ Self-Hosting
-
-```bash
-git clone https://github.com/SamoTech/devlens
-cd devlens/dashboard
-npm install
-cp .env.example .env.local   # fill in env vars
-npm run dev                   # → http://localhost:3000
-```
-
-**Environment variables:**
-
-```env
-# GitHub OAuth (Sign in with GitHub)
-AUTH_GITHUB_ID=
-AUTH_GITHUB_SECRET=
-AUTH_SECRET=
-
-# Upstash Redis (watchlist, history, stats, cache)
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-
-# Optional server-side GitHub token for higher upstream API quota and security modules
-GITHUB_TOKEN=
-
-# NIST NVD API key — free, raises rate limit 10×
-# Register at: https://nvd.nist.gov/developers/request-an-api-key
-NVD_API_KEY=        # optional but recommended
-```
-
-**Deploy to Vercel:**
-```bash
-vercel --cwd dashboard
-# Set Root Directory = dashboard in Vercel project settings
-```
-
----
-
-## 🗺️ Roadmap
-
-- [x] 9-dimension health score engine
-- [x] Adjustable weight sliders with auto-normalization
-- [x] Redis-backed watchlist, history snapshots, stats counters
-- [x] Live trend chart from real historical data
-- [x] Org analysis (up to 30 repos ranked by health)
-- [x] Leaderboard, Checked, Stats, Badge pages
-- [x] Full API with response shapes documented
-- [x] GitHub Actions integration
-- [x] Dark / light mode
-- [x] SEO: sitemap, robots.txt, Open Graph
-- [x] **Security Intelligence Engine — 13 free scan modules** ✨ *new in v1.1.0*
-- [x] **NIST NVD integration** ✨ *new in v1.1.0*
-- [x] **GitHub Advisory Database GraphQL** ✨ *new in v1.1.0*
-- [x] **PyPI Safety DB scanning** ✨ *new in v1.1.0*
-- [x] **Retire.js CDN vulnerability heuristic** ✨ *new in v1.1.0*
-- [ ] GitHub Advisory cross-reference with actual installed versions
-- [ ] Email digest (Resend free tier)
-- [ ] Slack / Discord notifications
-- [ ] Private repo support (GitHub OAuth)
-- [ ] Multi-repo portfolio dashboard
-- [ ] GitHub Marketplace Action listing
-
----
-
-## 💛 Sponsor
-
-DevLens is — and always will be — **completely free**. No trials. No paywalls.
-
-If DevLens saves you time, [a small sponsorship](https://github.com/sponsors/SamoTech) keeps this project alive and funds new features.
-
----
-
-## 🤝 Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). PRs welcome!
-
----
-
-## 📄 License
-
-MIT © [SamoTech](https://github.com/SamoTech)
-
----
-
-<div align="center">
-  <sub>Built with Next.js · Upstash Redis · GitHub API · NIST NVD · OSV.dev · ☕ by SamoTech<br/>
-  Free forever. If it helped you, <a href="https://github.com/sponsors/SamoTech">a small sponsorship</a> keeps the lights on. 💛</sub>
-</div>
