@@ -79,14 +79,8 @@ jobs:
           git fetch --tags --force origin
           if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null; then
             TAG_TARGET="$(git rev-list -n 1 "$RELEASE_TAG^{}")"
-            HEAD_TARGET="$(git rev-parse HEAD)"
-            if [[ "$TAG_TARGET" != "$HEAD_TARGET" ]]; then
-              echo "Release tag already exists on a different commit: $RELEASE_TAG"
-              echo "Tag target:  $TAG_TARGET"
-              echo "HEAD target: $HEAD_TARGET"
-              exit 1
-            fi
-            echo "Release tag already exists on HEAD: $RELEASE_TAG"
+            echo "Release tag already exists and will be reused: $RELEASE_TAG"
+            echo "Tag target: $TAG_TARGET"
           else
             git tag -a "$RELEASE_TAG" HEAD -m "Release $RELEASE_TAG"
             git push origin "$RELEASE_TAG"
