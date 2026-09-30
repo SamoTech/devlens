@@ -186,7 +186,7 @@ DIM_META = [
 ]
 
 def build_table():
-    """Build the full 7-row markdown table. Never truncated by AI."""
+    """Build the full 9-row markdown table. Never truncated by AI."""
     header = (
         f"![DevLens Health]({badge_url}) "
         f"**Overall health: {health}/100** \u2014 "
