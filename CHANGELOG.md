@@ -9,6 +9,7 @@ All notable changes to DevLens, newest first.
 - Closed the Marketplace publication/verification blocker and advanced the project to Phase 2 — Adoption and onboarding.
 - Improved the README onboarding funnel with explicit recommended, read-only, and CI-gate installation paths.
 - Added a first-run checklist and common first-run failure/remediation guidance, including permissions and README persistence checks.
+- Added concrete onboarding examples for application/service, library/package, monorepo, and restricted/read-only repository patterns.
 
 ## 2.0.8 — 2026-09-30
 
