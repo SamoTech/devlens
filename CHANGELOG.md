@@ -13,6 +13,11 @@ All notable changes to DevLens, newest first.
 - Removed the hard-coded `2.0.0` Action-version assertion from release preflight.
 - Updated release workflow dependencies for the current GitHub Actions runtime.
 
+### Marketplace and onboarding audit
+- Audited the live GitHub Marketplace listing and found it still serving the legacy `v1.0.3` snapshot with obsolete dashboard/Vercel content.
+- Improved the repository Action metadata and README installation funnel for the v2 Action-only product.
+- Marketplace publication/update remains an explicit operational step because a GitHub Release alone does not replace the Marketplace release snapshot.
+
 ### Documentation and agent continuity
 - Updated the authoritative AI project context with verified v2.0.1 release state.
 - Documented the automated release architecture and floating `v2` policy.
