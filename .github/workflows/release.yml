@@ -51,9 +51,10 @@ jobs:
 
             ### What's included
             - Repository health scoring across 9 dimensions
-            - Auto-inject live badge into README on every push
-            - Weekly digest workflow
-            - Zero-config setup
+            - Automatic README score block updates
+            - GitHub Actions job summary and machine-readable outputs
+            - Live GitHub API integration testing
+            - Zero hosted service dependency
 
             ### Usage
             ```yaml
