@@ -531,6 +531,14 @@ Not every change requires editing every file, but every affected document must r
 
 **Consequence:** Agents must read it before implementation and update it when project knowledge changes.
 
+### D-008 — Release preflight and pinned runtime dependencies
+
+**Decision:** The v2 release path must validate the real Action before creating a versioned tag, and direct Python runtime dependencies must be pinned in `requirements.txt`.
+
+**Status:** DECISION / ACTIVE.
+
+**Consequence:** A release cannot be tagged if the live Action preflight fails or the requested versioned tag already exists. Runtime dependency resolution must use the repository's pinned direct dependencies.
+
 ## 20. Agent handoff template
 
 When an agent finishes meaningful work, the final handoff should contain:
