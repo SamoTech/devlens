@@ -98,6 +98,41 @@ DevLens runs inside the user's GitHub Actions environment. The scoring implement
 
 No DevLens-hosted database is required for repository scoring. No Groq or AI provider is required for scoring.
 
+## Release and Distribution
+
+The current verified release is `v2.0.1`, with the floating production tag `v2`.
+
+Release automation lives in `.github/workflows/release.yml`:
+
+1. A manual release dispatch creates a versioned `v2.x.x` tag.
+2. The tag push triggers the release job.
+3. Static and live Action preflight validation runs.
+4. The floating `v2` tag is moved to the released version.
+5. The GitHub Release is published.
+
+Marketplace publication is tracked separately from GitHub Release status.
+
+## AI Agent Instructions
+
+This repository is designed to be maintainable across multiple AI agents.
+
+Before making project-level changes, every AI agent must:
+
+1. Read `README.md`.
+2. Read `docs/AI_PROJECT_CONTEXT.md`.
+3. Inspect the current implementation and relevant workflows.
+4. Classify important assumptions as FACT, DECISION, PLAN, BLOCKER, or EXPERIMENT.
+5. Follow the Action-only product boundary.
+6. Verify implementation with appropriate tests and real GitHub Actions evidence when applicable.
+7. Update affected documentation in the same work session.
+8. Leave a clear handoff for the next agent.
+
+The authoritative agent/project context is:
+
+`docs/AI_PROJECT_CONTEXT.md`
+
+Do not reintroduce the removed dashboard, Vercel/Supabase core architecture, mandatory external AI scoring, or other former architecture without an explicit product decision.
+
 ## Testing
 
 The repository contains a live integration workflow that executes the actual composite Action against GitHub's API and validates the resulting outputs and all 9 dimensions.
