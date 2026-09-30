@@ -293,13 +293,12 @@ Manual release:
 
 1. Run **Create Release** via `workflow_dispatch`.
 2. Supply a strict `v2.x.x` version tag.
-3. The dispatch job creates only the versioned tag.
-4. The resulting tag push triggers the release job exactly once.
-5. Release preflight runs static validation and the real Action.
-6. The release job updates the floating `v2` tag to that version.
-7. GitHub Release is published.
+3. The release job validates the tag, creates it when absent (or verifies an existing tag points to the current HEAD), and continues in the same workflow run.
+4. The release job checks out the release tag and runs static validation plus the real Action preflight.
+5. The release job updates the floating `v2` tag to that version.
+6. The GitHub Release is published in the same workflow run.
 
-Future version-tag pushes matching `v2.*.*` also trigger the release job.
+Future version-tag pushes matching `v2.*.*` are also supported and execute the same release job. The manual path does not depend on a second workflow triggered by a tag push.
 
 The workflow must not hard-code a specific patch/minor Action version. Preflight validates that the Action reports a valid `2.x.x` version.
 
@@ -339,7 +338,7 @@ As of 2026-09-30:
 - README persistence has been tested on a disposable branch and verified through GitHub API.
 - Current release line is v2; `v2.0.1` is the latest verified version.
 - Floating `v2` points to the latest verified v2 release.
-- Repository release automation has been hardened to avoid duplicate manual/tag-triggered releases.
+- Repository release automation has been hardened so manual releases complete in one workflow run and do not depend on a token-generated tag push triggering a second workflow.
 - Repository metadata may still contain stale external/homepage information and should be verified before treating metadata cleanup as complete.
 - Any external Vercel project state must be verified separately; removing repository configuration does not prove external project deletion.
 
@@ -500,9 +499,9 @@ The machine-readable report action version must identify the actual DevLens impl
 
 ### D-010 — Automated semantic v2 release flow
 **Status:** DECISION / ACTIVE.  
-Manual release dispatch creates only a versioned `v2.x.x` tag; the tag push owns the release operation. The release workflow then validates, moves floating `v2`, and publishes the GitHub Release.
+Manual release dispatch performs the complete release operation in one workflow run: validate the requested `v2.x.x` tag, create or validate the versioned tag, run release preflight, move floating `v2`, and publish the GitHub Release.
 
-**Consequence:** A manual release does not independently publish a second release after pushing the tag. Versioned release tags are immutable; the `v2` major tag is intentionally mutable.
+**Consequence:** The manual release path does not rely on a token-generated tag push triggering a second workflow. Future direct `v2.x.x` tag pushes remain supported. Versioned release tags are not overwritten; the `v2` major tag is intentionally mutable.
 
 ## 18. Agent handoff template
 
@@ -561,11 +560,11 @@ When uncertain, inspect current repository files and current GitHub Actions/rele
 - The correction has not yet been verified through a released @v2 consumer run.
 
 **Remaining**
-- Publish v2.0.2 through the existing release workflow.
-- Verify release preflight, floating v2, and a consumer run using @v2.
+- Re-run v2.0.2 after the release-workflow fix.
+- Verify release preflight, floating v2, GitHub Release publication, and a consumer run using @v2.
 
 **Next action**
-- Create and verify v2.0.2.
+- Run and verify v2.0.2 using the repaired single-run release workflow.
 
 ## 20. Current working objective
 
