@@ -1,0 +1,4 @@
+# Runtime dependencies for the DevLens composite Action.
+# Direct dependencies are pinned for reproducible Action startup.
+requests==2.34.2
+PyGithub==2.10.0
