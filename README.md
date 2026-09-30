@@ -128,6 +128,10 @@ Only the content between the markers is replaced. If the markers do not exist, D
 
 Production workflows should use `@v2`, not `@main`. Pin to a specific release tag or full commit SHA when you require immutable supply-chain control.
 
+## Runtime dependencies
+
+The Action installs its direct Python dependencies from the repository's pinned `requirements.txt` rather than resolving unpinned packages at runtime.
+
 ## Testing
 
 DevLens has two validation layers:
@@ -136,6 +140,8 @@ DevLens has two validation layers:
 - Live integration executes the actual composite Action against GitHub's API and validates its outputs and all nine dimensions.
 
 README persistence is also testable without mutating the production branch by setting `readme_branch` to a disposable test branch.
+
+Release automation runs a live Action preflight before creating the versioned tag and refuses to overwrite an existing versioned release tag.
 
 ## Marketplace
 
