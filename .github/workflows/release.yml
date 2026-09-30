@@ -66,14 +66,18 @@ jobs:
               TAG=""
             else
               SHOULD_RELEASE=true
-              LATEST="$(git tag -l 'v2.[0-9]*.[0-9]*' | sort -V | tail -n 1)"
-              if [[ -z "$LATEST" ]]; then
-                TAG="v2.0.0"
-              else
-                IFS='.' read -r MAJOR MINOR PATCH <<< "${LATEST#v}"
-                PATCH=$((PATCH + 1))
-                TAG="v${MAJOR}.${MINOR}.${PATCH}"
-              fi
+              ACTION_VERSION="$(python - <<'PY'
+import re
+from pathlib import Path
+
+text = Path("scripts/devlens.py").read_text()
+match = re.search(r'action_version":\s*"(?P<version>2\\.[0-9]+\\.[0-9]+)"', text)
+if not match:
+    raise SystemExit("Could not determine action version from scripts/devlens.py")
+print(match.group("version"))
+PY
+)"
+              TAG="v$ACTION_VERSION"
               echo "Automatic critical-change release: $TAG"
             fi
           fi
