@@ -16,7 +16,7 @@ Welcome to the DevLens documentation. DevLens is a GitHub Action that gives your
 
 ## Health Score Dimensions
 
-DevLens evaluates your repo across 7 weighted dimensions:
+DevLens evaluates your repo across 9 weighted dimensions:
 
 | Dimension | Weight | What it measures |
 |---|---|---|
