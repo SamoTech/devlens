@@ -105,7 +105,10 @@ DevLens maintains this block automatically:
 ```markdown
 <!-- DEVLENS:START -->
 ...current score and dimension report...
+<!-- DEVLENS:END -->
+```
 
+Only the content between the markers is replaced. If the markers do not exist, DevLens appends them.
 
 ## Inputs
 
@@ -118,10 +121,37 @@ DevLens maintains this block automatically:
 | `fail_on_score_below` | No | empty | Fail the Action below this 0–100 score |
 | `notify_discord` | No | empty | Optional Discord webhook |
 
+## Outputs
+
+| Output | Description |
+|---|---|
+| `health_score` | Overall score from 0 to 100 |
+| `badge_url` | Shields.io badge URL for the current score |
+| `report_json` | Machine-readable report containing all nine dimensions |
+
+## CI quality gate
+
+```yaml
+- uses: SamoTech/devlens@v2
+  with:
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+    update_readme: 'true'
+    fail_on_score_below: '80'
+```
+
 ## Versioning
 
-Production workflows should use `@v2`, not `@main`. Pin to a full release tag or commit SHA when you require immutable supply-chain control.
+Production workflows should use `@v2`, not `@main`. Pin to a specific release tag or full commit SHA when you require immutable supply-chain control.
+
+## Testing
+
+DevLens has two validation layers:
+
+- Static validation compiles the scorer and validates the Action metadata.
+- Live integration executes the actual composite Action against GitHub's API and validates its outputs and all nine dimensions.
+
+README persistence is also testable without mutating the production branch by setting `readme_branch` to a disposable test branch.
 
 ## Marketplace
 
-DevLens is packaged as a single public GitHub Action repository with `action.yml` at the root. Releases are versioned independently from the development branch.
+DevLens is packaged as a single public GitHub Action repository with `action.yml` at the root. A Marketplace release is created from a semantic versioned GitHub release.
