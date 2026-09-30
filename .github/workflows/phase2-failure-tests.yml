@@ -1,0 +1,49 @@
+name: DevLens Phase 2 Failure Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase2-failure-tests.yml'
+
+jobs:
+  invalid-threshold:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: read
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - id: run
+        continue-on-error: true
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_readme: 'false'
+          fail_on_score_below: 'not-a-number'
+      - name: Assert clear threshold failure
+        env:
+          OUTCOME: ${{ steps.run.outcome }}
+        run: |
+          test "$OUTCOME" = failure
+          echo "Invalid threshold correctly failed the Action."
+
+  readme-write-permission:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: read
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - id: run
+        continue-on-error: true
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_readme: 'true'
+      - name: Assert README permission failure
+        env:
+          OUTCOME: ${{ steps.run.outcome }}
+        run: |
+          test "$OUTCOME" = failure
+          echo "README write correctly failed with read-only contents permission."
