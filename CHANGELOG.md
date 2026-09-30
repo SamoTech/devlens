@@ -2,7 +2,11 @@
 
 All notable changes to DevLens, newest first.
 
-## 2.0.0
+## Unreleased
+
+> Target release: v2.0.0
+
+## 2.0.0 (planned)
 
 ### Changed
 - DevLens is now a GitHub Action-only product with no dashboard, database, or Vercel runtime.
