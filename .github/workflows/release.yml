@@ -9,13 +9,12 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to create (e.g. v2.0.1)'
+        description: 'Version tag to create (e.g. v2.0.2)'
         required: true
-        default: 'v2.0.1'
+        default: 'v2.0.2'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_type == 'tag' && github.ref_name || github.event.inputs.tag }}
 
 jobs:
   bootstrap-floating-tag:
@@ -24,7 +23,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -43,45 +42,71 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           TARGET="$(git rev-parse 'V2.0.0^{}')"
-          git tag -a v2 "${TARGET}" -m "Floating tag v2 -> V2.0.0"
+          git tag -a v2 "$TARGET" -m "Floating tag v2 -> V2.0.0"
           git push origin v2
 
-  release:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type == 'tag')
+  prepare-release-tag:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Validate release tag
+      - name: Validate requested release tag
+        env:
+          RELEASE_TAG: ${{ github.event.inputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
-          case "${RELEASE_TAG}" in
-            v2.[0-9]*.[0-9]*) ;;
-            *) echo "Release tag must be v2.x.x: ${RELEASE_TAG}"; exit 1 ;;
-          esac
+          if [[ ! "$RELEASE_TAG" =~ ^v2\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tag must match v2.x.x: $RELEASE_TAG"
+            exit 1
+          fi
 
-      - name: Prepare versioned tag for manual release
-        if: github.event_name == 'workflow_dispatch'
+      - name: Create versioned release tag
+        env:
+          RELEASE_TAG: ${{ github.event.inputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if git rev-parse --verify --quiet "refs/tags/${RELEASE_TAG}" >/dev/null; then
-            echo "Release tag already exists: ${RELEASE_TAG}"
+          git fetch --tags --force origin
+          if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null; then
+            echo "Release tag already exists: $RELEASE_TAG"
             exit 1
           fi
 
-          git tag -a "${RELEASE_TAG}" -m "Release ${RELEASE_TAG}"
-          git push origin "${RELEASE_TAG}"
+          git tag -a "$RELEASE_TAG" HEAD -m "Release $RELEASE_TAG"
+          git push origin "$RELEASE_TAG"
+
+  release:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Validate release tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v2\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tag must match v2.x.x: $RELEASE_TAG"
+            exit 1
+          fi
 
       - name: Pre-release static validation
         shell: bash
@@ -106,19 +131,29 @@ jobs:
           REPORT: ${{ steps.preflight.outputs.report_json }}
         shell: python
         run: |
-          import json, os
+          import json
+          import os
+          import re
+
           score = int(os.environ["SCORE"])
           assert 0 <= score <= 100
+
           report = json.loads(os.environ["REPORT"])
           assert report["score_model"] == "action-v2-9d"
-          assert report["action_version"] == "2.0.0"
+
+          action_version = str(report["action_version"])
+          assert re.fullmatch(r"2\.[0-9]+\.[0-9]+", action_version), action_version
+
           assert set(report["scores"]) == {
               "readme", "activity", "freshness", "docs", "ci",
               "issues", "community", "pr_velocity", "security",
           }
-          print(f"Release preflight passed: {score}/100")
+
+          print(f"Release preflight passed: {score}/100; action version {action_version}")
 
       - name: Update floating v2 tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
         shell: bash
         run: |
           set -euo pipefail
@@ -126,18 +161,18 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git fetch --tags --force origin
-          git checkout --detach "${RELEASE_TAG}"
+          git checkout --detach "$RELEASE_TAG"
 
-          git tag -fa v2 -m "Floating tag v2 -> ${RELEASE_TAG}"
+          git tag -fa v2 -m "Floating tag v2 -> $RELEASE_TAG"
           git push origin v2 --force
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2.2.2
+        uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          name: "DevLens ${{ env.RELEASE_TAG }}"
+          tag_name: ${{ github.ref_name }}
+          name: "DevLens ${{ github.ref_name }}"
           body: |
-            ## DevLens ${{ env.RELEASE_TAG }}
+            ## DevLens ${{ github.ref_name }}
 
             ### What's included
             - Repository health scoring across 9 dimensions
