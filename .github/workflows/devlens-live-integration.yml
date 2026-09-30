@@ -1,4 +1,5 @@
 name: DevLens Live Integration
+# Temporary Phase 2 onboarding validation trigger; this branch is disposable.
 
 on:
   push:
