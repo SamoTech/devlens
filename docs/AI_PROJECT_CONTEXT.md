@@ -6,6 +6,18 @@
 >
 > **Rule:** Any AI agent, coding agent, automation agent, or human contributor working on DevLens must read `README.md` first, then read this document before making project-level decisions or changes. If implementation and documentation disagree, do not guess: verify the repository state and update the documentation to restore consistency.
 
+## 0. Project knowledge classification
+
+Every important project statement should be classified using one of these labels:
+
+- **FACT** — verified from the current repository, GitHub state, workflow evidence, or another directly verifiable source.
+- **DECISION** — explicitly approved product or architecture direction. Agents must follow it unless the product owner changes it.
+- **PLAN** — intended future work that is not implemented yet.
+- **BLOCKER** — an unresolved issue currently preventing a milestone or release.
+- **EXPERIMENT** — an optional hypothesis or trial that may be changed, rejected, or discarded.
+
+Agents must never convert a **PLAN**, **BLOCKER**, or **EXPERIMENT** into a **FACT** merely because it appears in documentation. When status changes, update the classification and supporting evidence.
+
 ## 1. Purpose of this document
 
 This file is the persistent operating context for DevLens.
