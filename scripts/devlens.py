@@ -45,15 +45,15 @@ def score_readme():
 
 def score_activity():
     try:
-        since = now - timedelta(days=90)
-        commits = list(repo.get_commits(since=since))
-        n = len(commits)
+        since = (now - timedelta(days=90)).strftime("%Y-%m-%d")
+        n = g.search_commits(query=f"repo:{REPO_NAME} committer:>={since}").totalCount
         if n >= 30: return 100
         if n >= 15: return 75
         if n >= 5:  return 50
         if n >= 1:  return 25
         return 0
-    except: return 0
+    except Exception:
+        return 0
 
 def score_freshness():
     d = days_since(repo.pushed_at)
@@ -64,14 +64,29 @@ def score_freshness():
     return 10
 
 def score_docs():
-    s = 0
-    key_files = ["LICENSE", "CONTRIBUTING.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "docs/"]
+    score = 0
     try:
-        paths = [c.path for c in repo.get_git_tree("HEAD", recursive=True).tree]
-        for f in key_files:
-            if any(c.startswith(f.rstrip("/")) for c in paths): s += 17
-        return min(s, 100)
-    except: return 0
+        for path in ["LICENSE", "LICENSE.md", "LICENSE.txt"]:
+            try:
+                repo.get_contents(path)
+                score += 17
+                break
+            except Exception:
+                pass
+        for path in ["CONTRIBUTING.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md", "SECURITY.md"]:
+            try:
+                repo.get_contents(path)
+                score += 17
+            except Exception:
+                pass
+        try:
+            repo.get_contents("docs")
+            score += 17
+        except Exception:
+            pass
+        return min(score, 100)
+    except Exception:
+        return 0
 
 def score_ci():
     try:
@@ -106,18 +121,17 @@ def score_community():
 
 weights = {"readme":0.20,"activity":0.20,"freshness":0.10,"docs":0.10,"ci":0.10,"issues":0.10,"community":0.05,"pr_velocity":0.10,"security":0.05}
 def score_pr_velocity():
+    """Measure merged-PR throughput over the same 90-day window used for activity."""
     try:
-        pulls = list(repo.get_pulls(state="closed", sort="updated", direction="desc"))[:30]
-        merged = [pr for pr in pulls if pr.merged_at][:20]
-        durations = [(pr.merged_at - pr.created_at).total_seconds() / 86400 for pr in merged if pr.created_at and pr.merged_at]
-        if not durations: return 50
-        avg_days = sum(durations) / len(durations)
-        if avg_days <= 1: return 100
-        if avg_days <= 3: return 85
-        if avg_days <= 7: return 70
-        if avg_days <= 14: return 55
-        if avg_days <= 30: return 35
-        return 15
+        since = (now - timedelta(days=90)).strftime("%Y-%m-%d")
+        merged = g.search_issues(
+            query=f"repo:{REPO_NAME} is:pr is:merged merged:>={since}"
+        ).totalCount
+        if merged >= 30: return 100
+        if merged >= 15: return 75
+        if merged >= 5:  return 50
+        if merged >= 1:  return 25
+        return 0
     except Exception:
         return 50
 
@@ -172,7 +186,7 @@ def dim_bar(score):
 badge_url = (f"https://img.shields.io/badge/DevLens%20Health-{health}%2F100"
              f"-{badge_color(health)}?style={BADGE_STYLE}&logo=github")
 
-report = {"repo":REPO_NAME,"score_model":"action-v2-9d","action_version":"2.0.9","health_score":health,"scores":scores,
+report = {"repo":REPO_NAME,"score_model":"action-v2-9d","action_version":"2.1.0","health_score":health,"scores":scores,
           "badge_url":badge_url,"generated_at":now.isoformat()}
 
 print(json.dumps(report, indent=2))
