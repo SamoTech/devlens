@@ -27,9 +27,9 @@
 |---|---|---|---|
 | 📝 **README Quality** | `████████░░` | ![76](https://img.shields.io/badge/76-green?style=flat-square) | 20% |
 | 🔥 **Commit Activity** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 20% |
-| 🌿 **Repo Freshness** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
-| 📚 **Documentation** | `██████████` | ![96](https://img.shields.io/badge/96-brightgreen?style=flat-square) | 15% |
-| ⚙️ **CI/CD Setup** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 15% |
+| 🌿 **Repo Freshness** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
+| 📚 **Documentation** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
+| ⚙️ **CI/CD Setup** | `██████████` | ![100](https://img.shields.io/badge/100-brightgreen?style=flat-square) | 10% |
 | 🎯 **Issue Response** | `█████████░` | ![94](https://img.shields.io/badge/94-brightgreen?style=flat-square) | 10% |
 | ⭐ **Community Signal** | `██░░░░░░░░` | ![16](https://img.shields.io/badge/16-red?style=flat-square) | 5% |
 | 🔀 **PR Velocity** | `████████░░` | ![85](https://img.shields.io/badge/85-brightgreen?style=flat-square) | 10% |
