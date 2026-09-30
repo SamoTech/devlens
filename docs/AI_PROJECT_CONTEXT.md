@@ -383,9 +383,11 @@ Remaining Phase 1 operational check:
 - **COMPLETED:** Clarified permissions/security implications for README-enabled versus read-only installations.
 - **COMPLETED:** Added concrete onboarding examples for application/service repositories, open-source libraries/packages, monorepos/high-change repositories, and restricted/read-only repositories.
 - **VERIFIED:** Real PR-triggered onboarding validation run `36700821668` completed successfully using the repository's live integration workflow. The actual composite Action executed successfully and the existing integration harness passed.
-- **NEXT:** Use real Action failures from future runs to refine troubleshooting guidance and identify any remaining onboarding friction.
+- **VERIFIED:** Failure-path run `36701199169` passed both disposable onboarding tests: invalid `fail_on_score_below` was rejected with a clear 0–100 validation message, and README persistence correctly failed under `contents: read` with an explicit 403 remediation signal.
+- **COMPLETED:** Phase 2 onboarding validation is closed. No runtime defect was exposed by the real success or failure-path tests.
+- **NEXT:** Begin Phase 3 scoring quality and observability.
 
-### Phase 3 — Scoring quality and observability
+### Phase 3 — Scoring quality and observability — NEXT
 
 - Expand automated edge-case tests.
 - Improve evidence shown for individual dimension scores.
@@ -583,6 +585,6 @@ When uncertain, inspect current repository files and current GitHub Actions/rele
 
 ## 20. Current working objective
 
-**Primary objective:** Increase DevLens adoption and onboarding without violating the Action-only product boundary.
+**Primary objective:** Improve DevLens scoring quality and observability without violating the Action-only product boundary.
 
-Phase 1 release/distribution is complete and Marketplace v2.0.8 is verified. Phase 2 onboarding has started: the README now provides explicit installation choices, a first-run checklist, and first-run failure guidance. The next agent should use real Action failures to refine troubleshooting guidance and identify remaining onboarding friction while preserving current production behavior.
+Phase 1 release/distribution is complete and Marketplace v2.0.8 is verified. Phase 2 adoption/onboarding is verified and closed: the README provides explicit installation choices, repository-pattern examples, first-run guidance, and permission/failure remediation; the real Action success path and disposable failure paths were executed successfully. The next agent should begin Phase 3 with scoring edge cases, evidence quality, API efficiency, sparse-history behavior, Enterprise compatibility, and regression fixtures.
