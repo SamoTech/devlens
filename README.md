@@ -1,6 +1,6 @@
 <div align="center">
 
-![DevLens](docs/assets/banner.svg)
+![DevLens](docs/banner.svg)
 
 <img src="https://img.shields.io/badge/DevLens-GitHub%20Action-brightgreen?style=for-the-badge&logo=github" alt="DevLens GitHub Action"/>
 <img src="https://img.shields.io/github/license/SamoTech/devlens?style=for-the-badge" alt="License"/>
@@ -86,16 +86,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Score repository
-        uses: SamoTech/devlens@main
+        uses: SamoTech/devlens@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           update_readme: 'true'
+          readme_branch: ''
           badge_style: flat-square
 ```
 
 Commit the workflow and GitHub Actions will run DevLens against that repository.
 
-For public repositories, the standard `GITHUB_TOKEN` is sufficient for normal scoring. Security checks may require the repository's available GitHub security permissions.
+For public repositories, the standard `GITHUB_TOKEN` is sufficient for normal scoring. The workflow should grant only the permissions it needs; `contents: write` is required when `update_readme: true`, while `security-events: read` enables security-related API checks.
 
 ## README result
 
@@ -104,3 +105,23 @@ DevLens maintains this block automatically:
 ```markdown
 <!-- DEVLENS:START -->
 ...current score and dimension report...
+
+
+## Inputs
+
+| Input | Required | Default | Description |
+|---|---|---|---|
+| `github_token` | Yes | — | GitHub token used for repository inspection |
+| `update_readme` | No | `true` | Write the score report to README |
+| `readme_branch` | No | empty | Branch to update; empty uses the repository default branch |
+| `badge_style` | No | `flat` | Shields.io badge style |
+| `fail_on_score_below` | No | empty | Fail the Action below this 0–100 score |
+| `notify_discord` | No | empty | Optional Discord webhook |
+
+## Versioning
+
+Production workflows should use `@v2`, not `@main`. Pin to a full release tag or commit SHA when you require immutable supply-chain control.
+
+## Marketplace
+
+DevLens is packaged as a single public GitHub Action repository with `action.yml` at the root. Releases are versioned independently from the development branch.
