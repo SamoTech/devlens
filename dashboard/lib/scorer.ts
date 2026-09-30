@@ -54,7 +54,20 @@ function headers(token?: string) {
 }
 
 async function ghFetch(url: string, token?: string): Promise<any> {
-  const r = await fetch(url, { headers: headers(token), next: { revalidate: 300 } })
+  let r = await fetch(url, {
+    headers: headers(token),
+    next: { revalidate: 300 },
+  })
+
+  // A stale/expired GitHub token should not break analysis of public repositories.
+  // Retry once anonymously; private repositories will still fail with 404/403.
+  if (r.status === 401 && token) {
+    r = await fetch(url, {
+      headers: headers(),
+      next: { revalidate: 300 },
+    })
+  }
+
   if (!r.ok) {
     const remaining = r.headers.get('x-ratelimit-remaining')
     if (r.status === 403 || r.status === 429 || remaining === '0') {
@@ -65,9 +78,12 @@ async function ghFetch(url: string, token?: string): Promise<any> {
     const err: any = new Error(
       r.status === 404
         ? 'Repository not found or inaccessible.'
-        : 'GitHub request failed.'
+        : r.status === 401
+          ? 'GitHub authentication failed.'
+          : 'GitHub request failed.'
     )
     if (r.status === 404) err.code = 'not_found'
+    if (r.status === 401) err.code = 'github_auth'
     throw err
   }
   return r.json()
