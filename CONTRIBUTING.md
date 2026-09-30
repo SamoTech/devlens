@@ -13,7 +13,7 @@ python -m py_compile scripts/devlens.py
 For a live local execution:
 
 ```bash
-pip install requests PyGithub python-dateutil
+pip install requests PyGithub
 export GITHUB_TOKEN=your_token
 export REPO=owner/repository
 python scripts/devlens.py
@@ -33,4 +33,4 @@ When changing a scoring dimension:
 
 Open a PR against `main` with a clear description of the scoring or Action behavior being changed.
 
-The integration workflow executes the real Action against GitHub's API, so changes must preserve valid authentication, outputs, 0–100 bounds, and all nine dimension keys.
+The integration workflow executes the real Action against GitHub's API, so changes must preserve valid authentication, outputs, 0–100 bounds, all nine dimension keys, and safe README persistence when enabled.
