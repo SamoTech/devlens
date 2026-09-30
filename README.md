@@ -12,7 +12,7 @@
 
 No dashboard. No hosted database. No account required. The repository being scored is the user's own GitHub repository, identified automatically by `github.repository`.
 
-[GitHub Marketplace](https://github.com/marketplace/actions/devlens-repo-health) · [Latest v2.0.8 release](https://github.com/SamoTech/devlens/releases/tag/v2.0.8)
+[GitHub Marketplace](https://github.com/marketplace/actions/devlens-repo-health) · [Latest v2.0.9 release](https://github.com/SamoTech/devlens/releases/tag/v2.0.9)
 
 </div>
 
