@@ -310,7 +310,7 @@ As of 2026-09-30:
 
 - `v2.0.0` exists as the original Marketplace release tag.
 - `v2.0.1` was previously published successfully.
-- `v2.0.9` is the latest verified release and was created and published by the automatic critical-change release workflow.
+- `v2.1.0` is the latest verified release and was created and published by the automatic critical-change release workflow.
 - The release preflight executed the real Action successfully and validated the reported Action version against the release version.
 - The floating `v2` tag was updated successfully to `v2.0.9`.
 - The automatic release workflow detects critical production paths on pushes to `main`, derives the release version from `scripts/devlens.py`, runs static validation and live Action preflight, updates `v2`, and publishes the GitHub Release.
@@ -559,7 +559,7 @@ When uncertain, inspect current repository files and current GitHub Actions/rele
 **Implemented**
 - Hardened `.github/workflows/release.yml` so static and live preflight run before creation of a new versioned release tag.
 - Added immutable versioned-tag validation.
-- Bumped the machine-readable Action version to `2.0.9` for the Issue Response scoring correction.
+- Bumped the machine-readable Action version to `2.0.9` for the scoring evidence/API-efficiency corrections.
 - Updated live integration validation to require `2.0.8`.
 - Merged PR #24 and triggered the automatic critical-change release.
 
