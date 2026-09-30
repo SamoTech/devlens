@@ -1,6 +1,6 @@
 # DevLens Documentation
 
-Welcome to the DevLens documentation. DevLens is a GitHub Action that gives your repository a health score across 7 dimensions and auto-updates your README with a live badge.
+Welcome to the DevLens documentation. DevLens is a GitHub Action that gives your repository a health score across 9 dimensions and auto-updates your README with a live badge.
 
 ## Contents
 
