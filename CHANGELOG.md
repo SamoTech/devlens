@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+- Corrected Issue Response scoring to exclude pull requests from issue counts.
+- Added deterministic regression fixtures for issue-response scoring.
+- Updated live integration expectations for the `2.0.9` candidate.
+
+
 All notable changes to DevLens, newest first.
 
 ## Unreleased — 2026-09-30
