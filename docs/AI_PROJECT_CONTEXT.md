@@ -309,17 +309,15 @@ The floating `v2` tag is intentionally mutable; versioned release tags are not o
 As of 2026-09-30:
 
 - `v2.0.0` exists as the original Marketplace release tag.
-- `v2.0.1` was created by the automated release workflow.
-- `v2` exists and was successfully moved to `v2.0.1`.
-- `v2.0.1` GitHub Release was published successfully.
-- The live Marketplace listing was manually published/updated to expose **v2.0.1** as the current listing version.
-- Release preflight executed the real Action and produced **85/100** using `action-v2-9d`.
-- Consumer verification run `36691520201` on `SamoTech/skills-tree` succeeded with **87/100** and README persistence, but exposed a version-reporting defect because the report identified the Action as `2.0.0`.
-- Commit `4780c10d7324b590f9d630485045e0d3079e409c` corrected the report to `2.0.1`.
-- This correction is **IMPLEMENTED — NOT VERIFIED** in a released `@v2` consumer run; the next release must verify it.
-- The release run verified all nine score keys and a valid 2.x.x Action version.
-- Release workflow hardening was committed in `7f7df1aae8e1ddd8be3c4d19265a8810eb66c9c7`.
-- The release workflow run triggered by that commit was observed running successfully through the bootstrap job.
+- `v2.0.1` was previously published successfully.
+- `v2.0.7` is the latest verified release and was created and published by the automatic critical-change release workflow.
+- The release preflight executed the real Action successfully and validated the reported Action version against the release version.
+- The floating `v2` tag was updated successfully to `v2.0.7`.
+- The automatic release workflow detects critical production paths on pushes to `main`, derives the release version from `scripts/devlens.py`, runs static validation and live Action preflight, updates `v2`, and publishes the GitHub Release.
+- The release workflow uses concurrency control to prevent overlapping release runs on `main`.
+- Historical orphaned version tags from failed release attempts remain immutable and are not reused or force-moved.
+- The live Marketplace listing currently displays **v2.0.7** as Latest. Marketplace publication is a separate external distribution surface, and its rendered documentation may lag repository changes.
+- Consumer verification on `SamoTech/skills-tree` previously succeeded with **87/100** and README persistence, exposing the version-reporting defect. The subsequent released correction is now verified by the v2.0.7 release preflight.
 - Production usage is `SamoTech/devlens@v2`.
 
 Marketplace publication status must be verified separately from GitHub Release status. A GitHub Release is not automatically treated as Marketplace publication unless GitHub shows the Marketplace association.
@@ -336,8 +334,8 @@ As of 2026-09-30:
 - README, contributor, security, documentation, and changelog materials are aligned with v2, subject to the current release-state documentation updates.
 - Live GitHub integration has executed the actual Action successfully.
 - README persistence has been tested on a disposable branch and verified through GitHub API.
-- Current release line is v2; `v2.0.1` is the latest verified version.
-- Floating `v2` points to the latest verified v2 release.
+- Current release line is v2; `v2.0.7` is the latest verified version.
+- Floating `v2` points to the latest verified v2 release (`v2.0.7`).
 - Repository release automation has been hardened so manual releases complete in one workflow run and do not depend on a token-generated tag push triggering a second workflow.
 - Repository metadata may still contain stale external/homepage information and should be verified before treating metadata cleanup as complete.
 - Any external Vercel project state must be verified separately; removing repository configuration does not prove external project deletion.
@@ -373,7 +371,7 @@ Roadmap entries are **PLAN**, not facts.
 Remaining Phase 1 operational check:
 
 - **IMPLEMENTED:** Marketplace publication/update for v2.0.1 has been completed and verified from the live Marketplace listing.
-- **REMAINING:** Release the version-reporting correction as v2.0.2 and rerun consumer verification.
+- **COMPLETED:** Released the version-reporting correction as `v2.0.7`; release preflight verified the corrected reported version.
 - Clean any stale repository metadata.
 
 ### Phase 2 — Adoption and onboarding — NEXT
