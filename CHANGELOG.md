@@ -2,11 +2,19 @@
 
 All notable changes to DevLens, newest first.
 
-## Unreleased — 2026-09-30
+## 2.0.8 — 2026-09-30
 
-### Documentation synchronization
-- Updated public and master documentation to the verified `v2.0.7` release state.
-- Recorded automatic critical-change release verification and the corrected Action version reporting.
+### Release hardening
+- Bumped the machine-readable Action version to `2.0.8`.
+- Hardened the automatic release workflow so static/live preflight runs before a new versioned release tag is created.
+- Added an immutable-tag safety check that rejects an existing versioned tag pointing to a different commit.
+- Updated live integration validation to require Action version `2.0.8`.
+
+### Verification
+- Automatic release workflow run `36698433347` completed successfully.
+- Static validation, real Action preflight, release-candidate validation, versioned tag creation, floating `v2` update, and GitHub Release publication all passed.
+- Live integration run `36698433209` completed successfully, including disposable-branch README persistence verification.
+- `v2.0.8` is the latest GitHub Release and floating `v2` points to the `v2.0.8` release tag.
 
 ## 2.0.1 — 2026-09-30
 
