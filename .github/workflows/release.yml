@@ -50,7 +50,7 @@ jobs:
             ## 🚀 DevLens ${{ github.event.inputs.tag }}
 
             ### What's included
-            - Repository health scoring across 7 dimensions
+            - Repository health scoring across 9 dimensions
             - Auto-inject live badge into README on every push
             - Weekly digest workflow
             - Zero-config setup
