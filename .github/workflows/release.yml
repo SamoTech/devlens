@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Version tag to create (e.g. v2.0.3)'
+        description: 'Version tag to create (e.g. v2.0.8)'
         required: true
-        default: 'v2.0.3'
+        default: 'v2.0.8'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -37,7 +37,6 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_TAG: ${{ github.event.inputs.tag }}
-          REF_NAME: ${{ github.ref_name }}
           BEFORE_SHA: ${{ github.event.before }}
           HEAD_SHA: ${{ github.sha }}
         run: |
@@ -88,35 +87,6 @@ jobs:
 
           echo "should_release=$SHOULD_RELEASE" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-
-      - name: Create or reuse versioned release tag
-        if: steps.release.outputs.should_release == 'true'
-        env:
-          RELEASE_TAG: ${{ steps.release.outputs.tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git fetch --tags --force origin
-          if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null; then
-            echo "Release tag already exists and will be reused: $RELEASE_TAG"
-          else
-            git tag -a "$RELEASE_TAG" HEAD -m "Release $RELEASE_TAG"
-            git push origin "$RELEASE_TAG"
-            echo "Created release tag: $RELEASE_TAG"
-          fi
-
-      - name: Checkout release tag
-        if: steps.release.outputs.should_release == 'true'
-        env:
-          RELEASE_TAG: ${{ steps.release.outputs.tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch --tags --force origin
-          git checkout --detach "$RELEASE_TAG"
 
       - name: Pre-release static validation
         if: steps.release.outputs.should_release == 'true'
@@ -170,6 +140,47 @@ jobs:
 
           print(f"Release preflight passed: {score}/100; action version {action_version}")
 
+      - name: Validate versioned tag state
+        if: steps.release.outputs.should_release == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          HEAD_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force origin
+          if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null; then
+            TAG_SHA="$(git rev-list -n 1 "$RELEASE_TAG^{commit}")"
+            if [[ "$TAG_SHA" != "$HEAD_SHA" ]]; then
+              echo "Existing versioned tag $RELEASE_TAG points to $TAG_SHA, not release candidate $HEAD_SHA."
+              echo "Versioned release tags are immutable; bump the Action version before releasing new content."
+              exit 1
+            fi
+            echo "Existing versioned tag is already anchored to this release candidate: $RELEASE_TAG"
+          else
+            echo "Versioned release tag does not exist yet: $RELEASE_TAG"
+          fi
+
+      - name: Create versioned release tag
+        if: steps.release.outputs.should_release == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          HEAD_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch --tags --force origin
+          if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null; then
+            echo "Release tag already exists at the validated candidate: $RELEASE_TAG"
+          else
+            git tag -a "$RELEASE_TAG" "$HEAD_SHA" -m "Release $RELEASE_TAG"
+            git push origin "$RELEASE_TAG"
+            echo "Created release tag: $RELEASE_TAG"
+          fi
+
       - name: Update floating v2 tag
         if: steps.release.outputs.should_release == 'true'
         env:
@@ -181,8 +192,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git fetch --tags --force origin
-          git checkout --detach "$RELEASE_TAG"
-          git tag -fa v2 -m "Floating tag v2 -> $RELEASE_TAG"
+          git tag -fa v2 -m "Floating tag v2 -> $RELEASE_TAG" "$RELEASE_TAG"
           git push origin v2 --force
 
       - name: Publish GitHub Release
@@ -202,9 +212,9 @@ jobs:
             - Zero hosted service dependency
 
             ### Usage
-            \`\`\`yaml
+            ```yaml
             - uses: SamoTech/devlens@v2
-            \`\`\`
+            ```
           draft: false
           prerelease: false
         env:
