@@ -130,9 +130,93 @@ The threshold only controls whether the Action fails; it does not change the cal
 **You want to test README writes safely:** Create a disposable branch and set `readme_branch` to that branch. This lets you validate persistence without intentionally changing the production/default branch.
 
 
-### Read-only installation
+## Common repository patterns
 
-If you do not want DevLens to modify your README, use `update_readme: 'false'` and `contents: read`:
+DevLens does not have separate scoring modes for different repository types. The same Action scores the repository where it runs; these examples show practical workflow choices for common setups.
+
+### Application or service repository
+
+Run on changes to the default branch and allow README persistence:
+
+```yaml
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  security-events: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: SamoTech/devlens@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_readme: 'true'
+```
+
+Use this when the repository's health report should stay visible in the README after normal development activity.
+
+### Open-source library or package
+
+Run after changes and keep a manual trigger for maintainers:
+
+```yaml
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  security-events: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: SamoTech/devlens@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_readme: 'true'
+          fail_on_score_below: '70'
+```
+
+Use the threshold only when maintainers want repository health to act as a CI quality signal. The threshold does not modify the score.
+
+### Monorepo or high-change repository
+
+Run the same repository-wide score on the default branch and use manual runs when needed:
+
+```yaml
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  security-events: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: SamoTech/devlens@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_readme: 'true'
+          readme_branch: ''
+```
+
+DevLens evaluates the GitHub repository as a whole. It does not score individual packages or subdirectories separately.
+
+### Restricted or read-only repository
+
+If repository policy prohibits workflow writes, use the least-privilege read-only configuration:
 
 ```yaml
 permissions:
@@ -143,14 +227,13 @@ jobs:
   health:
     runs-on: ubuntu-latest
     steps:
-      - name: Score repository
-        uses: SamoTech/devlens@v2
+      - uses: SamoTech/devlens@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           update_readme: 'false'
 ```
 
-This is the least-privilege option for scoring and reviewing the Actions summary without README writes.
+This keeps the score and Actions summary while avoiding README writes.
 
 ## README result
 
