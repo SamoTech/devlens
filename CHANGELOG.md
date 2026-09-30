@@ -4,16 +4,9 @@ All notable changes to DevLens, newest first.
 
 ## Unreleased — 2026-09-30
 
-### Release workflow correction
-- Fixed the manual release path so `workflow_dispatch` completes tag creation/validation, preflight, floating `v2` update, and GitHub Release publication in one workflow run.
-- Removed the dependency on a `GITHUB_TOKEN`-generated tag push triggering a second workflow run.
-- Existing requested release tags are now safely reusable without overwriting the immutable tag target.
-
-### Governance and verification
-- Adopted the repository AI governance model with explicit Human Owner → AI CEO/CIO → AI COO → specialist-agent hierarchy.
-- Made documentation synchronization, verification evidence, risk recording, and handoff mandatory completion gates.
-- Corrected the machine-readable Action report version from 2.0.0 to 2.0.1 in preparation for the next release.
-- The correction is implemented on main but remains unverified in a released @v2 consumer run; v2.0.2 must be rerun through the repaired release workflow.
+### Documentation synchronization
+- Updated public and master documentation to the verified `v2.0.7` release state.
+- Recorded automatic critical-change release verification and the corrected Action version reporting.
 
 ## 2.0.1 — 2026-09-30
 
