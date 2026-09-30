@@ -12,6 +12,8 @@
 
 **Repo health scoring in 9 dimensions + real cybersecurity vulnerability scanning. Free forever, live from the GitHub API.**
 
+> **Dogfooding:** DevLens scores `SamoTech/devlens` itself. Every main-branch code change and the weekly schedule refresh the self-health block below, with a **100/100 target** for continuous improvement.
+
 [🌐 Live Dashboard](https://devlens-io.vercel.app) · [🔐 Security Scanner](https://devlens-io.vercel.app/security) · [📖 Docs](https://devlens-io.vercel.app/docs) · [📊 Stats](https://devlens-io.vercel.app/stats) · [💛 Sponsor](https://github.com/sponsors/SamoTech)
 
 </div>
