@@ -16,7 +16,6 @@ No dashboard. No hosted database. No account required. The repository being scor
 
 ---
 
-
 ## What DevLens does
 
 Add one GitHub Actions workflow to your repository.
@@ -128,6 +127,8 @@ Only the content between the markers is replaced. If the markers do not exist, D
 
 Production workflows should use `@v2`, not `@main`. Pin to a specific release tag or full commit SHA when you require immutable supply-chain control.
 
+The current latest verified v2 release is `v2.0.1`. The floating `v2` tag tracks the latest v2 release.
+
 ## Runtime dependencies
 
 The Action installs its direct Python dependencies from the repository's pinned `requirements.txt` rather than resolving unpinned packages at runtime.
@@ -143,23 +144,45 @@ README persistence is also testable without mutating the production branch by se
 
 Release automation runs a live Action preflight before creating the versioned tag and refuses to overwrite an existing versioned release tag.
 
-## Marketplace\n\nDevLens is a single public GitHub Action repository with `action.yml` at the root.\n\nGitHub Marketplace publication is tied to a semantic GitHub release. For v2, the release target is:\n\n- Versioned release: `v2.0.0`\n- Consumer tag: `v2`\n- Marketplace action: **DevLens Repo Health**\n- Marketplace categories: **Code quality** and **Utilities**\n\nAfter the release workflow creates the GitHub release, the release must be published to the GitHub Marketplace using GitHub's **Publish this Action to the GitHub Marketplace** option. This requires the repository owner's acceptance of the GitHub Marketplace Developer Agreement. The existing Marketplace listing is updated by publishing the new release; no PyPI package or DevLens account is required.\n\nFor production workflows, install:\n\n```yaml\n- uses: SamoTech/devlens@v2\n  with:\n    github_token: ${{ secrets.GITHUB_TOKEN }}\n```\n\n## AI agent project instructions
+## Marketplace
+
+DevLens is a single public GitHub Action repository with `action.yml` at the root.
+
+The v2 distribution target is:
+
+- Latest verified release: `v2.0.1`
+- Consumer tag: `v2`
+- Marketplace action: **DevLens Repo Health**
+- Distribution: GitHub Marketplace
+- PyPI: not a distribution target
+
+For production workflows:
+
+```yaml
+- uses: SamoTech/devlens@v2
+  with:
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Marketplace publication status must be verified separately from GitHub Release status. Do not treat the existence of a GitHub Release alone as proof that Marketplace publication is complete.
+
+## AI agent project instructions
 
 AI agents working on this repository must start by reading this `README.md`, then read the authoritative master project document:
 
 `docs/AI_PROJECT_CONTEXT.md`
 
-That document is the project's master source of truth for product direction, architecture, decisions, roadmap, current state, testing rules, and AI-agent operating rules.
+That document is the project's master source of truth for product direction, architecture, decisions, roadmap, current state, testing rules, release rules, and AI-agent operating rules.
 
 AI agents must:
 
 1. Read `README.md` first.
 2. Read `docs/AI_PROJECT_CONTEXT.md` before making project-level decisions or implementation changes.
 3. Inspect the current repository state and relevant source/workflows.
-4. Build their working task prompt from the documented objective, constraints, and acceptance criteria.
-5. Follow the documented product boundary and do not reintroduce removed architecture.
-6. Verify their work with appropriate tests and real workflow evidence where applicable.
-7. Update the project documentation whenever their work changes behavior, architecture, decisions, roadmap, testing, security, or project state.
-8. Leave the documentation accurate for the next AI agent.
+4. Build their working task prompt from the documented objective, constraints, acceptance criteria, and relevant decision/roadmap item.
+5. Follow the documented product boundary and never reintroduce removed architecture without an explicit product decision.
+6. Verify work with appropriate tests and real workflow/release evidence where applicable.
+7. Update affected project documentation in the same work session.
+8. Leave the repository accurate for the next AI agent.
 
-**Documentation is part of the implementation. If the code and project documentation disagree, investigate and restore consistency rather than silently choosing one.**
+**Documentation is part of the implementation. If code and project documentation disagree, investigate current repository/GitHub evidence and restore consistency rather than silently choosing one.**
