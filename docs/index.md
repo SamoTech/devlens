@@ -24,7 +24,7 @@ jobs:
   health:
     runs-on: ubuntu-latest
     steps:
-      - uses: SamoTech/devlens@main
+      - uses: SamoTech/devlens@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           update_readme: 'true'
@@ -70,9 +70,8 @@ If the markers are absent, DevLens appends them to the README.
 | `github_token` | Yes | — | GitHub token used for repository inspection |
 | `badge_style` | No | `flat` | Shields.io badge style |
 | `update_readme` | No | `true` | Write the score report to README |
+| `readme_branch` | No | empty | Branch to update; empty uses the repository default branch |
 | `fail_on_score_below` | No | empty | Fail the Action below this 0–100 score |
-| `groq_api_key` | No | empty | Optional key for a one-sentence AI insight |
-| `groq_model` | No | empty | Optional Groq model |
 | `notify_discord` | No | empty | Optional Discord webhook |
 
 ## Outputs
@@ -86,7 +85,7 @@ If the markers are absent, DevLens appends them to the README.
 ## CI Quality Gate
 
 ```yaml
-- uses: SamoTech/devlens@main
+- uses: SamoTech/devlens@v2
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
     update_readme: 'true'
@@ -95,9 +94,9 @@ If the markers are absent, DevLens appends them to the README.
 
 ## Data and Privacy
 
-DevLens runs inside the user's GitHub Actions environment. The scoring implementation calls GitHub's API directly using the supplied Action token.
+DevLens runs inside the user's GitHub Actions environment. The scoring implementation calls GitHub's API directly using the supplied Action token. The Action uses `GITHUB_API_URL`, so GitHub Enterprise deployments do not require a hard-coded `api.github.com` endpoint.
 
-No DevLens-hosted database is required for repository scoring.
+No DevLens-hosted database is required for repository scoring. No Groq or AI provider is required for scoring.
 
 ## Testing
 
