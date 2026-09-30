@@ -16,6 +16,10 @@ No dashboard. No hosted database. No account required. The repository being scor
 
 ---
 
+<!-- DEVLENS:START -->
+> Add the workflow below to score this repository and let DevLens maintain this block automatically.
+<!-- DEVLENS:END -->
+
 ## What DevLens does
 
 Add one GitHub Actions workflow to your repository.
