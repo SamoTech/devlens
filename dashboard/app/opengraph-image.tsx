@@ -60,7 +60,7 @@ export default function OGImage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "20px", position: "relative" }}>
           <div style={{ fontSize: "68px", fontWeight: 800, color: "#ffffff", lineHeight: 1.05, letterSpacing: "-2px" }}>
             Repo Health.
-            <span style={{ color: "#6366f1" }}> In 7 Dimensions.</span>
+            <span style={{ color: "#6366f1" }}> In 9 Dimensions.</span>
           </div>
           <div style={{ fontSize: "26px", color: "#94a3b8", fontWeight: 400, lineHeight: 1.5, maxWidth: "740px" }}>
             Analyse any public GitHub repo and get an instant score out of 100. Free, no login, no data stored.
