@@ -45,11 +45,14 @@ jobs:
           git tag -a v2 "$TARGET" -m "Floating tag v2 -> V2.0.0"
           git push origin v2
 
-  prepare-release-tag:
-    if: github.event_name == 'workflow_dispatch'
+  release:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type == 'tag')
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
+
     steps:
       - uses: actions/checkout@v7
         with:
@@ -57,8 +60,6 @@ jobs:
           fetch-tags: true
 
       - name: Validate requested release tag
-        env:
-          RELEASE_TAG: ${{ github.event.inputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
@@ -67,9 +68,8 @@ jobs:
             exit 1
           fi
 
-      - name: Create versioned release tag
-        env:
-          RELEASE_TAG: ${{ github.event.inputs.tag }}
+      - name: Create or validate versioned release tag
+        if: github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           set -euo pipefail
@@ -78,35 +78,27 @@ jobs:
 
           git fetch --tags --force origin
           if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null; then
-            echo "Release tag already exists: $RELEASE_TAG"
-            exit 1
+            TAG_TARGET="$(git rev-list -n 1 "$RELEASE_TAG^{}")"
+            HEAD_TARGET="$(git rev-parse HEAD)"
+            if [[ "$TAG_TARGET" != "$HEAD_TARGET" ]]; then
+              echo "Release tag already exists on a different commit: $RELEASE_TAG"
+              echo "Tag target:  $TAG_TARGET"
+              echo "HEAD target: $HEAD_TARGET"
+              exit 1
+            fi
+            echo "Release tag already exists on HEAD: $RELEASE_TAG"
+          else
+            git tag -a "$RELEASE_TAG" HEAD -m "Release $RELEASE_TAG"
+            git push origin "$RELEASE_TAG"
+            echo "Created release tag: $RELEASE_TAG"
           fi
 
-          git tag -a "$RELEASE_TAG" HEAD -m "Release $RELEASE_TAG"
-          git push origin "$RELEASE_TAG"
-
-  release:
-    if: github.event_name == 'push' && github.ref_type == 'tag'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Validate release tag
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
+      - name: Checkout release tag
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! "$RELEASE_TAG" =~ ^v2\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag must match v2.x.x: $RELEASE_TAG"
-            exit 1
-          fi
+          git fetch --tags --force origin
+          git checkout --detach "$RELEASE_TAG"
 
       - name: Pre-release static validation
         shell: bash
@@ -152,8 +144,6 @@ jobs:
           print(f"Release preflight passed: {score}/100; action version {action_version}")
 
       - name: Update floating v2 tag
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
         shell: bash
         run: |
           set -euo pipefail
@@ -169,10 +159,10 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_name }}
-          name: "DevLens ${{ github.ref_name }}"
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "DevLens ${{ env.RELEASE_TAG }}"
           body: |
-            ## DevLens ${{ github.ref_name }}
+            ## DevLens ${{ env.RELEASE_TAG }}
 
             ### What's included
             - Repository health scoring across 9 dimensions
@@ -182,9 +172,9 @@ jobs:
             - Zero hosted service dependency
 
             ### Usage
-            ```yaml
+            \`\`\`yaml
             - uses: SamoTech/devlens@v2
-            ```
+            \`\`\`
           draft: false
           prerelease: false
         env:
