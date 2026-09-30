@@ -381,7 +381,8 @@ Remaining Phase 1 operational check:
 - **COMPLETED:** Added a first-run checklist and concrete onboarding guidance for workflow placement, permissions, token mapping, manual execution, outputs, and README persistence.
 - **COMPLETED:** Added common first-run failure/remediation guidance while preserving the existing Action contract.
 - **COMPLETED:** Clarified permissions/security implications for README-enabled versus read-only installations.
-- **NEXT:** Add repository-type examples where they provide distinct onboarding value, then use real Action failures to refine troubleshooting.
+- **COMPLETED:** Added concrete onboarding examples for application/service repositories, open-source libraries/packages, monorepos/high-change repositories, and restricted/read-only repositories.
+- **NEXT:** Use real Action failures to refine troubleshooting guidance and identify any remaining onboarding friction.
 
 ### Phase 3 — Scoring quality and observability
 
@@ -583,4 +584,4 @@ When uncertain, inspect current repository files and current GitHub Actions/rele
 
 **Primary objective:** Increase DevLens adoption and onboarding without violating the Action-only product boundary.
 
-Phase 1 release/distribution is complete and Marketplace v2.0.8 is verified. Phase 2 onboarding has started: the README now provides explicit installation choices, a first-run checklist, and first-run failure guidance. The next agent should add repository-type examples where they materially improve onboarding, then refine troubleshooting from real Action failures while preserving current production behavior.
+Phase 1 release/distribution is complete and Marketplace v2.0.8 is verified. Phase 2 onboarding has started: the README now provides explicit installation choices, a first-run checklist, and first-run failure guidance. The next agent should use real Action failures to refine troubleshooting guidance and identify remaining onboarding friction while preserving current production behavior.
