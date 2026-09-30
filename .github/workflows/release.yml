@@ -67,8 +67,8 @@ jobs:
             else
               SHOULD_RELEASE=true
               ACTION_VERSION="$(grep -m1 -o 'action_version":"[0-9.]*' scripts/devlens.py | sed 's/.*":"//')"
-              if [[ ! "$ACTION_VERSION" =~ ^2\\.[0-9]+\\.[0-9]+$ ]]; then
-                echo "Could not determine valid action version from scripts/devlens.py: $ACTION_VERSION"
+              if [[ -z "$ACTION_VERSION" ]]; then
+                echo "Could not determine action version from scripts/devlens.py"
                 exit 1
               fi
               TAG="v$ACTION_VERSION"
@@ -76,9 +76,14 @@ jobs:
             fi
           fi
 
-          if [[ "$SHOULD_RELEASE" == "true" && ! "$TAG" =~ ^v2\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag must match v2.x.x: $TAG"
-            exit 1
+          if [[ "$SHOULD_RELEASE" == "true" ]]; then
+            case "$TAG" in
+              v2.*.*) ;;
+              *)
+                echo "Release tag must match v2.x.x: $TAG"
+                exit 1
+                ;;
+            esac
           fi
 
           echo "should_release=$SHOULD_RELEASE" >> "$GITHUB_OUTPUT"
