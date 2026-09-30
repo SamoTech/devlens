@@ -162,7 +162,7 @@ def dim_bar(score):
 badge_url = (f"https://img.shields.io/badge/DevLens%20Health-{health}%2F100"
              f"-{badge_color(health)}?style={BADGE_STYLE}&logo=github")
 
-report = {"repo":REPO_NAME,"score_model":"action-v2-9d","action_version":"2.0.4","health_score":health,"scores":scores,
+report = {"repo":REPO_NAME,"score_model":"action-v2-9d","action_version":"2.0.6","health_score":health,"scores":scores,
           "badge_url":badge_url,"generated_at":now.isoformat()}
 
 print(json.dumps(report, indent=2))
