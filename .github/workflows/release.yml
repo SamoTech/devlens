@@ -25,6 +25,50 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Pre-release static validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/devlens.py
+          test -f action.yml
+          test -f requirements.txt
+          grep -Fx 'requests==2.34.2' requirements.txt
+          grep -Fx 'PyGithub==2.10.0' requirements.txt
+
+      - name: Pre-release live Action validation
+        id: preflight
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_readme: 'false'
+
+      - name: Validate live release candidate
+        env:
+          SCORE: ${{ steps.preflight.outputs.health_score }}
+          REPORT: ${{ steps.preflight.outputs.report_json }}
+        shell: python
+        run: |
+          import json, os
+          score = int(os.environ["SCORE"])
+          assert 0 <= score <= 100
+          report = json.loads(os.environ["REPORT"])
+          assert report["score_model"] == "action-v2-9d"
+          assert report["action_version"] == "2.0.0"
+          assert set(report["scores"]) == {
+              "readme", "activity", "freshness", "docs", "ci",
+              "issues", "community", "pr_velocity", "security",
+          }
+          print(f"Release preflight passed: {score}/100")
+
+      - name: Refuse to overwrite versioned release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git rev-parse --verify --quiet "refs/tags/${{ github.event.inputs.tag }}" >/dev/null; then
+            echo "Release tag already exists: ${{ github.event.inputs.tag }}"
+            exit 1
+          fi
+
       - name: Create and push tags
         shell: bash
         run: |

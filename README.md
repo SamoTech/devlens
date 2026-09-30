@@ -128,6 +128,10 @@ Only the content between the markers is replaced. If the markers do not exist, D
 
 Production workflows should use `@v2`, not `@main`. Pin to a specific release tag or full commit SHA when you require immutable supply-chain control.
 
+## Runtime dependencies
+
+The Action installs its direct Python dependencies from the repository's pinned `requirements.txt` rather than resolving unpinned packages at runtime.
+
 ## Testing
 
 DevLens has two validation layers:
@@ -137,12 +141,9 @@ DevLens has two validation layers:
 
 README persistence is also testable without mutating the production branch by setting `readme_branch` to a disposable test branch.
 
-## Marketplace
+Release automation runs a live Action preflight before creating the versioned tag and refuses to overwrite an existing versioned release tag.
 
-DevLens is packaged as a single public GitHub Action repository with `action.yml` at the root. A Marketplace release is created from a semantic versioned GitHub release.
-
-
-## AI agent project instructions
+## Marketplace\n\nDevLens is a single public GitHub Action repository with `action.yml` at the root.\n\nGitHub Marketplace publication is tied to a semantic GitHub release. For v2, the release target is:\n\n- Versioned release: `v2.0.0`\n- Consumer tag: `v2`\n- Marketplace action: **DevLens Repo Health**\n- Marketplace categories: **Code quality** and **Utilities**\n\nAfter the release workflow creates the GitHub release, the release must be published to the GitHub Marketplace using GitHub's **Publish this Action to the GitHub Marketplace** option. This requires the repository owner's acceptance of the GitHub Marketplace Developer Agreement. The existing Marketplace listing is updated by publishing the new release; no PyPI package or DevLens account is required.\n\nFor production workflows, install:\n\n```yaml\n- uses: SamoTech/devlens@v2\n  with:\n    github_token: ${{ secrets.GITHUB_TOKEN }}\n```\n\n## AI agent project instructions
 
 AI agents working on this repository must start by reading this `README.md`, then read the authoritative master project document:
 

@@ -531,6 +531,23 @@ Not every change requires editing every file, but every affected document must r
 
 **Consequence:** Agents must read it before implementation and update it when project knowledge changes.
 
+### D-008 — Release preflight and pinned runtime dependencies
+
+**Decision:** The v2 release path must validate the real Action before creating a versioned tag, and direct Python runtime dependencies must be pinned in `requirements.txt`.
+
+**Status:** DECISION / ACTIVE.
+
+**Consequence:** A release cannot be tagged if the live Action preflight fails or the requested versioned tag already exists. Runtime dependency resolution must use the repository's pinned direct dependencies.
+
+
+### D-009 — GitHub Marketplace is the distribution target
+
+**Decision:** DevLens v2 is distributed as a GitHub Marketplace Action. PyPI is not a distribution target.
+
+**Status:** DECISION / ACTIVE.
+
+**Consequence:** Release work must prioritize the root `action.yml`, semantic GitHub releases, the floating `v2` tag, Marketplace publication, and end-to-end installation verification. Python packages remain implementation dependencies of the Action and are not published as a separate product.
+
 ## 20. Agent handoff template
 
 When an agent finishes meaningful work, the final handoff should contain:

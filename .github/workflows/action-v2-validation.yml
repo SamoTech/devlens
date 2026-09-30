@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'action.yml'
+      - 'requirements.txt'
       - 'scripts/devlens.py'
       - '.github/workflows/action-v2-validation.yml'
 
@@ -19,16 +20,42 @@ jobs:
           python-version: '3.12'
       - name: Compile Action
         run: python -m py_compile scripts/devlens.py
-      - name: Validate action metadata
+      - name: Validate Marketplace metadata and runtime dependencies
         shell: python
         run: |
-          import re
           from pathlib import Path
+
           text = Path('action.yml').read_text()
-          required = ['name:', 'description:', 'inputs:', 'outputs:', 'runs:', 'using: \'composite\'', 'github.action_path']
+          required = [
+              "name: 'DevLens Repo Health'",
+              "description:",
+              "author: 'SamoTech'",
+              "branding:",
+              "icon: 'activity'",
+              "color: 'green'",
+              "inputs:",
+              "outputs:",
+              "runs:",
+              "using: 'composite'",
+              "github.action_path",
+              "requirements.txt",
+          ]
           missing = [item for item in required if item not in text]
           if missing:
-              raise SystemExit('Missing action metadata: ' + ', '.join(missing))
+              raise SystemExit('Missing Action/Marketplace metadata: ' + ', '.join(missing))
+
           if 'action-v2-9d' not in text or 'value: ${{ steps.devlens.outputs.health_score }}' not in text:
               raise SystemExit('Action v2 output metadata missing')
-          print('action.yml structural validation passed')
+
+          metadata_files = list(Path('.').glob('action.yml')) + list(Path('.').glob('action.yaml'))
+          if len(metadata_files) != 1:
+              raise SystemExit(f'Expected exactly one root Action metadata file, found {metadata_files}')
+
+          req = Path('requirements.txt').read_text().splitlines()
+          if 'requests==2.34.2' not in req or 'PyGithub==2.10.0' not in req:
+              raise SystemExit('Pinned runtime dependencies are missing')
+
+          if 'pip install --requirement' not in text:
+              raise SystemExit('Action must install dependencies from requirements.txt')
+
+          print('Action v2 and Marketplace metadata validation passed')
