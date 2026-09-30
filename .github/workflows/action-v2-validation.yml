@@ -25,10 +25,14 @@ jobs:
           import re
           from pathlib import Path
           text = Path('action.yml').read_text()
-          required = ['name:', 'description:', 'inputs:', 'outputs:', 'runs:', 'using: \'composite\'', 'github.action_path']
+          required = ['name:', 'description:', 'inputs:', 'outputs:', 'runs:', 'using: \'composite\'', 'github.action_path', 'requirements.txt']
           missing = [item for item in required if item not in text]
           if missing:
               raise SystemExit('Missing action metadata: ' + ', '.join(missing))
           if 'action-v2-9d' not in text or 'value: ${{ steps.devlens.outputs.health_score }}' not in text:
               raise SystemExit('Action v2 output metadata missing')
-          print('action.yml structural validation passed')
+          req = Path('requirements.txt').read_text().splitlines()
+          assert 'requests==2.34.2' in req
+          assert 'PyGithub==2.10.0' in req
+          assert 'pip install --requirement' in text
+          print('action.yml and dependency validation passed')
