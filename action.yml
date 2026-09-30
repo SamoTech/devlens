@@ -1,5 +1,5 @@
 name: 'DevLens Repo Health'
-description: 'Score your repository across 9 health dimensions and optionally maintain a transparent README health report.'
+description: 'Score a GitHub repository across 9 transparent health dimensions and optionally maintain a README health report.'
 author: 'SamoTech'
 branding:
   icon: 'activity'
