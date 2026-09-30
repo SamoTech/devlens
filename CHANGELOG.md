@@ -2,7 +2,7 @@
 
 All notable changes to DevLens, newest first.
 
-## v2.0.9 — 2026-09-30
+## v2.1.0 — 2026-09-30
 
 - Corrected Issue Response scoring to exclude pull requests from issue counts.
 - Changed Commit Activity to count commits through GitHub search without materializing the full commit history.
