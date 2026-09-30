@@ -82,6 +82,54 @@ Commit the workflow, open the **Actions** tab, and run **DevLens**. The Action a
 
 For the default installation, `contents: write` is required because README persistence is enabled by default. `security-events: read` enables security-related API checks; DevLens remains conservative when those APIs are unavailable.
 
+### Choose the installation that matches your repository
+
+**Recommended — README report enabled**
+
+Use this when you want DevLens to maintain the health report in the repository README. This is the standard installation shown above.
+
+- `contents: write` is required for the README update.
+- `security-events: read` enables the security-related checks.
+- No repository registration or DevLens account is required.
+
+**Read-only — no repository writes**
+
+Use this when repository policy does not allow the workflow to write files. Set `update_readme: 'false'` and use `contents: read`. DevLens still publishes the score and report through the Actions run.
+
+**CI gate — enforce a minimum score**
+
+Use this when DevLens is part of a quality gate. Add `fail_on_score_below` to the normal installation:
+
+```yaml
+with:
+  github_token: ${{ secrets.GITHUB_TOKEN }}
+  update_readme: 'true'
+  fail_on_score_below: '80'
+```
+
+The threshold only controls whether the Action fails; it does not change the calculated score.
+
+### First-run checklist
+
+1. Save the workflow under `.github/workflows/` in the repository you want to score.
+2. Commit the workflow and confirm GitHub recognizes it in the **Actions** tab.
+3. Check the workflow `permissions` block. Use `contents: write` only when README persistence is enabled.
+4. Confirm `github_token` is mapped to `${{ secrets.GITHUB_TOKEN }}`.
+5. Run the workflow manually with `workflow_dispatch` when you want to test the installation without waiting for a push.
+6. Open the completed run and inspect the DevLens job summary and `health_score` output.
+7. If README persistence is enabled, confirm the `DEVLENS:START` / `DEVLENS:END` block was updated on the intended branch.
+
+### Common first-run failures
+
+**The workflow is not appearing in Actions:** Confirm the file path is under `.github/workflows/`, the YAML is valid, and the workflow has been committed to GitHub.
+
+**The Action fails with a permissions error:** Compare the workflow `permissions` block with the installation mode. README persistence needs `contents: write`; read-only scoring can use `contents: read` with `update_readme: 'false'`.
+
+**The score runs but README does not change:** Confirm `update_readme: 'true'`, verify the token can write repository contents, and check `readme_branch` if you intentionally target a branch other than the repository default.
+
+**You want to test README writes safely:** Create a disposable branch and set `readme_branch` to that branch. This lets you validate persistence without intentionally changing the production/default branch.
+
+
 ### Read-only installation
 
 If you do not want DevLens to modify your README, use `update_readme: 'false'` and `contents: read`:
