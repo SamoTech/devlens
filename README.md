@@ -159,7 +159,7 @@ Only the content between the markers is replaced. If the markers do not exist, D
 
 Production workflows should use `@v2`, not `@main`. Pin to a specific release tag or full commit SHA when you require immutable supply-chain control.
 
-The current latest verified v2 release is `v2.0.1`. The floating `v2` tag tracks the latest v2 release.
+The current latest verified v2 release is `v2.0.1`. A version-reporting correction is committed on `main` and remains unverified until `v2.0.2` passes release preflight and consumer verification. The floating `v2` tag tracks the latest verified v2 release.
 
 ## Runtime dependencies
 
@@ -184,6 +184,7 @@ The v2 distribution target is:
 
 - Latest verified release: `v2.0.1`
 - Consumer tag: `v2`
+- Pending next release: `v2.0.2` (version-reporting correction, not yet verified)
 - Marketplace action: **DevLens Repo Health**
 - Distribution: GitHub Marketplace
 - PyPI: not a distribution target
@@ -216,5 +217,6 @@ AI agents must:
 6. Verify work with appropriate tests and real workflow/release evidence where applicable.
 7. Update affected project documentation in the same work session.
 8. Leave the repository accurate for the next AI agent.
+9. Do not declare meaningful work complete until implementation, verification, and required documentation are synchronized.
 
 **Documentation is part of the implementation. If code and project documentation disagree, investigate current repository/GitHub evidence and restore consistency rather than silently choosing one.**
