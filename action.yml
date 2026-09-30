@@ -47,7 +47,7 @@ runs:
         python-version: '3.12'
     - name: Install dependencies
       shell: bash
-      run: pip install requests PyGithub python-dateutil --quiet
+      run: pip install requests PyGithub --quiet
     - name: Run DevLens Action v2
       id: devlens
       shell: bash
