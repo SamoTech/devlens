@@ -312,7 +312,7 @@ As of 2026-09-30:
 - `v2.0.1` was previously published successfully.
 - `v2.1.0` is the latest verified release and was created and published by the automatic critical-change release workflow.
 - The release preflight executed the real Action successfully and validated the reported Action version against the release version.
-- The floating `v2` tag was updated successfully to `v2.0.9`.
+- The floating `v2` tag was updated successfully to `v2.1.0`.
 - The automatic release workflow detects critical production paths on pushes to `main`, derives the release version from `scripts/devlens.py`, runs static validation and live Action preflight, updates `v2`, and publishes the GitHub Release.
 - The release workflow uses concurrency control to prevent overlapping release runs on `main`.
 - Historical orphaned version tags from failed release attempts remain immutable and are not reused or force-moved.
