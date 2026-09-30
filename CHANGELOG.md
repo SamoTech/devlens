@@ -8,6 +8,10 @@ All notable changes to DevLens, newest first.
 
 ## 2.0.0 (planned)
 
+### Marketplace and release distribution
+- Prepared the v2 release for GitHub Marketplace distribution using the existing `DevLens Repo Health` listing.
+- The intended distribution path is the semantic GitHub release `v2.0.0` plus floating `v2` tag; no PyPI package is required.
+
 ### Security and release hardening
 - Pinned direct Python runtime dependencies in `requirements.txt` for reproducible Action startup.
 - Added live release preflight validation before tag creation.
